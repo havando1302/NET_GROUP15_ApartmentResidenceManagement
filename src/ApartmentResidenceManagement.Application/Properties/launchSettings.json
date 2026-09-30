@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ApartmentResidenceManagement.Application": {
+      "commandName": "Project",
+      "debugEngines": "managed,native"
+    },
+    "Profile 1": {
+      "commandName": "Project"
+    }
+  }
+}
