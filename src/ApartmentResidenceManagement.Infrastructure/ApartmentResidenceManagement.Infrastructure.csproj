@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.2.0" />
     <ProjectReference Include="..\ApartmentResidenceManagement.Application\ApartmentResidenceManagement.Application.csproj" />
     <ProjectReference Include="..\ApartmentResidenceManagement.Domain\ApartmentResidenceManagement.Domain.csproj" />
   </ItemGroup>
