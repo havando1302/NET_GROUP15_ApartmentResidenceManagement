@@ -9,10 +9,7 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Apartment> Apartments { get; set; } = null!;
     public DbSet<Resident> Residents { get; set; } = null!;
-    public DbSet<ResidenceHistory> ResidenceHistories { get; set; } = null!;
-    public DbSet<Vehicle> Vehicles { get; set; } = null!;
     public DbSet<UserAccount> UserAccounts { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
