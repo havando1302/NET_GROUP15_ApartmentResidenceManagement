@@ -3,7 +3,6 @@ using ApartmentResidenceManagement.Domain.Entities;
 
 namespace ApartmentResidenceManagement.Domain.Interfaces;
 
-public interface IResidentRepository
+public interface IResidentRepository : IRepository<Resident>
 {
-    Task<Resident?> GetByIdAsync(int id);
 }
