@@ -5,6 +5,7 @@ namespace ApartmentResidenceManagement.Domain.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
+    IApartmentRepository Apartments { get; }
     IResidentRepository Residents { get; }
     IUserAccountRepository UserAccounts { get; }
     

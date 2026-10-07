@@ -10,6 +10,7 @@ namespace ApartmentResidenceManagement.Infrastructure.Repositories;
 public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
+    private IApartmentRepository? _apartments;
     private IResidentRepository? _residents;
     private IUserAccountRepository? _userAccounts;
 
@@ -17,6 +18,9 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
+
+    public IApartmentRepository Apartments =>
+        _apartments ??= new ApartmentRepository(_context);
 
     public IResidentRepository Residents =>
         _residents ??= new ResidentRepository(_context);
