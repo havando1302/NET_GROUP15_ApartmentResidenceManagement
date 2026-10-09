@@ -3,6 +3,7 @@ using ApartmentResidenceManagement.Domain.Entities;
 
 namespace ApartmentResidenceManagement.Domain.Interfaces;
 
-public interface IResidentRepository : IRepository<Resident>
+public interface IApartmentRepository : IRepository<Apartment>
 {
+    Task<Apartment?> GetByApartmentNumberAsync(string apartmentNumber);
 }

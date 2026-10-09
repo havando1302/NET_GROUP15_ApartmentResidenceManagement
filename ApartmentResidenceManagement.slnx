@@ -5,4 +5,7 @@
     <Project Path="src/ApartmentResidenceManagement.Infrastructure/ApartmentResidenceManagement.Infrastructure.csproj" />
     <Project Path="src/ApartmentResidenceManagement.Wpf/ApartmentResidenceManagement.Wpf.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ApartmentResidenceManagement.Tests/ApartmentResidenceManagement.Tests.csproj" />
+  </Folder>
 </Solution>
