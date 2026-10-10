@@ -7,6 +7,7 @@ public interface IUnitOfWork : IDisposable
 {
     IApartmentRepository Apartments { get; }
     IResidentRepository Residents { get; }
+    IResidenceHistoryRepository ResidenceHistories { get; }
     IUserAccountRepository UserAccounts { get; }
     
     Task<int> CompleteAsync();
