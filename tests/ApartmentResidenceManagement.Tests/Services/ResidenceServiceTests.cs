@@ -502,4 +502,115 @@ public class ResidenceServiceTests
         Assert.Null(currentResidence.EndDate);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
     }
+
+    [Fact]
+    public async Task RegisterResidence_StartDateInFuture_ReturnsFailure()
+    {
+        var result = await _service.RegisterResidenceAsync(
+            1, 10, RelationshipType.Owner, DateTime.Today.AddDays(1));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("tương lai", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegisterResidence_StartDateBeforeDateOfBirth_ReturnsFailure()
+    {
+        var apartment = new Apartment { Id = 1, ApartmentNumber = "101", Status = ApartmentStatus.Empty };
+        var resident = new Resident { Id = 10, FullName = "Nguyen Van A", DateOfBirth = new DateTime(2000, 1, 1) };
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(apartment);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(resident);
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+
+        var result = await _service.RegisterResidenceAsync(
+            1, 10, RelationshipType.Owner, new DateTime(1999, 12, 31));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("ngày sinh", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegisterResidence_ApartmentNotFound_ReturnsFailure()
+    {
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Apartment?)null);
+
+        var result = await _service.RegisterResidenceAsync(
+            999, 10, RelationshipType.Owner, DateTime.Today);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Không tìm thấy căn hộ", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegisterResidence_ResidentNotFound_ReturnsFailure()
+    {
+        var apartment = new Apartment { Id = 1, ApartmentNumber = "101", Status = ApartmentStatus.Empty };
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(apartment);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Resident?)null);
+
+        var result = await _service.RegisterResidenceAsync(
+            1, 999, RelationshipType.Owner, DateTime.Today);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Không tìm thấy cư dân", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task TransferApartment_NoActiveResidence_ReturnsFailure()
+    {
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+
+        var result = await _service.TransferApartmentAsync(
+            10, 2, RelationshipType.Tenant, DateTime.Today);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("không có đăng ký cư trú hoạt động", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task TransferApartment_SameApartment_ReturnsFailure()
+    {
+        var currentResidence = new ResidenceHistory
+        {
+            Id = 5,
+            ApartmentId = 1,
+            ResidentId = 10,
+            StartDate = DateTime.Today.AddMonths(-1),
+            IsActive = true
+        };
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync(currentResidence);
+
+        var result = await _service.TransferApartmentAsync(
+            10, 1, RelationshipType.Tenant, DateTime.Today);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("trùng với căn hộ hiện tại", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task TransferApartment_TransferDateInFuture_ReturnsFailure()
+    {
+        var currentResidence = new ResidenceHistory
+        {
+            Id = 5,
+            ApartmentId = 1,
+            ResidentId = 10,
+            StartDate = DateTime.Today.AddMonths(-1),
+            IsActive = true
+        };
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync(currentResidence);
+
+        var result = await _service.TransferApartmentAsync(
+            10, 2, RelationshipType.Tenant, DateTime.Today.AddDays(1));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("tương lai", result.ErrorMessage);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
 }
