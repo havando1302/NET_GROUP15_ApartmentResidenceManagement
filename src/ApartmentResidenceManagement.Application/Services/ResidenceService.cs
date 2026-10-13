@@ -118,6 +118,49 @@ public class ResidenceService
         }
     }
 
+    public async Task<OperationResult> TerminateResidenceAsync(int residenceId, DateTime endDate)
+    {
+        endDate = endDate.Date;
+
+        var residence = await _unitOfWork.ResidenceHistories.GetByIdAsync(residenceId);
+        if (residence == null)
+            return OperationResult.Failure("Không tìm thấy thông tin cư trú.");
+
+        if (!residence.IsActive)
+            return OperationResult.Failure("Thông tin cư trú này đã được kết thúc trước đó.");
+
+        if (endDate > DateTime.Today)
+            return OperationResult.Failure("Ngày kết thúc cư trú không được ở tương lai.");
+
+        if (endDate < residence.StartDate.Date)
+            return OperationResult.Failure("Ngày kết thúc cư trú không được nhỏ hơn ngày bắt đầu.");
+
+        residence.IsActive = false;
+        residence.EndDate = endDate;
+        _unitOfWork.ResidenceHistories.Update(residence);
+
+        var activeResidences = await _unitOfWork.ResidenceHistories
+            .GetActiveByApartmentIdAsync(residence.ApartmentId);
+        var countActive = activeResidences.Count(history => history.Id != residenceId);
+
+        var apartment = await _unitOfWork.Apartments.GetByIdAsync(residence.ApartmentId);
+        if (apartment != null)
+        {
+            apartment.Status = countActive == 0 ? ApartmentStatus.Empty : ApartmentStatus.Occupied;
+            _unitOfWork.Apartments.Update(apartment);
+        }
+
+        try
+        {
+            await _unitOfWork.CompleteAsync();
+            return OperationResult.Success();
+        }
+        catch (BusinessRuleException ex)
+        {
+            return OperationResult.Failure(ex.Message);
+        }
+    }
+
     public async Task<IEnumerable<ResidenceHistory>> GetAllResidencesAsync()
     {
         return await _unitOfWork.ResidenceHistories.GetAllWithDetailsAsync();
