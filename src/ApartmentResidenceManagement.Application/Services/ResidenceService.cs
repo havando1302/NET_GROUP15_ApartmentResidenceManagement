@@ -161,6 +161,114 @@ public class ResidenceService
         }
     }
 
+    public async Task<OperationResult<ResidenceHistory>> TransferApartmentAsync(
+        int residentId,
+        int newApartmentId,
+        RelationshipType relationshipType,
+        DateTime transferDate)
+    {
+        transferDate = transferDate.Date;
+
+        if (!IsValidRelationshipType(relationshipType))
+            return OperationResult<ResidenceHistory>.Failure("Quan hệ cư trú không hợp lệ.");
+
+        try
+        {
+            return await _unitOfWork.ExecuteInTransactionAsync(() =>
+                TransferApartmentWithinTransactionAsync(
+                    residentId,
+                    newApartmentId,
+                    relationshipType,
+                    transferDate));
+        }
+        catch (BusinessRuleException ex)
+        {
+            return OperationResult<ResidenceHistory>.Failure(ex.Message);
+        }
+    }
+
+    private async Task<OperationResult<ResidenceHistory>> TransferApartmentWithinTransactionAsync(
+        int residentId,
+        int newApartmentId,
+        RelationshipType relationshipType,
+        DateTime transferDate)
+    {
+        var activeResidence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(residentId);
+        if (activeResidence == null)
+        {
+            return OperationResult<ResidenceHistory>.Failure(
+                "Cư dân này hiện không có đăng ký cư trú hoạt động nào để thực hiện chuyển căn hộ.");
+        }
+
+        if (activeResidence.ApartmentId == newApartmentId)
+            return OperationResult<ResidenceHistory>.Failure("Căn hộ mới trùng với căn hộ hiện tại của cư dân.");
+
+        if (transferDate > DateTime.Today)
+            return OperationResult<ResidenceHistory>.Failure("Ngày chuyển căn hộ không được ở tương lai.");
+
+        if (transferDate < activeResidence.StartDate.Date)
+        {
+            return OperationResult<ResidenceHistory>.Failure(
+                "Ngày chuyển căn hộ không được nhỏ hơn ngày bắt đầu cư trú hiện tại.");
+        }
+
+        var newApartment = await _unitOfWork.Apartments.GetByIdAsync(newApartmentId);
+        if (newApartment == null)
+            return OperationResult<ResidenceHistory>.Failure("Không tìm thấy căn hộ mới.");
+
+        if (newApartment.Status == ApartmentStatus.UnderMaintenance)
+            return OperationResult<ResidenceHistory>.Failure("Không thể chuyển cư dân vào căn hộ đang sửa chữa.");
+
+        if (relationshipType == RelationshipType.Owner)
+        {
+            var activeNewResidences = await _unitOfWork.ResidenceHistories
+                .GetActiveByApartmentIdAsync(newApartmentId);
+            if (activeNewResidences.Any(history => history.RelationshipType == RelationshipType.Owner))
+            {
+                return OperationResult<ResidenceHistory>.Failure(
+                    $"Căn hộ mới ({newApartment.ApartmentNumber}) đã có sẵn Chủ hộ. Không thể đặt làm Chủ hộ.");
+            }
+        }
+
+        var activeOldResidences = await _unitOfWork.ResidenceHistories
+            .GetActiveByApartmentIdAsync(activeResidence.ApartmentId);
+        var oldApartment = await _unitOfWork.Apartments.GetByIdAsync(activeResidence.ApartmentId);
+        var oldApartmentStillOccupied = activeOldResidences.Any(history => history.Id != activeResidence.Id);
+
+        activeResidence.IsActive = false;
+        activeResidence.EndDate = transferDate;
+        _unitOfWork.ResidenceHistories.Update(activeResidence);
+
+        if (oldApartment != null)
+        {
+            oldApartment.Status = oldApartmentStillOccupied
+                ? ApartmentStatus.Occupied
+                : ApartmentStatus.Empty;
+            _unitOfWork.Apartments.Update(oldApartment);
+        }
+
+        // Release the generated unique key before inserting the new active row.
+        // Both saves remain in the same transaction and roll back together.
+        await _unitOfWork.CompleteAsync();
+
+        var newResidence = new ResidenceHistory
+        {
+            ApartmentId = newApartmentId,
+            ResidentId = residentId,
+            RelationshipType = relationshipType,
+            StartDate = transferDate,
+            IsActive = true
+        };
+
+        newApartment.Status = ApartmentStatus.Occupied;
+        _unitOfWork.Apartments.Update(newApartment);
+
+        await _unitOfWork.ResidenceHistories.AddAsync(newResidence);
+        await _unitOfWork.CompleteAsync();
+
+        return OperationResult<ResidenceHistory>.Success(newResidence);
+    }
+
     public async Task<IEnumerable<ResidenceHistory>> GetAllResidencesAsync()
     {
         return await _unitOfWork.ResidenceHistories.GetAllWithDetailsAsync();
