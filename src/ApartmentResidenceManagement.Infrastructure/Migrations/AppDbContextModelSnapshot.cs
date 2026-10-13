@@ -52,6 +52,64 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.ToTable("Apartments", (string)null);
                 });
 
+            modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.ResidenceHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ActiveOwnerApartmentId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("int")
+                        .HasComputedColumnSql("CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END", true);
+
+                    b.Property<int?>("ActiveResidentId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("int")
+                        .HasComputedColumnSql("CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END", true);
+
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("RelationshipType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ResidentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveOwnerApartmentId")
+                        .IsUnique();
+
+                    b.HasIndex("ActiveResidentId")
+                        .IsUnique();
+
+                    b.HasIndex("ApartmentId");
+
+                    b.HasIndex("ResidentId");
+
+                    b.ToTable("ResidenceHistories", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ResidenceHistories_ActiveEndDate", "(`IsActive` = 1 AND `EndDate` IS NULL) OR (`IsActive` = 0 AND `EndDate` IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_ResidenceHistories_DateRange", "`EndDate` IS NULL OR `EndDate` >= `StartDate`");
+                        });
+                });
+
             modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.Resident", b =>
                 {
                     b.Property<int>("Id")
@@ -59,6 +117,9 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
@@ -68,6 +129,10 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<string>("IdentityCard")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(15)
@@ -120,6 +185,25 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.ToTable("UserAccounts", (string)null);
                 });
 
+            modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.ResidenceHistory", b =>
+                {
+                    b.HasOne("ApartmentResidenceManagement.Domain.Entities.Apartment", "Apartment")
+                        .WithMany("ResidenceHistories")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ApartmentResidenceManagement.Domain.Entities.Resident", "Resident")
+                        .WithMany("ResidenceHistories")
+                        .HasForeignKey("ResidentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("Resident");
+                });
+
             modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.UserAccount", b =>
                 {
                     b.HasOne("ApartmentResidenceManagement.Domain.Entities.Resident", "Resident")
@@ -128,6 +212,16 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Resident");
+                });
+
+            modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.Apartment", b =>
+                {
+                    b.Navigation("ResidenceHistories");
+                });
+
+            modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.Resident", b =>
+                {
+                    b.Navigation("ResidenceHistories");
                 });
 #pragma warning restore 612, 618
         }
