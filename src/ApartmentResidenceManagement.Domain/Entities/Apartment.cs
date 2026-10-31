@@ -11,6 +11,6 @@ public class Apartment
     public double Area { get; set; }
     public ApartmentStatus Status { get; set; } = ApartmentStatus.Empty;
 
-    // Navigation properties (sẽ được liên kết khi triển khai module ResidenceHistory của Đô)
-    // public virtual ICollection<ResidenceHistory> ResidenceHistories { get; set; } = new List<ResidenceHistory>();
+    // Navigation properties
+    public virtual ICollection<ResidenceHistory> ResidenceHistories { get; set; } = new List<ResidenceHistory>();
 }

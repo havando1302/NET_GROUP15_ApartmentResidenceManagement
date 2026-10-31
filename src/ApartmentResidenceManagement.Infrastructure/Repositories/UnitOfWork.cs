@@ -12,6 +12,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly AppDbContext _context;
     private IApartmentRepository? _apartments;
     private IResidentRepository? _residents;
+    private IResidenceHistoryRepository? _residenceHistories;
     private IUserAccountRepository? _userAccounts;
 
     public UnitOfWork(AppDbContext context)
@@ -24,6 +25,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IResidentRepository Residents =>
         _residents ??= new ResidentRepository(_context);
+
+    public IResidenceHistoryRepository ResidenceHistories =>
+        _residenceHistories ??= new ResidenceHistoryRepository(_context);
 
     public IUserAccountRepository UserAccounts =>
         _userAccounts ??= new UserAccountRepository(_context);
@@ -49,7 +53,32 @@ public class UnitOfWork : IUnitOfWork
                     || inner.Contains("IX_UserAccounts_Username", StringComparison.OrdinalIgnoreCase))
                     throw new BusinessRuleException("Tên đăng nhập đã tồn tại trong hệ thống.", dbEx);
 
+                if (inner.Contains("ActiveResidentId", StringComparison.OrdinalIgnoreCase))
+                    throw new BusinessRuleException(
+                        "Cư dân này đang có một bản ghi cư trú hoạt động khác trong hệ thống. " +
+                        "Vui lòng kết thúc bản ghi cũ trước khi thực hiện thao tác này.", dbEx);
+
+                if (inner.Contains("ActiveOwnerApartmentId", StringComparison.OrdinalIgnoreCase))
+                    throw new BusinessRuleException(
+                        "Căn hộ này đã có Chủ hộ đang hoạt động. Không thể thêm Chủ hộ thứ hai.", dbEx);
+
                 throw new BusinessRuleException("Dữ liệu bị trùng lặp. Vui lòng kiểm tra lại thông tin đã nhập.", dbEx);
+            }
+
+            if (inner.Contains("CHECK constraint", StringComparison.OrdinalIgnoreCase)
+                || inner.Contains("check constraint", StringComparison.OrdinalIgnoreCase)
+                || inner.Contains("CK_", StringComparison.OrdinalIgnoreCase))
+            {
+                if (inner.Contains("ActiveEndDate", StringComparison.OrdinalIgnoreCase))
+                    throw new BusinessRuleException(
+                        "Dữ liệu cư trú không hợp lệ: bản ghi đang hoạt động không được có ngày kết thúc.", dbEx);
+
+                if (inner.Contains("DateRange", StringComparison.OrdinalIgnoreCase))
+                    throw new BusinessRuleException(
+                        "Ngày kết thúc cư trú không được nhỏ hơn ngày bắt đầu.", dbEx);
+
+                throw new BusinessRuleException(
+                    "Dữ liệu vi phạm ràng buộc nghiệp vụ. Vui lòng kiểm tra lại thông tin.", dbEx);
             }
 
             if (inner.Contains("foreign key", StringComparison.OrdinalIgnoreCase)
