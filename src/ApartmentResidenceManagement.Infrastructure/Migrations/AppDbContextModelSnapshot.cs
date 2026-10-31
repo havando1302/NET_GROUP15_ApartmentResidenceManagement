@@ -63,12 +63,12 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.Property<int?>("ActiveOwnerApartmentId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("int")
-                        .HasComputedColumnSql("CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END", true);
+                        .HasComputedColumnSql("CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END");
 
                     b.Property<int?>("ActiveResidentId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("int")
-                        .HasComputedColumnSql("CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END", true);
+                        .HasComputedColumnSql("CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END");
 
                     b.Property<int>("ApartmentId")
                         .HasColumnType("int");

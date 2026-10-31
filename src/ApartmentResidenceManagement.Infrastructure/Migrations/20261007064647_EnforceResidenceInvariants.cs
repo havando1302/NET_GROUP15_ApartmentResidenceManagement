@@ -27,13 +27,11 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     ActiveOwnerApartmentId = table.Column<int>(
                         type: "int",
                         nullable: true,
-                        computedColumnSql: "CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END",
-                        stored: true),
+                        computedColumnSql: "CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END"),
                     ActiveResidentId = table.Column<int>(
                         type: "int",
                         nullable: true,
-                        computedColumnSql: "CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END",
-                        stored: true)
+                        computedColumnSql: "CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END")
                 },
                 constraints: table =>
                 {

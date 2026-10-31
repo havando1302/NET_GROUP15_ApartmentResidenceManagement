@@ -26,9 +26,9 @@ public class ResidenceHistoryConfiguration : IEntityTypeConfiguration<ResidenceH
 
         // Generated nullable keys let MySQL enforce uniqueness only for active rows.
         // ValueGeneratedOnAddOrUpdate() + SetBeforeSaveBehavior(Ignore) báo cho EF Core
-        // không bao giờ đưa các cột STORED GENERATED này vào câu INSERT/UPDATE.
+        // không bao giờ đưa các cột VIRTUAL GENERATED này vào câu INSERT/UPDATE.
         builder.Property<int?>("ActiveResidentId")
-            .HasComputedColumnSql("CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END", stored: true)
+            .HasComputedColumnSql("CASE WHEN `IsActive` = 1 THEN `ResidentId` ELSE NULL END")
             .ValueGeneratedOnAddOrUpdate()
             .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
 
@@ -36,7 +36,7 @@ public class ResidenceHistoryConfiguration : IEntityTypeConfiguration<ResidenceH
             .IsUnique();
 
         builder.Property<int?>("ActiveOwnerApartmentId")
-            .HasComputedColumnSql("CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END", stored: true)
+            .HasComputedColumnSql("CASE WHEN `IsActive` = 1 AND `RelationshipType` = 0 THEN `ApartmentId` ELSE NULL END")
             .ValueGeneratedOnAddOrUpdate()
             .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
 
