@@ -26,6 +26,9 @@ public partial class App : System.Windows.Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         
+        // Tải biến môi trường từ .env (cấu hình kết nối Aiven Cloud MySQL)
+        DotNetEnv.Env.NoClobber().TraversePath().Load();
+
         _host = Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((context, builder) =>
             {
@@ -38,8 +41,9 @@ public partial class App : System.Windows.Application
             })
             .ConfigureServices((context, services) =>
             {
-                // 1. Đăng ký Cơ sở dữ liệu AppDbContext sử dụng Connection String từ appsettings.json
-                string connectionString = context.Configuration.GetConnectionString("DefaultConnection") 
+                // 1. Đăng ký Cơ sở dữ liệu AppDbContext sử dụng Connection String từ .env hoặc appsettings.json
+                string connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                    ?? context.Configuration.GetConnectionString("DefaultConnection") 
                     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 
                 var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
