@@ -16,6 +16,7 @@
         <!-- DataTemplate mapping -->
         <DataTemplate DataType="{x:Type viewModels:ApartmentViewModel}"><views:ApartmentView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidentHomeViewModel}"><views:ResidentHomeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:MyProfileViewModel}"><views:MyProfileView /></DataTemplate>
 
         <!-- Sidebar Base Button -->
         <Style x:Key="SidebarBtn" TargetType="Button">
