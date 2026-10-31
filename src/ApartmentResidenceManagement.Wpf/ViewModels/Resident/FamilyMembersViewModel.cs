@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ApartmentResidenceManagement.Domain.Entities;
@@ -7,16 +8,41 @@ using ApartmentResidenceManagement.Wpf.Commands;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
-public class FamilyMemberModelItem
+public class AccordionFamilyMemberItem : ViewModelBase
 {
-    public int STT { get; set; }
+    private bool _isExpanded;
+
+    public string AvatarIcon { get; set; } = "👨";
     public string FullName { get; set; } = string.Empty;
     public string Relationship { get; set; } = string.Empty;
+    public bool IsOwner { get; set; }
     public string BirthDate { get; set; } = string.Empty;
+    public string Gender { get; set; } = "Nam";
     public string IdentityCard { get; set; } = string.Empty;
+    public string Hometown { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
     public string Status { get; set; } = "Đang cư trú";
-    public string StatusForeground { get; set; } = "#16A34A";
-    public string StatusBackground { get; set; } = "#DCFCE7";
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (SetProperty(ref _isExpanded, value))
+            {
+                OnPropertyChanged(nameof(ExpandIcon));
+            }
+        }
+    }
+
+    public string ExpandIcon => IsExpanded ? "ᐱ" : "ᐯ";
+
+    public ICommand ToggleExpandCommand { get; }
+
+    public AccordionFamilyMemberItem()
+    {
+        ToggleExpandCommand = new RelayCommand(_ => IsExpanded = !IsExpanded);
+    }
 }
 
 public class FamilyMembersViewModel : ViewModelBase
@@ -25,8 +51,12 @@ public class FamilyMembersViewModel : ViewModelBase
     private string _apartmentNumber = "A-1203";
     private string _buildingBlock = "A";
     private string _floorNumber = "12";
+    private string _apartmentArea = "72 m²";
+    private string _searchText = string.Empty;
     private bool _isLoading;
     private string _errorMessage = string.Empty;
+
+    private readonly ObservableCollection<AccordionFamilyMemberItem> _allMembers = new();
 
     #region Properties
     public string ApartmentNumber
@@ -47,7 +77,25 @@ public class FamilyMembersViewModel : ViewModelBase
         set => SetProperty(ref _floorNumber, value);
     }
 
-    public int TotalMembers => Members.Count;
+    public string ApartmentArea
+    {
+        get => _apartmentArea;
+        set => SetProperty(ref _apartmentArea, value);
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                FilterMembers();
+            }
+        }
+    }
+
+    public int TotalMembers => FilteredMembers.Count;
 
     public bool IsLoading
     {
@@ -61,8 +109,8 @@ public class FamilyMembersViewModel : ViewModelBase
         set => SetProperty(ref _errorMessage, value);
     }
 
-    public ObservableCollection<FamilyMemberModelItem> Members { get; } = new();
-    public bool HasMembers => Members.Count > 0;
+    public ObservableCollection<AccordionFamilyMemberItem> FilteredMembers { get; } = new();
+    public bool HasMembers => FilteredMembers.Count > 0;
     #endregion
 
     #region Commands
@@ -103,40 +151,89 @@ public class FamilyMembersViewModel : ViewModelBase
 
     private void InitDefaultMembers()
     {
-        Members.Clear();
-        Members.Add(new FamilyMemberModelItem
+        _allMembers.Clear();
+        _allMembers.Add(new AccordionFamilyMemberItem
         {
-            STT = 1,
+            AvatarIcon = "👨",
             FullName = "Nguyễn Văn Minh",
             Relationship = "Chủ hộ",
-            BirthDate = "15/04/2002",
-            IdentityCard = "001202012345",
+            IsOwner = true,
+            BirthDate = "15/03/2002",
+            Gender = "Nam",
+            IdentityCard = "012345678901",
+            Hometown = "Đan Phượng, Hà Nội",
+            PhoneNumber = "0987 654 321",
             Status = "Đang cư trú",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            IsExpanded = true
         });
-        Members.Add(new FamilyMemberModelItem
+
+        _allMembers.Add(new AccordionFamilyMemberItem
         {
-            STT = 2,
-            FullName = "Trần Thị Thu Hà",
+            AvatarIcon = "👩",
+            FullName = "Trần Thị Hoa",
             Relationship = "Vợ",
-            BirthDate = "20/08/2003",
-            IdentityCard = "001203045678",
+            IsOwner = false,
+            BirthDate = "20/07/2002",
+            Gender = "Nữ",
+            IdentityCard = "012345678902",
+            Hometown = "Thạch Thất, Hà Nội",
+            PhoneNumber = "0987 654 322",
             Status = "Đang cư trú",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            IsExpanded = false
         });
-        Members.Add(new FamilyMemberModelItem
+
+        _allMembers.Add(new AccordionFamilyMemberItem
         {
-            STT = 3,
-            FullName = "Nguyễn Minh Quân",
+            AvatarIcon = "👦",
+            FullName = "Nguyễn Gia Bảo",
             Relationship = "Con",
-            BirthDate = "10/03/2025",
+            IsOwner = false,
+            BirthDate = "05/09/2018",
+            Gender = "Nam",
             IdentityCard = "---",
+            Hometown = "Đan Phượng, Hà Nội",
+            PhoneNumber = "---",
             Status = "Đang cư trú",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            IsExpanded = false
         });
+
+        _allMembers.Add(new AccordionFamilyMemberItem
+        {
+            AvatarIcon = "👦",
+            FullName = "Nguyễn Minh Anh",
+            Relationship = "Con",
+            IsOwner = false,
+            BirthDate = "12/11/2022",
+            Gender = "Nam",
+            IdentityCard = "---",
+            Hometown = "Đan Phượng, Hà Nội",
+            PhoneNumber = "---",
+            Status = "Đang cư trú",
+            IsExpanded = false
+        });
+
+        FilterMembers();
+    }
+
+    private void FilterMembers()
+    {
+        FilteredMembers.Clear();
+        var query = _allMembers.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            string keyword = SearchText.Trim().ToLowerInvariant();
+            query = query.Where(m =>
+                m.FullName.ToLowerInvariant().Contains(keyword) ||
+                m.Relationship.ToLowerInvariant().Contains(keyword) ||
+                m.IdentityCard.ToLowerInvariant().Contains(keyword) ||
+                m.PhoneNumber.ToLowerInvariant().Contains(keyword));
+        }
+
+        foreach (var item in query)
+        {
+            FilteredMembers.Add(item);
+        }
 
         OnPropertyChanged(nameof(TotalMembers));
         OnPropertyChanged(nameof(HasMembers));

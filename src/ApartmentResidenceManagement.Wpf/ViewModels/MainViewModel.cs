@@ -239,6 +239,16 @@ public class MainViewModel : ViewModelBase
             {
                 UnderDevelopmentVm.SetFeature("Tất cả thông báo", "Trung tâm quản lý, lọc và xem chi tiết các thông báo từ Ban quản lý tòa nhà đang được phát triển.", "🔔");
                 CurrentViewModel = UnderDevelopmentVm;
+            },
+            onViewApartmentDetail: () =>
+            {
+                CurrentViewModel = MyApartmentVm;
+                _ = MyApartmentVm.LoadApartmentDataAsync();
+            },
+            onViewAllHistory: () =>
+            {
+                CurrentViewModel = ResidencyHistoryVm;
+                _ = ResidencyHistoryVm.LoadHistoryAsync();
             }
         );
 

@@ -5,12 +5,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="720" d:DesignWidth="1100"
+             d:DesignHeight="780" d:DesignWidth="1100"
              FontFamily="Segoe UI"
              Background="#F8FAFC">
 
     <UserControl.Resources>
-        <!-- Style Card hiện đại bo góc -->
+        <!-- Modern Card Style -->
         <Style x:Key="ModernCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
@@ -19,50 +19,33 @@
             <Setter Property="Padding" Value="24"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="16" Direction="270" ShadowDepth="3" Color="#0F172A" Opacity="0.05"/>
+                    <DropShadowEffect BlurRadius="16" Direction="270" ShadowDepth="3" Color="#0F172A" Opacity="0.04"/>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- Nhãn trường nhập liệu -->
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#1E293B"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-        </Style>
-
-        <!-- Ô nhập liệu bo góc chuẩn giao diện hiện đại -->
-        <Style x:Key="ModernInputTextBox" TargetType="TextBox">
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        <!-- Readonly Locked Field Box Style -->
+        <Style x:Key="LockedFieldBorder" TargetType="Border">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="Padding" Value="12,0"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="LockedFieldText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13.5"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="border" CornerRadius="8"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                Background="{TemplateBinding Background}">
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="#94A3B8"/>
-                            </Trigger>
-                            <Trigger Property="IsFocused" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="#2563EB"/>
-                                <Setter Property="BorderThickness" TargetName="border" Value="1.5"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
     </UserControl.Resources>
 
@@ -70,129 +53,326 @@
         <Grid Margin="32,24,32,32">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/> <!-- Page Header -->
-                <RowDefinition Height="Auto"/> <!-- Status Alerts -->
-                <RowDefinition Height="*"/>    <!-- 2 Cards Layout -->
+                <RowDefinition Height="Auto"/> <!-- Alert Banners -->
+                <RowDefinition Height="Auto"/> <!-- Main 2-column layout -->
             </Grid.RowDefinitions>
 
             <!-- ══════════════════════════════════════════════════════════
-                 1. TIÊU ĐỀ TRANG (PAGE HEADER)
+                 1. TIÊU ĐỀ TRANG
             ══════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="0" Margin="0,0,0,24">
+            <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="46" Height="46" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
-                            CornerRadius="12" Margin="0,0,14,0" VerticalAlignment="Center">
-                        <TextBlock Text="👤" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Thông tin cá nhân" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
-                        <TextBlock Text="Xem và cập nhật thông tin cá nhân của bạn." FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
-                    </StackPanel>
+                    <TextBlock Text="👤" FontSize="22" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Hồ sơ cá nhân" FontSize="22" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                 </StackPanel>
-            </Grid>
+                <TextBlock Text="Xem và cập nhật thông tin cá nhân, thông tin liên hệ của bạn."
+                           FontSize="13" Foreground="#64748B" Margin="32,3,0,0"/>
+            </StackPanel>
 
             <!-- ══════════════════════════════════════════════════════════
-                 2. THÔNG BÁO THÀNH CÔNG / THẤT BẠI
+                 2. THÔNG BÁO TRẠNG THÁI (SUCCESS / ERROR)
             ══════════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <StackPanel Grid.Row="1" Margin="0,0,0,14">
                 <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
                 <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"/>
             </StackPanel>
 
             <!-- ══════════════════════════════════════════════════════════
-                 3. BỐ CỤC 2 CỘT: ẢNH ĐẠI DIỆN & THÔNG TIN CHI TIẾT
+                 3. NỘI DUNG 2 CỘT
             ══════════════════════════════════════════════════════════ -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="320"/>
-                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="290"/>
+                    <ColumnDefinition Width="22"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- ──────────────────────────────────────────────────────────
-                     CỘT TRÁI: CARD ẢNH ĐẠI DIỆN
+                     CỘT TRÁI: THẺ PROFILE AVATAR CƯ DÂN
                 ────────────────────────────────────────────────────────── -->
                 <Border Grid.Column="0" Style="{StaticResource ModernCard}" VerticalAlignment="Top">
-                    <StackPanel>
-                        <!-- Card Header -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
-                            <TextBlock Text="👤" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Ảnh đại diện" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                        </StackPanel>
-
-                        <!-- Avatar tròn lớn với huy hiệu camera -->
-                        <Grid HorizontalAlignment="Center" Margin="0,8,0,16">
-                            <!-- Vòng tròn nền Avatar -->
-                            <Border Width="130" Height="130" CornerRadius="65" Background="#EFF6FF"
-                                    BorderBrush="#DBEAFE" BorderThickness="2">
-                                <TextBlock Text="👤" FontSize="68" Foreground="#3B82F6"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <StackPanel HorizontalAlignment="Center">
+                        <!-- Avatar lớn với huy hiệu camera -->
+                        <Grid HorizontalAlignment="Center" Margin="0,10,0,14">
+                            <!-- Hình tròn avatar -->
+                            <Border Width="120" Height="120" CornerRadius="60" ClipToBounds="True" Background="#EFF6FF"
+                                    BorderBrush="#BFDBFE" BorderThickness="2">
+                                <Image Source="/Assets/resident_avatar.jpg" Stretch="UniformToFill"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 
-                            <!-- Badge Camera góc dưới phải -->
-                            <Border Width="36" Height="36" CornerRadius="18" Background="White"
-                                    BorderBrush="#E2E8F0" BorderThickness="1.5"
-                                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                    Margin="0,0,4,4">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="6" Direction="270" ShadowDepth="2" Color="#000000" Opacity="0.12"/>
-                                </Border.Effect>
-                                <TextBlock Text="📷" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
+                            <!-- Nút icon camera xanh dương -->
+                            <Button Command="{Binding UpdatePhotoCommand}"
+                                    Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                    Background="#2563EB" BorderBrush="White" BorderThickness="2.5" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border CornerRadius="18" Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <TextBlock Text="📷" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </Grid>
 
-                        <!-- Tên cư dân -->
-                        <TextBlock Text="{Binding FullName}" FontSize="17" FontWeight="Bold" Foreground="#0F172A"
-                                   HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,4"/>
+                        <!-- Họ và tên -->
+                        <TextBlock Text="{Binding FullName}" FontSize="19" FontWeight="Bold" Foreground="#0F172A"
+                                   HorizontalAlignment="Center" Margin="0,0,0,6"/>
 
-                        <!-- Chú thích căn hộ -->
-                        <TextBlock Text="{Binding ApartmentSubtitle}" FontSize="13" Foreground="#64748B"
-                                   HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,20"/>
+                        <!-- Badge: Cư dân -->
+                        <Border HorizontalAlignment="Center" Background="#EFF6FF" CornerRadius="12" Padding="12,4" Margin="0,0,0,18">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="👤" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Cư dân" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
 
-                        <!-- Nút cập nhật ảnh -->
-                        <Button Command="{Binding UpdatePhotoCommand}"
-                                Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
-                                Foreground="#2563EB" FontWeight="SemiBold" FontSize="13"
-                                Height="38" Padding="20,0" HorizontalAlignment="Center" Cursor="Hand">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border CornerRadius="8" Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            Padding="{TemplateBinding Padding}">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="⬆" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Cập nhật ảnh" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <!-- Divider mờ -->
+                        <Rectangle Height="1" Fill="#F1F5F9" Width="240" Margin="0,0,0,18"/>
+
+                        <!-- Thông tin tóm tắt căn hộ -->
+                        <StackPanel Width="240">
+                            <!-- Căn hộ -->
+                            <Grid Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Căn hộ:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding ApartmentNumber}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Tòa | Tầng -->
+                            <Grid Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Tòa: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding BuildingBlock}" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <TextBlock Text="Tầng: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding FloorNumber}" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Ngày tham gia -->
+                            <Grid>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📅" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Ngày tham gia:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding JoinDate}" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- ──────────────────────────────────────────────────────────
-                     CỘT PHẢI: CARD THÔNG TIN CHI TIẾT
+                     CỘT PHẢI: 2 CARDS (THÔNG TIN CÁ NHÂN & CẬP NHẬT LIÊN HỆ)
                 ────────────────────────────────────────────────────────── -->
-                <Border Grid.Column="2" Style="{StaticResource ModernCard}" VerticalAlignment="Top">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/> <!-- Card Header & Action Buttons -->
-                            <RowDefinition Height="Auto"/> <!-- Form Fields -->
-                        </Grid.RowDefinitions>
-
-                        <!-- Header Card Thông tin chi tiết & các nút bấm -->
-                        <Grid Grid.Row="0" Margin="0,0,0,24">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="📄" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Thông tin chi tiết" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2">
+                    <!-- CARD 1: THÔNG TIN CÁ NHÂN (READ-ONLY CÓ ICON KHOÁ) -->
+                    <Border Style="{StaticResource ModernCard}" Margin="0,0,0,18">
+                        <StackPanel>
+                            <!-- Header Card 1 -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <TextBlock Text="📄" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Thông tin cá nhân" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <!-- 2 nút góc phải: Làm mới & Cập nhật thông tin -->
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <!-- Nút Làm mới -->
-                                <Button Command="{Binding RefreshCommand}" Margin="0,0,10,0" Height="36" Padding="14,0"
-                                        Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
-                                        Foreground="#475569" FontSize="13" FontWeight="SemiBold" Cursor="Hand">
+                            <!-- Banner thông báo thông tin định danh không thể sửa -->
+                            <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="10"
+                                    Padding="14,10" Margin="0,0,0,20">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="ℹ️" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Các thông tin định danh (họ tên, ngày sinh, CCCD, giới tính, quê quán, địa chỉ thường trú) không thể chỉnh sửa."
+                                               FontSize="12.5" Foreground="#1E40AF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Lưới 8 trường thông tin (2 Cột x 4 Hàng) -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="14"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="14"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="14"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Hàng 0: Họ và tên | Quê quán -->
+                                <StackPanel Grid.Row="0" Grid.Column="0">
+                                    <TextBlock Text="Họ và tên" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding FullName}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="0" Grid.Column="2">
+                                    <TextBlock Text="Quê quán" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding Hometown}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Hàng 2: Ngày sinh | Số điện thoại -->
+                                <StackPanel Grid.Row="2" Grid.Column="0">
+                                    <TextBlock Text="Ngày sinh" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding DobText}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Grid.Column="2">
+                                    <TextBlock Text="Số điện thoại *" Style="{StaticResource FieldLabel}"/>
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Height="42" Padding="12,0">
+                                        <Grid>
+                                            <TextBlock Text="{Binding PhoneNumber}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A"/>
+                                            <TextBlock Text="✏️" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Hàng 4: Số CCCD | Email -->
+                                <StackPanel Grid.Row="4" Grid.Column="0">
+                                    <TextBlock Text="Số CCCD" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding IdentityCard}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="4" Grid.Column="2">
+                                    <TextBlock Text="Email" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding Email}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Hàng 6: Giới tính | Địa chỉ thường trú -->
+                                <StackPanel Grid.Row="6" Grid.Column="0">
+                                    <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding Gender}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="6" Grid.Column="2">
+                                    <TextBlock Text="Địa chỉ thường trú" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
+                                        <Grid>
+                                            <TextBlock Text="{Binding PermanentAddress}" Style="{StaticResource LockedFieldText}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- CARD 2: CẬP NHẬT THÔNG TIN LIÊN HỆ -->
+                    <Border Style="{StaticResource ModernCard}">
+                        <StackPanel>
+                            <!-- Header Card 2 -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <TextBlock Text="📞" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Cập nhật thông tin liên hệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Form nhập 2 trường + 2 nút thao tác -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Ô nhập Số điện thoại -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Số điện thoại *" Style="{StaticResource FieldLabel}"/>
+                                    <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="8" Height="42" Padding="10,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="26"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="📞" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" Text="{Binding EditPhoneNumber, UpdateSourceTrigger=PropertyChanged}"
+                                                     BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                                     VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Ô nhập Quê quán / Địa chỉ liên hệ -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Quê quán/Địa chỉ liên hệ *" Style="{StaticResource FieldLabel}"/>
+                                    <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="8" Height="42" Padding="10,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="26"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="📍" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" Text="{Binding EditContactAddress, UpdateSourceTrigger=PropertyChanged}"
+                                                     BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                                     VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Nút Lưu thay đổi (Xanh đậm) -->
+                                <Button Grid.Column="4" Command="{Binding SaveProfileCommand}"
+                                        VerticalAlignment="Bottom" Height="42" Padding="18,0"
+                                        Background="#2563EB" BorderThickness="0" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="8" Background="{TemplateBinding Background}"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Lưu thay đổi" Foreground="White" FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <!-- Nút Làm mới (Outline) -->
+                                <Button Grid.Column="6" Command="{Binding ResetCommand}"
+                                        VerticalAlignment="Bottom" Height="42" Padding="16,0"
+                                        Background="White" BorderBrush="#CBD5E1" BorderThickness="1.5" Cursor="Hand">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border CornerRadius="8" Background="{TemplateBinding Background}"
@@ -200,118 +380,17 @@
                                                     BorderThickness="{TemplateBinding BorderThickness}"
                                                     Padding="{TemplateBinding Padding}">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="13" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Làm mới" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="🔄" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Làm mới" Foreground="#334155" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Border>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
-
-                                <!-- Nút Cập nhật thông tin -->
-                                <Button Command="{Binding SaveProfileCommand}" Height="36" Padding="18,0"
-                                        Background="#2563EB" BorderThickness="0"
-                                        Foreground="White" FontSize="13" FontWeight="Bold" Cursor="Hand">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border CornerRadius="8" Background="{TemplateBinding Background}"
-                                                    Padding="{TemplateBinding Padding}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="✏️" Margin="0,0,6,0" FontSize="13" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Cập nhật thông tin" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Lưới 2 cột nhập liệu -->
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="24"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- HÀNG 1: Họ và tên & Số điện thoại -->
-                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,18">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Họ và tên" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text=" *" Foreground="#EF4444" FontWeight="Bold" FontSize="13"/>
-                                </StackPanel>
-                                <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,18">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Số điện thoại" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text=" *" Foreground="#EF4444" FontWeight="Bold" FontSize="13"/>
-                                </StackPanel>
-                                <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <!-- HÀNG 2: Ngày sinh & Email -->
-                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,18">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Ngày sinh" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text=" *" Foreground="#EF4444" FontWeight="Bold" FontSize="13"/>
-                                </StackPanel>
-                                <Grid>
-                                    <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding DobText, UpdateSourceTrigger=PropertyChanged}" Padding="12,0,36,0"/>
-                                    <TextBlock Text="📅" FontSize="15" Foreground="#64748B" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" IsHitTestVisible="False"/>
-                                </Grid>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,18">
-                                <TextBlock Text="Email" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <!-- HÀNG 3: Giới tính & Địa chỉ liên hệ -->
-                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,18">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text=" *" Foreground="#EF4444" FontWeight="Bold" FontSize="13"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Height="40" VerticalAlignment="Center">
-                                    <RadioButton Content="Nam" IsChecked="{Binding IsMale, Mode=TwoWay}"
-                                                 FontSize="13.5" Foreground="#1E293B" Margin="0,0,24,0" VerticalAlignment="Center" Cursor="Hand"/>
-                                    <RadioButton Content="Nữ" IsChecked="{Binding IsFemale, Mode=TwoWay}"
-                                                 FontSize="13.5" Foreground="#1E293B" VerticalAlignment="Center" Cursor="Hand"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,18">
-                                <TextBlock Text="Địa chỉ liên hệ" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding ContactAddress, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <!-- HÀNG 4: Số CCCD/Định danh & Ghi chú -->
-                            <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,10">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Số CCCD/Định danh" Style="{StaticResource FieldLabel}"/>
-                                    <TextBlock Text=" *" Foreground="#EF4444" FontWeight="Bold" FontSize="13"/>
-                                </StackPanel>
-                                <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding IdentityCard, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,10">
-                                <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Style="{StaticResource ModernInputTextBox}" Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="40" VerticalContentAlignment="Center"/>
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
         </Grid>
     </ScrollViewer>

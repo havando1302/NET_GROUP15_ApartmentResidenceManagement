@@ -7,23 +7,14 @@ using ApartmentResidenceManagement.Wpf.Commands;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
-public class HouseholdMemberItem
+public class ApartmentResidentMemberItem
 {
     public int STT { get; set; }
+    public string AvatarIcon { get; set; } = "👤";
     public string FullName { get; set; } = string.Empty;
     public string Relationship { get; set; } = string.Empty;
     public string BirthDate { get; set; } = string.Empty;
-    public string IdentityCard { get; set; } = string.Empty;
     public string Status { get; set; } = "Đang cư trú";
-    public string StatusForeground { get; set; } = "#16A34A";
-    public string StatusBackground { get; set; } = "#DCFCE7";
-}
-
-public class ResidencyHistoryRecordItem
-{
-    public string EventTime { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public string Status { get; set; } = "Đã duyệt";
     public string StatusForeground { get; set; } = "#16A34A";
     public string StatusBackground { get; set; } = "#DCFCE7";
 }
@@ -32,17 +23,25 @@ public class MyApartmentViewModel : ViewModelBase
 {
     private UserAccount? _account;
 
-    // Thông tin căn hộ & cư trú hiện tại
+    // Thông tin căn hộ
     private string _apartmentNumber = "A-1203";
     private string _buildingBlock = "A";
     private string _floorNumber = "12";
-    private string _residencyType = "Thường trú";
-    private string _registeredDate = "10/01/2024";
+    private string _apartmentArea = "72 m²";
+    private int _familyCount = 4;
+
+    // Thông tin tòa nhà
+    private int _buildingFloors = 20;
+    private int _buildingElevators = 4;
+    private int _buildingTotalApartments = 120;
+
+    // Tình trạng cư trú
+    private string _residencyStartDate = "10/01/2026";
+    private string _residencyDuration = "20 ngày";
+    private string _residencyForm = "Cư trú thường trú";
     private string _residencyStatus = "Đang cư trú";
 
-    private bool _hasApartment = true;
     private bool _isLoading;
-    private string _statusMessage = string.Empty;
     private string _errorMessage = string.Empty;
 
     #region Properties
@@ -64,16 +63,52 @@ public class MyApartmentViewModel : ViewModelBase
         set => SetProperty(ref _floorNumber, value);
     }
 
-    public string ResidencyType
+    public string ApartmentArea
     {
-        get => _residencyType;
-        set => SetProperty(ref _residencyType, value);
+        get => _apartmentArea;
+        set => SetProperty(ref _apartmentArea, value);
     }
 
-    public string RegisteredDate
+    public int FamilyCount
     {
-        get => _registeredDate;
-        set => SetProperty(ref _registeredDate, value);
+        get => _familyCount;
+        set => SetProperty(ref _familyCount, value);
+    }
+
+    public int BuildingFloors
+    {
+        get => _buildingFloors;
+        set => SetProperty(ref _buildingFloors, value);
+    }
+
+    public int BuildingElevators
+    {
+        get => _buildingElevators;
+        set => SetProperty(ref _buildingElevators, value);
+    }
+
+    public int BuildingTotalApartments
+    {
+        get => _buildingTotalApartments;
+        set => SetProperty(ref _buildingTotalApartments, value);
+    }
+
+    public string ResidencyStartDate
+    {
+        get => _residencyStartDate;
+        set => SetProperty(ref _residencyStartDate, value);
+    }
+
+    public string ResidencyDuration
+    {
+        get => _residencyDuration;
+        set => SetProperty(ref _residencyDuration, value);
+    }
+
+    public string ResidencyForm
+    {
+        get => _residencyForm;
+        set => SetProperty(ref _residencyForm, value);
     }
 
     public string ResidencyStatus
@@ -82,22 +117,10 @@ public class MyApartmentViewModel : ViewModelBase
         set => SetProperty(ref _residencyStatus, value);
     }
 
-    public bool HasApartment
-    {
-        get => _hasApartment;
-        set => SetProperty(ref _hasApartment, value);
-    }
-
     public bool IsLoading
     {
         get => _isLoading;
         set => SetProperty(ref _isLoading, value);
-    }
-
-    public string StatusMessage
-    {
-        get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
     }
 
     public string ErrorMessage
@@ -106,99 +129,57 @@ public class MyApartmentViewModel : ViewModelBase
         set => SetProperty(ref _errorMessage, value);
     }
 
-    public ObservableCollection<HouseholdMemberItem> HouseholdMembers { get; } = new();
-    public ObservableCollection<ResidencyHistoryRecordItem> HistoryRecords { get; } = new();
+    public ObservableCollection<ApartmentResidentMemberItem> ResidentMembers { get; } = new();
     #endregion
 
     #region Commands
     public ICommand RefreshCommand { get; }
-    public ICommand DownloadCertificateCommand { get; }
-    public ICommand AddMemberCommand { get; }
-    public ICommand EditMemberCommand { get; }
     #endregion
 
     public MyApartmentViewModel()
     {
         RefreshCommand = new AsyncRelayCommand(_ => LoadApartmentDataAsync());
-        DownloadCertificateCommand = new RelayCommand(_ =>
-        {
-            StatusMessage = "Đang xuất giấy xác nhận cư trú (PDF) cho căn hộ A-1203...";
-            ErrorMessage = string.Empty;
-        });
-        AddMemberCommand = new RelayCommand(_ =>
-        {
-            StatusMessage = "Hệ thống đang mở mẫu đăng ký thêm thành viên vào hộ...";
-            ErrorMessage = string.Empty;
-        });
-        EditMemberCommand = new RelayCommand(param =>
-        {
-            if (param is HouseholdMemberItem member)
-            {
-                StatusMessage = $"Đang mở chỉnh sửa thông tin thành viên: {member.FullName}";
-            }
-            else
-            {
-                StatusMessage = "Đang mở chỉnh sửa thông tin thành viên...";
-            }
-            ErrorMessage = string.Empty;
-        });
-
-        InitMockData();
+        InitDefaultData();
     }
 
-    private void InitMockData()
+    private void InitDefaultData()
     {
-        HouseholdMembers.Clear();
-        HouseholdMembers.Add(new HouseholdMemberItem
+        ResidentMembers.Clear();
+        ResidentMembers.Add(new ApartmentResidentMemberItem
         {
             STT = 1,
+            AvatarIcon = "👨",
             FullName = "Nguyễn Văn Minh",
             Relationship = "Chủ hộ",
-            BirthDate = "15/04/2002",
-            IdentityCard = "001202012345",
-            Status = "Đang cư trú",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            BirthDate = "15/03/2002",
+            Status = "Đang cư trú"
         });
-        HouseholdMembers.Add(new HouseholdMemberItem
+        ResidentMembers.Add(new ApartmentResidentMemberItem
         {
             STT = 2,
-            FullName = "Trần Thị Thu Hà",
+            AvatarIcon = "👩",
+            FullName = "Trần Thị Hoa",
             Relationship = "Vợ",
-            BirthDate = "20/08/2003",
-            IdentityCard = "001203045678",
-            Status = "Đang cư trú",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            BirthDate = "20/07/2002",
+            Status = "Đang cư trú"
         });
-        HouseholdMembers.Add(new HouseholdMemberItem
+        ResidentMembers.Add(new ApartmentResidentMemberItem
         {
             STT = 3,
-            FullName = "Nguyễn Minh Quân",
+            AvatarIcon = "👦",
+            FullName = "Nguyễn Gia Bảo",
             Relationship = "Con",
-            BirthDate = "10/03/2025",
-            IdentityCard = "---",
-            Status = "Đang cư trú",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            BirthDate = "05/09/2018",
+            Status = "Đang cư trú"
         });
-
-        HistoryRecords.Clear();
-        HistoryRecords.Add(new ResidencyHistoryRecordItem
+        ResidentMembers.Add(new ApartmentResidentMemberItem
         {
-            EventTime = "10/01/2024",
-            Content = "Đăng ký thường trú tại căn hộ A-1203",
-            Status = "Đã duyệt",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
-        });
-        HistoryRecords.Add(new ResidencyHistoryRecordItem
-        {
-            EventTime = "05/06/2024",
-            Content = "Bổ sung thành viên: Nguyễn Minh Quân",
-            Status = "Đã duyệt",
-            StatusForeground = "#16A34A",
-            StatusBackground = "#DCFCE7"
+            STT = 4,
+            AvatarIcon = "👦",
+            FullName = "Nguyễn Minh Anh",
+            Relationship = "Con",
+            BirthDate = "12/11/2022",
+            Status = "Đang cư trú"
         });
     }
 
@@ -213,33 +194,12 @@ public class MyApartmentViewModel : ViewModelBase
         IsLoading = true;
         try
         {
-            if (_account?.Resident != null)
-            {
-                ApartmentNumber = "A-1203";
-                BuildingBlock = "A";
-                FloorNumber = "12";
-                ResidencyType = "Thường trú";
-                RegisteredDate = "10/01/2024";
-                ResidencyStatus = "Đang cư trú";
-                HasApartment = true;
-            }
-            else
-            {
-                ApartmentNumber = "A-1203";
-                BuildingBlock = "A";
-                FloorNumber = "12";
-                ResidencyType = "Thường trú";
-                RegisteredDate = "10/01/2024";
-                ResidencyStatus = "Đang cư trú";
-                HasApartment = true;
-            }
-
-            InitMockData();
+            InitDefaultData();
             ErrorMessage = string.Empty;
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Lỗi khi tải thông tin hồ sơ cư trú: {ex.Message}";
+            ErrorMessage = $"Lỗi khi tải thông tin căn hộ: {ex.Message}";
         }
         finally
         {

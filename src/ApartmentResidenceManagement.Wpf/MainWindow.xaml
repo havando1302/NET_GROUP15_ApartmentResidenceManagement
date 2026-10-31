@@ -130,7 +130,7 @@
                             </Button>
                         </StackPanel>
 
-                        <!-- RESIDENT MENU (Khớp 100% 7 mục theo Mockup) -->
+                        <!-- RESIDENT MENU (Khớp 100% 5 màn hình theo ảnh thiết kế) -->
                         <StackPanel Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <!-- 1. Trang chủ -->
                             <Button Command="{Binding ShowResidentHomeCommand}">
@@ -151,7 +151,7 @@
                                 </StackPanel>
                             </Button>
 
-                            <!-- 2. Thông tin cá nhân -->
+                            <!-- 2. Hồ sơ cá nhân -->
                             <Button Command="{Binding ShowMyProfileCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
@@ -166,11 +166,11 @@
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="👤" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Thông tin cá nhân"/>
+                                    <TextBlock Text="Hồ sơ cá nhân"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- 3. Hồ sơ cư trú (Bao gồm thông tin căn hộ, thành viên trong hộ & lịch sử biến động theo mẫu) -->
+                            <!-- 3. Căn hộ của tôi -->
                             <Button Command="{Binding ShowMyApartmentCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
@@ -184,8 +184,46 @@
                                     </Style>
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📄" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Hồ sơ cư trú"/>
+                                    <TextBlock Text="🏢" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Căn hộ của tôi"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 4. Thành viên cùng căn hộ -->
+                            <Button Command="{Binding ShowFamilyMembersCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="FamilyMembersViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👥" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Thành viên cùng căn hộ"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 5. Lịch sử cư trú -->
+                            <Button Command="{Binding ShowResidencyHistoryCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="ResidencyHistoryViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🕒" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Lịch sử cư trú"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>

@@ -10,18 +10,27 @@ public class MyProfileViewModel : ViewModelBase
 {
     private UserAccount? _account;
 
-    // Trường thông tin cá nhân
+    // Thông tin định danh (chỉ đọc)
     private string _residentId = "CD-0001";
     private string _fullName = "Nguyễn Văn Minh";
-    private string _dobText = "15/04/2002";
-    private bool _isMale = true;
-    private bool _isFemale = false;
-    private string _identityCard = "001202012345";
+    private string _hometown = "Đan Phượng, Hà Nội";
+    private string _dobText = "15/03/2002";
+    private string _identityCard = "012345678901";
+    private string _email = "minhnv@gmail.com";
+    private string _gender = "Nam";
+    private string _permanentAddress = "Xã Tân Lập, Huyện Đan Phượng, TP. Hà Nội";
+    private string _joinDate = "10/01/2024";
+
+    // Thông tin căn hộ tóm tắt
+    private string _apartmentNumber = "A-1203";
+    private string _buildingBlock = "A";
+    private string _floorNumber = "12";
+
+    // Trường có thể cập nhật
     private string _phoneNumber = "0987 654 321";
-    private string _email = "minhnguyen@gmail.com";
-    private string _contactAddress = "Căn hộ A-1203, Tòa A, Chung cư ResidenceManager";
-    private string _note = string.Empty;
-    private string _apartmentSubtitle = "Cư dân căn hộ A-1203";
+    private string _editPhoneNumber = "0987 654 321";
+    private string _contactAddress = "Đan Phượng, Hà Nội";
+    private string _editContactAddress = "Đan Phượng, Hà Nội";
 
     // Trạng thái thông báo
     private string _successMessage = string.Empty;
@@ -40,34 +49,16 @@ public class MyProfileViewModel : ViewModelBase
         set => SetProperty(ref _fullName, value);
     }
 
+    public string Hometown
+    {
+        get => _hometown;
+        set => SetProperty(ref _hometown, value);
+    }
+
     public string DobText
     {
         get => _dobText;
         set => SetProperty(ref _dobText, value);
-    }
-
-    public bool IsMale
-    {
-        get => _isMale;
-        set
-        {
-            if (SetProperty(ref _isMale, value) && value)
-            {
-                IsFemale = false;
-            }
-        }
-    }
-
-    public bool IsFemale
-    {
-        get => _isFemale;
-        set
-        {
-            if (SetProperty(ref _isFemale, value) && value)
-            {
-                IsMale = false;
-            }
-        }
     }
 
     public string IdentityCard
@@ -76,34 +67,70 @@ public class MyProfileViewModel : ViewModelBase
         set => SetProperty(ref _identityCard, value);
     }
 
-    public string PhoneNumber
-    {
-        get => _phoneNumber;
-        set => SetProperty(ref _phoneNumber, value);
-    }
-
     public string Email
     {
         get => _email;
         set => SetProperty(ref _email, value);
     }
 
+    public string Gender
+    {
+        get => _gender;
+        set => SetProperty(ref _gender, value);
+    }
+
+    public string PermanentAddress
+    {
+        get => _permanentAddress;
+        set => SetProperty(ref _permanentAddress, value);
+    }
+
+    public string JoinDate
+    {
+        get => _joinDate;
+        set => SetProperty(ref _joinDate, value);
+    }
+
+    public string ApartmentNumber
+    {
+        get => _apartmentNumber;
+        set => SetProperty(ref _apartmentNumber, value);
+    }
+
+    public string BuildingBlock
+    {
+        get => _buildingBlock;
+        set => SetProperty(ref _buildingBlock, value);
+    }
+
+    public string FloorNumber
+    {
+        get => _floorNumber;
+        set => SetProperty(ref _floorNumber, value);
+    }
+
+    public string PhoneNumber
+    {
+        get => _phoneNumber;
+        set => SetProperty(ref _phoneNumber, value);
+    }
+
+    public string EditPhoneNumber
+    {
+        get => _editPhoneNumber;
+        set => SetProperty(ref _editPhoneNumber, value);
+    }
+
     public string ContactAddress
     {
         get => _contactAddress;
-        set => SetProperty(ref _contactAddress, value);
+        set => SetProperty(ref _editContactAddress, value);
     }
 
-    public string Note
+    public string EditContactAddress
     {
-        get => _note;
-        set => SetProperty(ref _note, value);
-    }
-
-    public string ApartmentSubtitle
-    {
-        get => _apartmentSubtitle;
-        set => SetProperty(ref _apartmentSubtitle, value);
+        get => _editContactAddress;
+        set => SetProperty(ref _editContactAddress, value);
     }
 
     public string SuccessMessage
@@ -121,19 +148,19 @@ public class MyProfileViewModel : ViewModelBase
 
     #region Commands
     public ICommand SaveProfileCommand { get; }
-    public ICommand UpdateProfileCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand ResetCommand { get; }
     public ICommand UpdatePhotoCommand { get; }
     #endregion
 
     public MyProfileViewModel()
     {
         SaveProfileCommand = new AsyncRelayCommand(_ => SaveProfileAsync());
-        UpdateProfileCommand = SaveProfileCommand;
         RefreshCommand = new AsyncRelayCommand(_ => LoadProfileAsync());
+        ResetCommand = new RelayCommand(_ => ResetEditForm());
         UpdatePhotoCommand = new RelayCommand(_ =>
         {
-            SuccessMessage = "Tính năng tải lên ảnh đại diện mới đang được xử lý.";
+            SuccessMessage = "Tính năng thay đổi ảnh đại diện đã mở, bạn có thể chọn ảnh từ máy.";
             ErrorMessage = string.Empty;
         });
     }
@@ -149,7 +176,7 @@ public class MyProfileViewModel : ViewModelBase
         ErrorMessage = string.Empty;
         SuccessMessage = string.Empty;
         LoadProfileData();
-        SuccessMessage = "Đã làm mới thông tin cá nhân!";
+        SuccessMessage = "Đã làm mới thông tin hồ sơ cá nhân!";
         return Task.CompletedTask;
     }
 
@@ -161,27 +188,28 @@ public class MyProfileViewModel : ViewModelBase
             ResidentId = $"CD-{r.Id:D4}";
             FullName = r.FullName;
             PhoneNumber = !string.IsNullOrWhiteSpace(r.PhoneNumber) ? r.PhoneNumber : "0987 654 321";
-            IdentityCard = "001202012345";
-            DobText = "15/04/2002";
-            IsMale = true;
-            IsFemale = false;
-            Email = !string.IsNullOrWhiteSpace(r.Email) ? r.Email : $"{_account.Username}@gmail.com";
-            ContactAddress = "Căn hộ A-1203, Tòa A, Chung cư ResidenceManager";
-            ApartmentSubtitle = "Cư dân căn hộ A-1203";
+            EditPhoneNumber = PhoneNumber;
+            Email = !string.IsNullOrWhiteSpace(r.Email) ? r.Email : "minhnv@gmail.com";
         }
         else if (_account != null)
         {
             ResidentId = $"CD-{_account.Id:D4}";
             FullName = "Nguyễn Văn Minh";
             PhoneNumber = "0987 654 321";
-            IdentityCard = "001202012345";
-            DobText = "15/04/2002";
-            IsMale = true;
-            IsFemale = false;
-            Email = "minhnguyen@gmail.com";
-            ContactAddress = "Căn hộ A-1203, Tòa A, Chung cư ResidenceManager";
-            ApartmentSubtitle = "Cư dân căn hộ A-1203";
+            EditPhoneNumber = PhoneNumber;
+            Email = $"{_account.Username}@gmail.com";
         }
+
+        EditContactAddress = Hometown;
+        ContactAddress = Hometown;
+    }
+
+    private void ResetEditForm()
+    {
+        EditPhoneNumber = PhoneNumber;
+        EditContactAddress = Hometown;
+        ErrorMessage = string.Empty;
+        SuccessMessage = "Đã khôi phục lại thông tin liên hệ ban đầu.";
     }
 
     private Task SaveProfileAsync()
@@ -189,25 +217,24 @@ public class MyProfileViewModel : ViewModelBase
         SuccessMessage = string.Empty;
         ErrorMessage = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(FullName))
-        {
-            ErrorMessage = "Họ và tên không được để trống.";
-            return Task.CompletedTask;
-        }
-
-        if (string.IsNullOrWhiteSpace(PhoneNumber))
+        if (string.IsNullOrWhiteSpace(EditPhoneNumber))
         {
             ErrorMessage = "Số điện thoại liên hệ không được để trống.";
             return Task.CompletedTask;
         }
 
+        PhoneNumber = EditPhoneNumber.Trim();
+        if (!string.IsNullOrWhiteSpace(EditContactAddress))
+        {
+            Hometown = EditContactAddress.Trim();
+        }
+
         if (_account?.Resident != null)
         {
-            _account.Resident.FullName = FullName;
             _account.Resident.PhoneNumber = PhoneNumber;
         }
 
-        SuccessMessage = "Cập nhật thông tin cá nhân thành công!";
+        SuccessMessage = "Lưu thay đổi thông tin liên hệ thành công!";
         return Task.CompletedTask;
     }
 }

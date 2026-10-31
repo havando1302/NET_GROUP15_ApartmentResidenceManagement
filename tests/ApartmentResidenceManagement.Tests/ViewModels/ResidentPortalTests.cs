@@ -8,7 +8,7 @@ namespace ApartmentResidenceManagement.Tests.ViewModels;
 
 public class ResidentPortalTests
 {
-    private UserAccount CreateSampleUserAccount(int id = 1, string username = "resident1", string fullName = "Nguyễn Văn Minh", string phone = "0987654321")
+    private UserAccount CreateSampleUserAccount(int id = 1, string username = "resident1", string fullName = "Nguyễn Văn Minh", string phone = "0987 654 321")
     {
         var resident = new Resident
         {
@@ -33,18 +33,7 @@ public class ResidentPortalTests
 
     #region ResidentHomeViewModel Tests
     [Fact]
-    public void ResidentHomeViewModel_Announcements_ShouldBeEmptyByDefault()
-    {
-        // Arrange & Act
-        var vm = new ResidentHomeViewModel();
-
-        // Assert
-        Assert.Empty(vm.RecentAnnouncements);
-        Assert.False(vm.HasAnnouncements);
-    }
-
-    [Fact]
-    public void ResidentHomeViewModel_Initialize_WithResidentAccount_UpdatesProperties()
+    public void ResidentHomeViewModel_Initialize_WithResidentAccount_UpdatesPropertiesAndStats()
     {
         // Arrange
         var vm = new ResidentHomeViewModel();
@@ -56,68 +45,36 @@ public class ResidentPortalTests
         // Assert
         Assert.Equal("Hoàng Văn Nam", vm.ResidentName);
         Assert.Equal("Đang cư trú", vm.ResidencyStatus);
-        Assert.False(string.IsNullOrWhiteSpace(vm.ApartmentNumber));
+        Assert.Equal("A-1203", vm.ApartmentNumber);
+        Assert.Equal(4, vm.FamilyCount);
+        Assert.Equal(2, vm.ResidencyChangesCount);
+        Assert.Equal(0, vm.PendingRequestsCount);
+        Assert.Equal(3, vm.NewAnnouncementsCount);
     }
 
     [Fact]
-    public void ResidentHomeViewModel_Initialize_WithNoResidentEntity_UsesUsername()
+    public void ResidentHomeViewModel_QuickNavigationCommands_ExecuteConfiguredActions()
     {
         // Arrange
-        var vm = new ResidentHomeViewModel();
-        var account = new UserAccount
-        {
-            Id = 99,
-            Username = "account_no_resident",
-            PasswordHash = "hash",
-            Role = UserRole.Resident,
-            IsActive = true,
-            Resident = null
-        };
-
-        // Act
-        vm.Initialize(account);
-
-        // Assert
-        Assert.Equal("account_no_resident", vm.ResidentName);
-    }
-
-    [Fact]
-    public async Task ResidentHomeViewModel_LoadStatsAsync_RefreshesSuccessfully()
-    {
-        // Arrange
-        var vm = new ResidentHomeViewModel();
-        var account = CreateSampleUserAccount();
-        vm.Initialize(account);
-
-        // Act
-        await vm.LoadStatsAsync();
-
-        // Assert
-        Assert.False(vm.IsLoading);
-        Assert.Equal(string.Empty, vm.ErrorMessage);
-    }
-
-    [Fact]
-    public void ResidentHomeViewModel_ConfigureNavigation_TriggersCallbacks()
-    {
-        // Arrange
-        bool serviceRequested = false;
-        bool feedbackSent = false;
+        bool apartmentNavigated = false;
+        bool historyNavigated = false;
         var vm = new ResidentHomeViewModel();
         vm.ConfigureNavigation(
             onRegisterTemporaryStay: null,
-            onRequestService: () => serviceRequested = true,
-            onSendFeedback: () => feedbackSent = true,
+            onRequestService: null,
+            onSendFeedback: null,
             onLookupFees: null,
-            onViewAllAnnouncements: null);
+            onViewAllAnnouncements: null,
+            onViewApartmentDetail: () => apartmentNavigated = true,
+            onViewAllHistory: () => historyNavigated = true);
 
         // Act
-        vm.RequestServiceCommand.Execute(null);
-        vm.SendFeedbackCommand.Execute(null);
+        vm.ViewApartmentDetailCommand.Execute(null);
+        vm.ViewAllHistoryCommand.Execute(null);
 
         // Assert
-        Assert.True(serviceRequested);
-        Assert.True(feedbackSent);
+        Assert.True(apartmentNavigated);
+        Assert.True(historyNavigated);
     }
     #endregion
 
@@ -140,51 +97,32 @@ public class ResidentPortalTests
     }
 
     [Fact]
-    public async Task MyProfileViewModel_SaveProfile_WithValidData_UpdatesModelAndResident()
+    public async Task MyProfileViewModel_SaveProfile_UpdatesPhoneNumberAndAddress()
     {
         // Arrange
         var vm = new MyProfileViewModel();
-        var account = CreateSampleUserAccount(5, "user5", "Tên Ban Đầu", "0900000001");
+        var account = CreateSampleUserAccount(5, "user5", "Nguyễn Văn Minh", "0900000001");
         vm.Initialize(account);
 
         // Act
-        vm.FullName = "Tên Sau Cập Nhật";
-        vm.PhoneNumber = "0988776655";
-        await vm.LoadProfileAsync(); // test refresh
-        vm.FullName = "Tên Sau Cập Nhật";
-        vm.PhoneNumber = "0988776655";
+        vm.EditPhoneNumber = "0988776655";
+        vm.EditContactAddress = "Cầu Giấy, Hà Nội";
         vm.SaveProfileCommand.Execute(null);
 
         // Assert
-        Assert.Equal("Cập nhật thông tin cá nhân thành công!", vm.SuccessMessage);
+        Assert.Equal("Lưu thay đổi thông tin liên hệ thành công!", vm.SuccessMessage);
         Assert.Equal(string.Empty, vm.ErrorMessage);
-        Assert.Equal("Tên Sau Cập Nhật", account.Resident!.FullName);
+        Assert.Equal("0988776655", vm.PhoneNumber);
+        Assert.Equal("Cầu Giấy, Hà Nội", vm.Hometown);
         Assert.Equal("0988776655", account.Resident!.PhoneNumber);
     }
 
     [Fact]
-    public void MyProfileViewModel_SaveProfile_WithEmptyFullName_SetsErrorMessage()
+    public void MyProfileViewModel_SaveProfile_WithEmptyPhone_SetsErrorMessage()
     {
         // Arrange
         var vm = new MyProfileViewModel();
-        vm.FullName = "   ";
-        vm.PhoneNumber = "0901234567";
-
-        // Act
-        vm.SaveProfileCommand.Execute(null);
-
-        // Assert
-        Assert.Equal("Họ và tên không được để trống.", vm.ErrorMessage);
-        Assert.Empty(vm.SuccessMessage);
-    }
-
-    [Fact]
-    public void MyProfileViewModel_SaveProfile_WithEmptyPhoneNumber_SetsErrorMessage()
-    {
-        // Arrange
-        var vm = new MyProfileViewModel();
-        vm.FullName = "Nguyễn Văn A";
-        vm.PhoneNumber = "   ";
+        vm.EditPhoneNumber = "   ";
 
         // Act
         vm.SaveProfileCommand.Execute(null);
@@ -195,26 +133,28 @@ public class ResidentPortalTests
     }
 
     [Fact]
-    public void MyProfileViewModel_GenderToggles_MaintainExclusivity()
+    public void MyProfileViewModel_ResetCommand_RestoresOriginalValues()
     {
         // Arrange
         var vm = new MyProfileViewModel();
+        vm.PhoneNumber = "0987654321";
+        vm.Hometown = "Đan Phượng, Hà Nội";
+        vm.EditPhoneNumber = "0111222333";
+        vm.EditContactAddress = "Đống Đa, Hà Nội";
 
-        // Act 1: set female
-        vm.IsFemale = true;
-        Assert.True(vm.IsFemale);
-        Assert.False(vm.IsMale);
+        // Act
+        vm.ResetCommand.Execute(null);
 
-        // Act 2: set male
-        vm.IsMale = true;
-        Assert.True(vm.IsMale);
-        Assert.False(vm.IsFemale);
+        // Assert
+        Assert.Equal("0987654321", vm.EditPhoneNumber);
+        Assert.Equal("Đan Phượng, Hà Nội", vm.EditContactAddress);
+        Assert.Contains("khôi phục", vm.SuccessMessage);
     }
     #endregion
 
     #region MyApartmentViewModel Tests
     [Fact]
-    public void MyApartmentViewModel_Initialize_PopulatesMembersAndHistory()
+    public void MyApartmentViewModel_Initialize_PopulatesApartmentAndResidentMembers()
     {
         // Arrange
         var vm = new MyApartmentViewModel();
@@ -224,63 +164,87 @@ public class ResidentPortalTests
         vm.Initialize(account);
 
         // Assert
-        Assert.True(vm.HasApartment);
-        Assert.NotEmpty(vm.HouseholdMembers);
-        Assert.NotEmpty(vm.HistoryRecords);
-        Assert.False(string.IsNullOrWhiteSpace(vm.ApartmentNumber));
-    }
-
-    [Fact]
-    public void MyApartmentViewModel_Commands_ExecuteCorrectly()
-    {
-        // Arrange
-        var vm = new MyApartmentViewModel();
-        var member = new HouseholdMemberItem { FullName = "Nguyễn Văn Test" };
-
-        // Act
-        vm.DownloadCertificateCommand.Execute(null);
-        Assert.Contains("PDF", vm.StatusMessage);
-
-        vm.AddMemberCommand.Execute(null);
-        Assert.Contains("thêm thành viên", vm.StatusMessage);
-
-        vm.EditMemberCommand.Execute(member);
-        Assert.Contains("Nguyễn Văn Test", vm.StatusMessage);
+        Assert.Equal("A-1203", vm.ApartmentNumber);
+        Assert.Equal("A", vm.BuildingBlock);
+        Assert.Equal(4, vm.ResidentMembers.Count);
+        Assert.Equal("Đang cư trú", vm.ResidencyStatus);
+        Assert.Equal(20, vm.BuildingFloors);
     }
     #endregion
 
-    #region FamilyMembersViewModel & ResidencyHistoryViewModel Tests
+    #region FamilyMembersViewModel Tests
     [Fact]
-    public void FamilyMembersViewModel_Initialize_PopulatesMembersCorrectly()
+    public void FamilyMembersViewModel_AccordionToggle_ExpandsAndCollapses()
     {
         // Arrange
         var vm = new FamilyMembersViewModel();
+        var member = vm.FilteredMembers[0];
+
+        // Act & Assert
+        Assert.True(member.IsExpanded);
+        Assert.Equal("ᐱ", member.ExpandIcon);
+
+        member.ToggleExpandCommand.Execute(null);
+        Assert.False(member.IsExpanded);
+        Assert.Equal("ᐯ", member.ExpandIcon);
+
+        member.ToggleExpandCommand.Execute(null);
+        Assert.True(member.IsExpanded);
+    }
+
+    [Fact]
+    public void FamilyMembersViewModel_SearchText_FiltersMembersList()
+    {
+        // Arrange
+        var vm = new FamilyMembersViewModel();
+        Assert.Equal(4, vm.FilteredMembers.Count);
+
+        // Act: search by name
+        vm.SearchText = "Hoa";
+
+        // Assert
+        Assert.Single(vm.FilteredMembers);
+        Assert.Equal("Trần Thị Hoa", vm.FilteredMembers[0].FullName);
+
+        // Act: clear search
+        vm.SearchText = string.Empty;
+        Assert.Equal(4, vm.FilteredMembers.Count);
+    }
+    #endregion
+
+    #region ResidencyHistoryViewModel Tests
+    [Fact]
+    public void ResidencyHistoryViewModel_SelectSession_UpdatesSelectedSessionAndDetails()
+    {
+        // Arrange
+        var vm = new ResidencyHistoryViewModel();
+        Assert.NotNull(vm.SelectedSession);
+        Assert.Equal("A-1203", vm.SelectedSession.ApartmentNumber);
+
+        // Act: select second session (A-1008)
+        var secondSession = vm.Sessions[1];
+        vm.SelectSessionCommand.Execute(secondSession);
+
+        // Assert
+        Assert.Equal("A-1008", vm.SelectedSession.ApartmentNumber);
+        Assert.True(secondSession.IsSelected);
+        Assert.False(vm.Sessions[0].IsSelected);
+    }
+
+    [Fact]
+    public void ResidencyHistoryViewModel_Initialize_LoadsTimelineEvents()
+    {
+        // Arrange
+        var vm = new ResidencyHistoryViewModel();
         var account = CreateSampleUserAccount();
 
         // Act
         vm.Initialize(account);
 
         // Assert
-        Assert.True(vm.HasMembers);
-        Assert.True(vm.TotalMembers >= 1);
-        Assert.Equal(vm.Members.Count, vm.TotalMembers);
-    }
-
-    [Fact]
-    public void ResidencyHistoryViewModel_Initialize_LoadsHistoryAndResidentInfo()
-    {
-        // Arrange
-        var vm = new ResidencyHistoryViewModel();
-        var account = CreateSampleUserAccount(3, "resident3", "Trần Thị B");
-
-        // Act
-        vm.Initialize(account);
-
-        // Assert
-        Assert.Equal("Trần Thị B", vm.ResidentName);
-        Assert.Equal("CD-0003", vm.ResidentCode);
+        Assert.Equal(2, vm.TotalResidencyCount);
+        Assert.Equal(2, vm.TimelineEvents.Count);
         Assert.True(vm.HasHistory);
-        Assert.True(vm.TotalEvents >= 1);
     }
     #endregion
 }
