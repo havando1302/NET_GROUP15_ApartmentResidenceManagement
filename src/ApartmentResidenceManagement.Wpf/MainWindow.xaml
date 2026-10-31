@@ -10,6 +10,7 @@
         Height="768" Width="1366"
         MinHeight="600" MinWidth="960"
         WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI"
         Background="{StaticResource PageBgBrush}">
 
     <Window.Resources>
@@ -17,6 +18,7 @@
         <DataTemplate DataType="{x:Type viewModels:ApartmentViewModel}"><views:ApartmentView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidentHomeViewModel}"><views:ResidentHomeView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyProfileViewModel}"><views:MyProfileView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:MyApartmentViewModel}"><views:MyApartmentView /></DataTemplate>
 
         <!-- Sidebar Base Button -->
         <Style x:Key="SidebarBtn" TargetType="Button">
