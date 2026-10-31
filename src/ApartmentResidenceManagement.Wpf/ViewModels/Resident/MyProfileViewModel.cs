@@ -172,9 +172,12 @@ public class MyProfileViewModel : ViewModelBase
         new AvatarPresetItem { Name = "Trần Thị Hoa", Role = "Vợ", ImagePath = "/Assets/wife_avatar.png" },
         new AvatarPresetItem { Name = "Nguyễn Gia Bảo", Role = "Con trai", ImagePath = "/Assets/avatar_son.png" },
         new AvatarPresetItem { Name = "Nguyễn An Nhiên", Role = "Con gái", ImagePath = "/Assets/avatar_daughter.png" },
+        new AvatarPresetItem { Name = "Bé Minh Khôi", Role = "Bé trai", ImagePath = "/Assets/avatar_toddler_boy.png" },
+        new AvatarPresetItem { Name = "Bé Tuệ Mẫn", Role = "Em bé", ImagePath = "/Assets/avatar_baby_girl.png" },
+        new AvatarPresetItem { Name = "Nguyễn Tuấn Anh", Role = "Em trai", ImagePath = "/Assets/avatar_young_man.png" },
+        new AvatarPresetItem { Name = "Nguyễn Thùy Linh", Role = "Em gái", ImagePath = "/Assets/avatar_young_woman.png" },
         new AvatarPresetItem { Name = "Nguyễn Văn Hùng", Role = "Ông nội", ImagePath = "/Assets/avatar_grandfather.png" },
-        new AvatarPresetItem { Name = "Lê Thị Mai", Role = "Bà nội", ImagePath = "/Assets/avatar_grandmother.png" },
-        new AvatarPresetItem { Name = "Nguyễn Tuấn Anh", Role = "Em trai", ImagePath = "/Assets/avatar_young_man.png" }
+        new AvatarPresetItem { Name = "Lê Thị Mai", Role = "Bà nội", ImagePath = "/Assets/avatar_grandmother.png" }
     };
     #endregion
 
