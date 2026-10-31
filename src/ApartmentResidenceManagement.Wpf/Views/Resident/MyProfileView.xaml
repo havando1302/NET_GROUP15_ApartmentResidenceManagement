@@ -5,51 +5,59 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800"
-             Background="{StaticResource PrimaryLightBrush}">
+             d:DesignHeight="600" d:DesignWidth="850"
+             FontFamily="Segoe UI"
+             Background="{StaticResource PageBgBrush}">
 
     <UserControl.Resources>
-        <!-- Style TextBox chỉ đọc -->
+        <!-- Style TextBox chỉ đọc (Chiều cao: 40px, Bo góc: 4px, Nội dung: 14px) -->
         <Style x:Key="ReadOnlyTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#F5F5F5"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border CornerRadius="4" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                        <Border CornerRadius="{StaticResource RadiusSmall}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- Style TextBox nhập liệu -->
+        <!-- Style TextBox nhập liệu (Chiều cao: 40px, Bo góc: 4px, Nội dung: 14px) -->
         <Style x:Key="EditableTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="border" CornerRadius="4" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                        <Border x:Name="border" CornerRadius="{StaticResource RadiusSmall}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource PrimarySoftBrush}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource BorderHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsFocused" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource PrimaryBlueBrush}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter Property="BorderThickness" TargetName="border" Value="2"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -57,126 +65,121 @@
             </Setter>
         </Style>
 
-        <!-- Style Button -->
-        <Style x:Key="PrimaryActionBtn" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource PrimaryBlueBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+        <!-- Nhãn trường thông tin (Khoảng cách nhãn - ô nhập: 8px) -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Padding" Value="20,10"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" CornerRadius="4" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Opacity" Value="0.9"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="30">
+    <!-- Lề trang: 24 px -->
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Title -->
             <RowDefinition Height="*"/>
-            <!-- Form -->
+            <!-- Form Card -->
         </Grid.RowDefinitions>
 
-        <!-- Title -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,30">
-            <TextBlock Text="THÔNG TIN CỦA TÔI" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}"/>
-            <TextBlock Text="Quản lý thông tin hồ sơ cư dân và thông tin liên hệ." FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0"/>
+        <!-- Tiêu đề trang (Khoảng cách nhóm: 24 px) -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <!-- Tiêu đề trang: 24 px -->
+            <TextBlock Text="THÔNG TIN CỦA TÔI" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}"/>
+            <!-- Chú thích: 12 px -->
+            <TextBlock Text="Quản lý thông tin hồ sơ cư dân và cập nhật liên hệ cá nhân." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
         </StackPanel>
 
-        <!-- Form Container -->
-        <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" CornerRadius="8" Padding="25">
+        <!-- Form Container Card (Padding card: 20 px, Bo góc: 8 px) -->
+        <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" CornerRadius="{StaticResource RadiusMedium}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="20">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="12" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
+                <DropShadowEffect BlurRadius="8" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
             </Border.Effect>
             
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Tiêu đề khung: 18 px -->
                     <RowDefinition Height="*"/>
                     <!-- Fields -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Alert & Save Button -->
+                    <!-- Alerts & Save Button -->
                 </Grid.RowDefinitions>
 
-                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                <!-- Tiêu đề khung: 18 px (Khoảng cách nhóm: 24 px) -->
+                <TextBlock Grid.Row="0" Text="Hồ sơ cá nhân &amp; Liên hệ" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextDarkBrush}" Margin="0,0,0,24"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="24"/>
+                            <!-- Khoảng cách giữa 2 cột: 24 px -->
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                    <!-- Column 1: Read-only administrative info -->
-                    <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,20,15">
-                        <TextBlock Text="Mã cư dân" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding ResidentId}"/>
-                    </StackPanel>
+                        <!-- Cột 1: Thông tin quản lý (Read-only) - Khoảng cách trường nhập: 16 px -->
+                        <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,0,16">
+                            <TextBlock Text="Mã cư dân" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding ResidentId}"/>
+                        </StackPanel>
 
-                    <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,20,15">
-                        <TextBlock Text="Họ và tên" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding FullName}"/>
-                    </StackPanel>
+                        <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,0,16">
+                            <TextBlock Text="Họ và tên" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding FullName}"/>
+                        </StackPanel>
 
-                    <StackPanel Grid.Column="0" Grid.Row="2" Margin="0,0,20,15">
-                        <TextBlock Text="Ngày sinh" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding DobText}"/>
-                    </StackPanel>
+                        <StackPanel Grid.Column="0" Grid.Row="2" Margin="0,0,0,16">
+                            <TextBlock Text="Ngày sinh" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding DobText}"/>
+                        </StackPanel>
 
-                    <StackPanel Grid.Column="0" Grid.Row="3" Margin="0,0,20,15">
-                        <TextBlock Text="Giới tính" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding GenderText}"/>
-                    </StackPanel>
+                        <StackPanel Grid.Column="0" Grid.Row="3" Margin="0,0,0,16">
+                            <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding GenderText}"/>
+                        </StackPanel>
 
-                    <!-- Column 2: Administrative info & Contact Info -->
-                    <StackPanel Grid.Column="1" Grid.Row="0" Margin="20,0,0,15">
-                        <TextBlock Text="Số CCCD" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding IdentityCard}"/>
-                    </StackPanel>
+                        <!-- Cột 2: CCCD & Thông tin liên hệ - Khoảng cách trường nhập: 16 px -->
+                        <StackPanel Grid.Column="2" Grid.Row="0" Margin="0,0,0,16">
+                            <TextBlock Text="Số CCCD" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource ReadOnlyTextBox}" Text="{Binding IdentityCard}"/>
+                        </StackPanel>
 
-                    <StackPanel Grid.Column="1" Grid.Row="1" Margin="20,0,0,15">
-                        <TextBlock Text="Số điện thoại di động" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource EditableTextBox}" Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
+                        <StackPanel Grid.Column="2" Grid.Row="1" Margin="0,0,0,16">
+                            <TextBlock Text="Số điện thoại di động *" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource EditableTextBox}" Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
 
-                    <StackPanel Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" Margin="20,0,0,15">
-                        <TextBlock Text="Quê quán / Địa chỉ thường trú" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource EditableTextBox}" Text="{Binding HomeTown, UpdateSourceTrigger=PropertyChanged}" 
-                                 Height="85" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"/>
-                    </StackPanel>
-                </Grid>
+                        <StackPanel Grid.Column="2" Grid.Row="2" Grid.RowSpan="2" Margin="0,0,0,16">
+                            <TextBlock Text="Quê quán / Địa chỉ thường trú" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource EditableTextBox}" Text="{Binding HomeTown, UpdateSourceTrigger=PropertyChanged}" 
+                                     Height="96" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
+                        </StackPanel>
+                    </Grid>
                 </ScrollViewer>
 
-                <!-- Status Alerts & Action Button -->
-                <StackPanel Grid.Row="1" Margin="0,20,0,0">
+                <!-- Status Alerts & Action Button (Khoảng cách nhóm: 24 px) -->
+                <StackPanel Grid.Row="2" Margin="0,24,0,0">
                     
                     <!-- Success Alert -->
                     <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success"
-                                                 Margin="0,0,0,15"/>
+                                                 Margin="0,0,0,16"/>
 
                     <!-- Error Alert -->
                     <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"
-                                                 Margin="0,0,0,15"/>
+                                                 Margin="0,0,0,16"/>
 
-                    <Button Content="LƯU THAY ĐỔI" Style="{StaticResource PrimaryActionBtn}" HorizontalAlignment="Right"
-                            Command="{Binding SaveProfileCommand}"/>
+                    <!-- Chiều cao nút: 40 px -->
+                    <Button Content="LƯU THAY ĐỔI" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right"
+                            Command="{Binding SaveProfileCommand}" MinWidth="140"/>
                 </StackPanel>
             </Grid>
         </Border>

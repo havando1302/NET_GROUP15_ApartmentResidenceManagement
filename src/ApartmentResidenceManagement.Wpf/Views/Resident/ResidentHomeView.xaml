@@ -6,49 +6,55 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000"
+             FontFamily="Segoe UI"
              Background="{StaticResource PageBgBrush}">
 
     <UserControl.Resources>
-        <!-- Style cho Thẻ Card Thông Tin Cá Nhân -->
+        <!-- Style cho Thẻ Card Thông Tin Cư Dân (Padding: 20px, CornerRadius: 8px) -->
         <Style x:Key="ResidentKpiCard" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}"/>
             <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Margin" Value="12"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="10" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
+                    <DropShadowEffect BlurRadius="8" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
                 </Setter.Value>
             </Setter>
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="20">
+    <!-- Lề trang: 24 px -->
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Welcome Header -->
-        <Grid Grid.Row="0" Margin="10,0,10,20">
+        <!-- Welcome Header (Khoảng cách nhóm: 24 px) -->
+        <Grid Grid.Row="0" Margin="0,0,0,24">
             <StackPanel>
+                <!-- Tiêu đề trang: 24 px -->
                 <TextBlock Text="CỔNG THÔNG TIN CƯ DÂN" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}"/>
-                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock Text="Xin chào cư dân " FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
-                    <TextBlock Text="{Binding ResidentName}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}"/>
+                    <TextBlock Text="{Binding ResidentName}" FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
                     <TextBlock Text=". Chúc bạn một ngày tốt lành!" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
                 </StackPanel>
             </StackPanel>
+            <!-- Chiều cao nút: 40 px -->
             <Button Content="Làm mới" Command="{Binding RefreshCommand}" Style="{StaticResource OutlineButton}"
                     HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
 
         <controls:NotificationBanner Grid.Row="1" Message="{Binding ErrorMessage}" Kind="Error"
-                                     Margin="10,0,10,12"/>
+                                     Margin="0,0,0,24"/>
 
         <!-- Content Cards -->
-        <UniformGrid Grid.Row="2" Columns="2" Rows="2" Margin="0,0,0,20">
+        <UniformGrid Grid.Row="2" Columns="2" Rows="2" Margin="-12,0,-12,0">
 
             <!-- Card 1: Căn hộ của tôi -->
             <Border Style="{StaticResource ResidentKpiCard}">
@@ -60,12 +66,13 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock Text="🏢" FontSize="20" Margin="0,0,10,0"/>
-                        <TextBlock Text="CĂN HỘ CỦA TÔI" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="🏢" FontSize="18" Margin="0,0,10,0"/>
+                        <TextBlock Text="CĂN HỘ CỦA TÔI" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <TextBlock Grid.Row="1" Text="{Binding ApartmentNumber}" FontSize="36" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}" VerticalAlignment="Center"/>
 
+                    <!-- Chú thích: 12 px -->
                     <TextBlock Grid.Row="2" Text="Căn hộ đang sinh sống hiện tại" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                 </Grid>
             </Border>
@@ -80,18 +87,19 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock Text="📋" FontSize="20" Margin="0,0,10,0"/>
-                        <TextBlock Text="TRẠNG THÁI CƯ TRÚ" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="📋" FontSize="18" Margin="0,0,10,0"/>
+                        <TextBlock Text="TRẠNG THÁI CƯ TRÚ" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding ResidencyStatus}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                            <TextBlock Text="Vai trò: " FontSize="13" Foreground="{StaticResource TextDarkBrush}"/>
-                            <TextBlock Text="{Binding RelationshipText}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryDarkBrush}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="Vai trò: " FontSize="14" Foreground="{StaticResource TextDarkBrush}"/>
+                            <TextBlock Text="{Binding RelationshipText}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryDarkBrush}"/>
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- Chú thích: 12 px -->
                     <TextBlock Grid.Row="2" Text="Tình trạng đăng ký thường trú/tạm trú" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                 </Grid>
             </Border>
@@ -106,15 +114,16 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock Text="👨‍👩‍👧‍👦" FontSize="20" Margin="0,0,10,0"/>
-                        <TextBlock Text="THÀNH VIÊN GIA ĐÌNH" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="👨‍👩‍👧‍👦" FontSize="18" Margin="0,0,10,0"/>
+                        <TextBlock Text="THÀNH VIÊN GIA ĐÌNH" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding FamilyCount}" FontSize="36" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}"/>
+                        <TextBlock Text="{Binding FamilyCount}" FontSize="36" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
                         <TextBlock Text=" người" FontSize="16" Foreground="{StaticResource TextMutedBrush}" Margin="5,0,0,5" VerticalAlignment="Bottom"/>
                     </StackPanel>
 
+                    <!-- Chú thích: 12 px -->
                     <TextBlock Grid.Row="2" Text="Số nhân khẩu đang sinh sống cùng căn hộ" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                 </Grid>
             </Border>
@@ -129,8 +138,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock Text="🚗" FontSize="20" Margin="0,0,10,0"/>
-                        <TextBlock Text="PHƯƠNG TIỆN CỦA TÔI" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="🚗" FontSize="18" Margin="0,0,10,0"/>
+                        <TextBlock Text="PHƯƠNG TIỆN CỦA TÔI" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -138,6 +147,7 @@
                         <TextBlock Text=" xe đăng ký" FontSize="16" Foreground="{StaticResource TextMutedBrush}" Margin="5,0,0,5" VerticalAlignment="Bottom"/>
                     </StackPanel>
 
+                    <!-- Chú thích: 12 px -->
                     <TextBlock Grid.Row="2" Text="Số lượng phương tiện cá nhân đã gửi tại tòa nhà" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                 </Grid>
             </Border>

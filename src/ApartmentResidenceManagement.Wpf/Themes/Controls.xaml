@@ -2,26 +2,72 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ══════════════════════════════════════════════════════════
-         CARD STYLE
+         CARD STYLE (Padding: 20px, CornerRadius: 8px)
     ══════════════════════════════════════════════════════════ -->
     <Style x:Key="CardStyle" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource CardBgBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="20" />
         <Setter Property="Effect" Value="{StaticResource ShadowSm}" />
     </Style>
 
     <!-- ══════════════════════════════════════════════════════════
-         BUTTON STYLES
+         TYPOGRAPHY STYLES (Font: Segoe UI)
+         - Tiêu đề trang: 24 px
+         - Tiêu đề khung: 18 px
+         - Nhãn trường nhập: 14 px (cách ô nhập 8px)
+         - Nội dung / Body: 14 px
+         - Chú thích: 12 px
+    ══════════════════════════════════════════════════════════ -->
+    <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+    </Style>
+
+    <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+    </Style>
+
+    <Style x:Key="FormLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+
+    <Style x:Key="BodyTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+    </Style>
+
+    <Style x:Key="CaptionStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+    </Style>
+
+    <!-- ══════════════════════════════════════════════════════════
+         BUTTON STYLES (Height: 40px, FontSize: 14px)
     ══════════════════════════════════════════════════════════ -->
     
     <!-- Primary Button -->
     <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextLightBrush}"/>
-        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="16,0"/>
         <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
@@ -54,7 +100,10 @@
         <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="16,0"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
@@ -62,7 +111,7 @@
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}" 
                             BorderBrush="{TemplateBinding BorderBrush}" 
-                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderThickness="{TemplateBinding BorderThickness}" 
                             CornerRadius="{StaticResource RadiusMedium}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                     </Border>
@@ -97,15 +146,18 @@
     </Style>
 
     <!-- ══════════════════════════════════════════════════════════
-         INPUT STYLES (TextBox, PasswordBox)
+         INPUT STYLES (TextBox, PasswordBox) - Height: 40px, FontSize: 14px
     ══════════════════════════════════════════════════════════ -->
     <Style x:Key="ModernTextBox" TargetType="TextBox">
-        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -113,7 +165,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}" 
                             CornerRadius="{StaticResource RadiusSmall}">
-                        <ScrollViewer x:Name="PART_ContentHost"/>
+                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -130,12 +182,15 @@
     </Style>
 
     <Style x:Key="ModernPasswordBox" TargetType="PasswordBox">
-        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="PasswordBox">
@@ -143,7 +198,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}" 
                             CornerRadius="{StaticResource RadiusSmall}">
-                        <ScrollViewer x:Name="PART_ContentHost"/>
+                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -160,15 +215,18 @@
     </Style>
 
     <!-- ══════════════════════════════════════════════════════════
-         COMBOBOX STYLE
+         COMBOBOX STYLE (Height: 40px, FontSize: 14px)
     ══════════════════════════════════════════════════════════ -->
     <Style x:Key="ModernComboBox" TargetType="ComboBox">
-        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -185,6 +243,8 @@
         <Setter Property="HeadersVisibility" Value="Column"/>
         <Setter Property="GridLinesVisibility" Value="Horizontal"/>
         <Setter Property="RowHeight" Value="48"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="14"/>
         <!-- Tắt dòng trống cuối bảng mà WPF tự thêm để nhập liệu -->
         <Setter Property="CanUserAddRows" Value="False"/>
         <Setter Property="CanUserDeleteRows" Value="False"/>
