@@ -41,12 +41,12 @@ public class AccountService
         catch (Exception)
         {
             // Khi chưa bật MySQL (máy cá nhân / offline): Hỗ trợ tài khoản mẫu để test giao diện
-            if (username.Equals("resident_a", StringComparison.OrdinalIgnoreCase) && password == "resident123")
+            if ((username.Equals("resident_a", StringComparison.OrdinalIgnoreCase) || username.Equals("demo.resident", StringComparison.OrdinalIgnoreCase)) && password == "resident123")
             {
                 return new UserAccount
                 {
                     Id = 2,
-                    Username = "resident_a",
+                    Username = username.ToLower(),
                     Role = UserRole.Resident,
                     IsActive = true,
                     ResidentId = 1,
@@ -60,12 +60,12 @@ public class AccountService
                 };
             }
 
-            if (username.Equals("admin", StringComparison.OrdinalIgnoreCase) && password == "admin123")
+            if ((username.Equals("admin", StringComparison.OrdinalIgnoreCase) || username.Equals("demo.admin", StringComparison.OrdinalIgnoreCase)) && password == "admin123")
             {
                 return new UserAccount
                 {
                     Id = 1,
-                    Username = "admin",
+                    Username = username.ToLower(),
                     Role = UserRole.Admin,
                     IsActive = true
                 };

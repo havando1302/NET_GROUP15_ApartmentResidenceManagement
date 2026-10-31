@@ -44,7 +44,14 @@ public partial class App : System.Windows.Application
                 
                 var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseMySql(connectionString, serverVersion, mySqlOptions => mySqlOptions.EnableRetryOnFailure()),
+                    options.UseMySql(connectionString, serverVersion, mySqlOptions => 
+                    {
+                        mySqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 2,
+                            maxRetryDelay: TimeSpan.FromSeconds(1),
+                            errorNumbersToAdd: null);
+                        mySqlOptions.CommandTimeout(5);
+                    }),
                     ServiceLifetime.Transient,
                     ServiceLifetime.Singleton);
 
@@ -89,22 +96,25 @@ public partial class App : System.Windows.Application
         // Tránh tự động tắt ứng dụng khi đóng LoginWindow để mở MainWindow
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-        // 1. Tự động chạy Migration và nạp dữ liệu Seed Data khi ứng dụng khởi động
-        try
+        // 1. Tự động chạy Migration và nạp dữ liệu Seed Data ở tiến trình nền (không làm chậm/đơ giao diện)
+        _ = Task.Run(async () =>
         {
-            using var scope = _host.Services.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            bool seedDemoData = _host.Services.GetRequiredService<IConfiguration>()
-                .GetValue("Database:SeedDemoData", true);
-            await DatabaseInitializer.InitializeAsync(dbContext, seedDemoData);
-        }
-        catch (Exception ex)
-        {
-            // Khi chưa bật MySQL Server trên máy, không tắt ứng dụng để lập trình viên vẫn test được giao diện
-            System.Diagnostics.Debug.WriteLine($"[Cảnh báo DB] Không thể kết nối cơ sở dữ liệu: {ex.Message}");
-        }
+            try
+            {
+                using var scope = _host.Services.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                bool seedDemoData = _host.Services.GetRequiredService<IConfiguration>()
+                    .GetValue("Database:SeedDemoData", true);
+                await DatabaseInitializer.InitializeAsync(dbContext, seedDemoData);
+            }
+            catch (Exception ex)
+            {
+                // Khi chưa bật MySQL Server trên máy, không tắt ứng dụng để lập trình viên vẫn test được giao diện
+                System.Diagnostics.Debug.WriteLine($"[Cảnh báo DB] Không thể kết nối cơ sở dữ liệu: {ex.Message}");
+            }
+        });
 
-        // 2. Vòng lặp hiển thị màn hình Đăng nhập
+        // 2. Mở màn hình Đăng nhập ngay lập tức không có độ trễ
         RunLoginLoop();
     }
 

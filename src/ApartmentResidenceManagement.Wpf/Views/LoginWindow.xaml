@@ -5,84 +5,402 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Đăng nhập - RMS" 
-        Height="550" Width="900"
+        Title="Đăng nhập hệ thống - ResidenceManager" 
+        Height="680" Width="1060"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
+        FontFamily="Segoe UI"
+        MouseDown="Window_MouseDown"
         Background="Transparent">
 
-    <Border CornerRadius="{StaticResource RadiusLarge}" Background="{StaticResource CardBgBrush}" ClipToBounds="True">
+    <Window.Resources>
+        <!-- Shadow nhẹ cho card & button -->
+        <DropShadowEffect x:Key="FloatingCardShadow" BlurRadius="28" Direction="270" ShadowDepth="8" Color="#0F172A" Opacity="0.08"/>
+
+        <!-- Style cho 2 Thẻ chọn Vai trò (Role Selector Cards - Chiều cao 94px để không bị cắt chữ dưới mọi tỉ lệ DPI) -->
+        <Style x:Key="RoleCardButton" TargetType="Button">
+            <Setter Property="MinHeight" Value="92"/>
+            <Setter Property="Height" Value="94"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding" Value="4,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style cho 2 Nút Tài khoản mẫu bên dưới -->
+        <Style x:Key="DemoAccountQuickBtn" TargetType="Button">
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F8FAFC"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#2563EB"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Khung toàn bộ cửa sổ có bo góc và đổ bóng nổi bật -->
+    <Border CornerRadius="24" ClipToBounds="True">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="30" Direction="270" ShadowDepth="10" Color="#000000" Opacity="0.1"/>
+            <DropShadowEffect BlurRadius="40" Direction="270" ShadowDepth="12" Color="#0F172A" Opacity="0.18"/>
         </Border.Effect>
+
         <Grid>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.15*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="400"/>
             </Grid.ColumnDefinitions>
 
-            <!-- LEFT PANEL: Banner -->
-            <Grid Grid.Column="0">
-                <Border>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#1E3A8A" Offset="0.0"/> <!-- Dark Blue -->
-                            <GradientStop Color="{StaticResource PrimaryColor}" Offset="1.0"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
-                
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
-                    <TextBlock Text="RMS" FontSize="48" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                    <TextBlock Text="Residence Management System" FontSize="20" Foreground="{StaticResource PrimaryLightBrush}" Margin="0,0,0,40" HorizontalAlignment="Center" TextAlignment="Center"/>
-                    <TextBlock Text="Nền tảng quản lý cư dân hiện đại, an toàn và hiệu quả." FontSize="16" Foreground="White" FontWeight="Medium" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Opacity="0.9"/>
-                </StackPanel>
-            </Grid>
+            <!-- ẢNH NỀN TOÀN CẢNH (Cây xanh góc trên, toà nhà & bãi cỏ phía dưới, nắng vàng buổi sáng, gradient xanh mềm phía phải) -->
+            <Image x:Name="imgBackground"
+                   Grid.ColumnSpan="2"
+                   Source="/Assets/login_background_hero.jpg"
+                   Stretch="UniformToFill"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
 
-            <!-- RIGHT PANEL: Form -->
-            <Grid Grid.Column="1" Margin="40">
+            <!-- Nút thu nhỏ và đóng góc trên cùng bên phải -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,14,18,0" Panel.ZIndex="10">
+                <Button Width="32" Height="32" Content="—" Click="MinimizeButton_Click"
+                        Style="{StaticResource OutlineButton}" BorderThickness="0"
+                        Foreground="#475569" FontSize="13" FontWeight="Bold"
+                        ToolTip="Thu nhỏ"/>
+                <Button Width="32" Height="32" Content="✕" Click="CloseButton_Click"
+                        Style="{StaticResource OutlineButton}" BorderThickness="0"
+                        Foreground="#475569" FontSize="14" FontWeight="Bold"
+                        ToolTip="Đóng ứng dụng"/>
+            </StackPanel>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 KHỐI BÊN TRÁI: THƯƠNG HIỆU & TIÊU ĐỀ HỆ THỐNG
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Column="0" Margin="44,36,24,32">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <!-- Logo -->
                     <RowDefinition Height="Auto"/>
+                    <!-- Pill Badge -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Tiêu đề lớn -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Mô tả -->
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
+                    <!-- Khoảng trống ngắm trọn toà nhà & ánh nắng ban mai -->
                 </Grid.RowDefinitions>
-                <Button Grid.Row="0" Content="✕" Width="32" Height="32" VerticalAlignment="Top" HorizontalAlignment="Right"
-                        Style="{StaticResource OutlineButton}" BorderThickness="0"
-                        Foreground="{StaticResource TextMutedBrush}" FontSize="16" FontWeight="Bold"
-                        Click="CloseButton_Click" ToolTip="Đóng"/>
 
-                <StackPanel Grid.Row="1" Margin="0,8,0,24">
-                    <TextBlock Text="Đăng Nhập" FontSize="32" FontWeight="Bold" Foreground="{StaticResource TextDarkBrush}" Margin="0,0,0,8"/>
-                    <TextBlock Text="Chào mừng bạn quay trở lại!" FontSize="14" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                <!-- Logo ResidenceManager -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,150,0,428" Grid.RowSpan="5">
+                    <Border Background="#2563EB" CornerRadius="8" Padding="6,5" Margin="0,0,10,0">
+                        <TextBlock Text="🏢" FontSize="18" Foreground="White" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="ResidenceManager" FontSize="20" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled" Margin="0,0,0,16">
-                    <StackPanel>
-                        <TextBlock Text="Tên đăng nhập" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextDarkBrush}" Margin="0,0,0,8"/>
-                        <TextBox Style="{StaticResource ModernTextBox}"
-                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                                 AutomationProperties.Name="Tên đăng nhập"
-                                 Margin="0,0,0,24" Height="42"/>
+                <!-- Pill Badge: Hệ thống quản lý -->
+                <Border Grid.Row="4" Background="#E0EEFF" CornerRadius="12" Padding="12,5" HorizontalAlignment="Left" Margin="0,189,0,383">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🏠 " FontSize="12"/>
+                        <TextBlock Text="Hệ thống quản lý" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB"/>
+                    </StackPanel>
+                </Border>
 
-                        <TextBlock Text="Mật khẩu" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextDarkBrush}" Margin="0,0,0,8"/>
-                        <PasswordBox x:Name="txtPassword" Style="{StaticResource ModernPasswordBox}" Height="42"
-                                     AutomationProperties.Name="Mật khẩu"/>
+                <!-- Tiêu đề lớn -->
+                <StackPanel Grid.Row="2" Margin="0,233,0,273" Grid.RowSpan="3">
+                    <TextBlock Text="Thông tin cư trú" FontSize="36" FontWeight="Bold" Foreground="#0F172A" LineHeight="44"/>
+                    <TextBlock Text="tại chung cư" FontSize="36" FontWeight="Bold" Foreground="#0F172A" LineHeight="44"/>
+                </StackPanel>
+
+                <!-- Đoạn mô tả -->
+                <TextBlock Grid.Row="3" 
+                           Text="Quản lý cư dân, căn hộ, hồ sơ cư trú và các dịch vụ nội khu một cách hiệu quả, minh bạch và an toàn."
+                           FontSize="14" Foreground="#475569" TextWrapping="Wrap" LineHeight="22" Margin="0,344,40,214" Grid.RowSpan="2"/>
+            </Grid>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 KHỐI BÊN PHẢI: FORM ĐĂNG NHẬP & TÀI KHOẢN MẪU
+            ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Column="1" Background="White" CornerRadius="24"
+                    Margin="12,18,24,18" Padding="28,20"
+                    Effect="{StaticResource FloatingCardShadow}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <!-- Biểu tượng toà nhà & Tiêu đề Form -->
+                        <StackPanel HorizontalAlignment="Center" Margin="0,0,0,14">
+                            <Border Width="44" Height="44" Background="#EFF6FF" CornerRadius="22" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                <TextBlock Text="🏢" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Đăng nhập hệ thống" FontSize="22" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Vui lòng chọn cổng truy cập phù hợp với tài khoản của bạn" 
+                                        FontSize="12" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+
+                        <!-- Chọn Cổng truy cập (2 Card lớn chọn Ban quản lý / Cư dân) -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Cổng 1: Ban quản lý -->
+                            <Button Grid.Column="0" Command="{Binding SelectAdminRoleCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource RoleCardButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAdminSelected}" Value="True">
+                                                <Setter Property="Background" Value="#EFF6FF"/>
+                                                <Setter Property="BorderBrush" Value="#2563EB"/>
+                                                <Setter Property="BorderThickness" Value="1.8"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="2,0">
+                                    <!-- Dấu tick xanh góc phải -->
+                                    <Border Width="18" Height="18" Background="#2563EB" CornerRadius="9"
+                                            HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-2,0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAdminSelected}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="✔" FontSize="10" FontWeight="Bold" Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,2">
+                                        <TextBlock Text="🛡" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Ban quản lý" FontSize="13.5" HorizontalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="Foreground" Value="#334155"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsAdminSelected}" Value="True">
+                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                            <Setter Property="Foreground" Value="#1E40AF"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <TextBlock Text="Quản trị và điều hành hệ thống" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#94A3B8"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsAdminSelected}" Value="True">
+                                                            <Setter Property="Foreground" Value="#64748B"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+
+                            <!-- Cổng 2: Cư dân -->
+                            <Button Grid.Column="2" Command="{Binding SelectResidentRoleCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource RoleCardButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsResidentSelected}" Value="True">
+                                                <Setter Property="Background" Value="#EFF6FF"/>
+                                                <Setter Property="BorderBrush" Value="#2563EB"/>
+                                                <Setter Property="BorderThickness" Value="1.8"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="2,0">
+                                    <!-- Dấu tick xanh góc phải -->
+                                    <Border Width="18" Height="18" Background="#2563EB" CornerRadius="9"
+                                            HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-2,0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsResidentSelected}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="✔" FontSize="10" FontWeight="Bold" Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,2">
+                                        <TextBlock Text="👥" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Cư dân" FontSize="13.5" HorizontalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="Foreground" Value="#334155"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsResidentSelected}" Value="True">
+                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                            <Setter Property="Foreground" Value="#1E40AF"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <TextBlock Text="Tra cứu và sử dụng dịch vụ" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#94A3B8"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsResidentSelected}" Value="True">
+                                                            <Setter Property="Foreground" Value="#64748B"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Grid>
+
+                        <!-- Input 1: Tên đăng nhập -->
+                        <StackPanel Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="👤" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Tên đăng nhập" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            </StackPanel>
+                            <TextBox Style="{StaticResource ModernTextBox}"
+                                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="Tên đăng nhập"
+                                     Height="40"/>
+                        </StackPanel>
+
+                        <!-- Input 2: Mật khẩu -->
+                        <StackPanel Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="🔒" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Mật khẩu" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            </StackPanel>
+                            <Grid>
+                                <PasswordBox x:Name="txtPassword" Style="{StaticResource ModernPasswordBox}" Height="40"
+                                             Padding="12,0,36,0"
+                                             AutomationProperties.Name="Mật khẩu"/>
+                                <TextBlock Text="👁" FontSize="14" Foreground="#94A3B8" HorizontalAlignment="Right"
+                                           VerticalAlignment="Center" Margin="0,0,12,0" IsHitTestVisible="False"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Checkbox & Link Quên mật khẩu -->
+                        <Grid Margin="0,0,0,14">
+                            <CheckBox Content="Ghi nhớ đăng nhập" IsChecked="{Binding RememberMe}"
+                                      FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+                            <TextBlock Text="Quên mật khẩu?" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB"
+                                       Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Nút ĐĂNG NHẬP -->
+                        <Button Height="44" Style="{StaticResource PrimaryButton}"
+                                IsDefault="True"
+                                Command="{Binding LoginCommand}"
+                                CommandParameter="{Binding ElementName=txtPassword}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="➔ " FontSize="14" FontWeight="Bold"/>
+                                <TextBlock Text="Đăng nhập" FontSize="14" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Alert lỗi nếu có -->
+                        <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"
+                                                     Margin="0,8,0,0"/>
+
+                        <!-- Đường phân cách Hoặc trải nghiệm nhanh -->
+                        <Grid Margin="0,14,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Height="1" Background="#E2E8F0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Hoặc trải nghiệm nhanh" FontSize="11" Foreground="#94A3B8" Margin="10,0"/>
+                            <Border Grid.Column="2" Height="1" Background="#E2E8F0" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- 2 Nút Tài khoản mẫu đúng chuẩn (admin / resident_a) -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Nút mẫu 1: Ban quản lý (admin / admin123) -->
+                            <Button Grid.Column="0" Style="{StaticResource DemoAccountQuickBtn}"
+                                    Command="{Binding FillAdminDemoCommand}"
+                                    CommandParameter="{Binding ElementName=txtPassword}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="🛡" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Tài khoản mẫu" FontSize="11" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <TextBlock Text="Ban quản lý (admin)" FontSize="10" Foreground="#64748B"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+
+                            <!-- Nút mẫu 2: Cư dân (resident_a / resident123) -->
+                            <Button Grid.Column="2" Style="{StaticResource DemoAccountQuickBtn}"
+                                    Command="{Binding FillResidentDemoCommand}"
+                                    CommandParameter="{Binding ElementName=txtPassword}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="👥" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Tài khoản mẫu" FontSize="11" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <TextBlock Text="Cư dân (resident_a)" FontSize="10" Foreground="#64748B"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </ScrollViewer>
-
-                <StackPanel Grid.Row="3">
-                    <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"
-                                                 Margin="0,0,0,16"/>
-
-                    <Button Content="ĐĂNG NHẬP" Height="48" Style="{StaticResource PrimaryButton}"
-                            IsDefault="True"
-                            Command="{Binding LoginCommand}"
-                            CommandParameter="{Binding ElementName=txtPassword}"/>
-                </StackPanel>
-            </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>
