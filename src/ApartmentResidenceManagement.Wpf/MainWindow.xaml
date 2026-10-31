@@ -187,49 +187,6 @@
                                 </StackPanel>
                             </Button>
 
-                            <!-- 4. Dịch vụ & yêu cầu (Tính năng đang phát triển) -->
-                            <Button Command="{Binding ShowServicesCommand}">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
-                                </Button.Style>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🛠" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Dịch vụ &amp; yêu cầu"/>
-                                </StackPanel>
-                            </Button>
-
-                            <!-- 5. Thông báo (Tính năng đang phát triển) -->
-                            <Button Command="{Binding ShowNotificationsCommand}">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
-                                </Button.Style>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🔔" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Thông báo"/>
-                                </StackPanel>
-                            </Button>
-
-                            <!-- 6. Phí dịch vụ (Tính năng đang phát triển) -->
-                            <Button Command="{Binding ShowFeesCommand}">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
-                                </Button.Style>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="💲" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Phí dịch vụ"/>
-                                </StackPanel>
-                            </Button>
-
-                            <!-- 7. Phản ánh / kiến nghị (Tính năng đang phát triển) -->
-                            <Button Command="{Binding ShowFeedbackCommand}">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
-                                </Button.Style>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="✏️" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Phản ánh / kiến nghị"/>
-                                </StackPanel>
-                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

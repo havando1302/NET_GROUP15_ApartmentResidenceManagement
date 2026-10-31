@@ -224,8 +224,41 @@
                                     HorizontalAlignment="Right" VerticalAlignment="Center" Cursor="Hand"/>
                         </Grid>
 
-                        <!-- Danh sách Thông báo mới -->
+                        <!-- Trạng thái trống (Empty State khi chưa có thông báo) -->
+                        <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1"
+                                CornerRadius="12" Padding="20,28" VerticalAlignment="Center"
+                                Visibility="{Binding HasAnnouncements, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasAnnouncements}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel HorizontalAlignment="Center">
+                                <Border Width="48" Height="48" CornerRadius="24" Background="#EFF6FF" HorizontalAlignment="Center" Margin="0,0,0,12">
+                                    <TextBlock Text="📭" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Chưa có thông báo mới" FontSize="14" FontWeight="Bold" Foreground="#334155" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Hiện tại Ban quản lý chưa phát hành thông báo nào dành cho căn hộ của bạn." FontSize="12" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Danh sách Thông báo mới (nếu có) -->
                         <ItemsControl Grid.Row="1" ItemsSource="{Binding RecentAnnouncements}">
+                            <ItemsControl.Style>
+                                <Style TargetType="ItemsControl">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasAnnouncements}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="#F8FAFC" BorderBrush="#F1F5F9" BorderThickness="1" CornerRadius="12"

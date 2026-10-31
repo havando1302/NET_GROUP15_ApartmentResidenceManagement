@@ -87,6 +87,7 @@ public class ResidentHomeViewModel : ViewModelBase
     }
 
     public ObservableCollection<AnnouncementItem> RecentAnnouncements { get; } = new();
+    public bool HasAnnouncements => RecentAnnouncements.Count > 0;
     #endregion
 
     #region Commands
@@ -131,34 +132,9 @@ public class ResidentHomeViewModel : ViewModelBase
 
     private void InitMockAnnouncements()
     {
+        // Tạm để trống phần thông báo theo yêu cầu: chờ hoàn thiện tính năng thông báo
         RecentAnnouncements.Clear();
-        RecentAnnouncements.Add(new AnnouncementItem
-        {
-            Icon = "📢",
-            Title = "Thông báo tạm ngừng cấp nước",
-            DateAndAuthor = "25/01/2026 • Ban quản lý",
-            Tag = "Quan trọng",
-            TagForeground = "#DC2626",
-            TagBackground = "#FEE2E2"
-        });
-        RecentAnnouncements.Add(new AnnouncementItem
-        {
-            Icon = "📅",
-            Title = "Lịch vệ sinh thang máy tháng 02/2026",
-            DateAndAuthor = "24/01/2026 • Ban quản lý",
-            Tag = "Thông báo",
-            TagForeground = "#2563EB",
-            TagBackground = "#EFF6FF"
-        });
-        RecentAnnouncements.Add(new AnnouncementItem
-        {
-            Icon = "ℹ️",
-            Title = "Hướng dẫn đăng ký tạm trú trực tuyến",
-            DateAndAuthor = "20/01/2026 • Ban quản lý",
-            Tag = "Thông tin",
-            TagForeground = "#16A34A",
-            TagBackground = "#DCFCE7"
-        });
+        OnPropertyChanged(nameof(HasAnnouncements));
     }
 
     public void Initialize(UserAccount account)
