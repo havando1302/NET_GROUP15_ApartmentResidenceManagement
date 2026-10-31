@@ -20,6 +20,7 @@
         <DataTemplate DataType="{x:Type viewModels:MyProfileViewModel}"><views:MyProfileView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyApartmentViewModel}"><views:MyApartmentView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:FamilyMembersViewModel}"><views:FamilyMembersView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ResidencyHistoryViewModel}"><views:ResidencyHistoryView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:UnderDevelopmentViewModel}"><views:UnderDevelopmentView /></DataTemplate>
 
         <!-- Sidebar Base Button -->
