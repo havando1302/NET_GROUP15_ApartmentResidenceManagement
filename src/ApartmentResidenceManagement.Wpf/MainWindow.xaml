@@ -6,9 +6,9 @@
         xmlns:viewModels="clr-namespace:ApartmentResidenceManagement.Wpf.ViewModels"
         xmlns:views="clr-namespace:ApartmentResidenceManagement.Wpf.Views"
         mc:Ignorable="d"
-        Title="Hệ thống Quản lý Căn hộ &amp; Cư trú - RMS"
+        Title="Hệ thống Quản lý Căn hộ &amp; Cư trú - ResidenceManager"
         Height="768" Width="1366"
-        MinHeight="600" MinWidth="960"
+        MinHeight="650" MinWidth="1020"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI"
         Background="{StaticResource PageBgBrush}">
@@ -19,27 +19,28 @@
         <DataTemplate DataType="{x:Type viewModels:ResidentHomeViewModel}"><views:ResidentHomeView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyProfileViewModel}"><views:MyProfileView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyApartmentViewModel}"><views:MyApartmentView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:UnderDevelopmentViewModel}"><views:UnderDevelopmentView /></DataTemplate>
 
         <!-- Sidebar Base Button -->
         <Style x:Key="SidebarBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource SidebarTextBrush}"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Height" Value="44"/>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="Margin" Value="12,2"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="{StaticResource RadiusMedium}">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="{StaticResource SidebarHoverBrush}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextLightBrush}"/>
+                                <Setter TargetName="bd" Property="Background" Value="#1E293B"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -54,33 +55,59 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- SIDEBAR -->
-        <Border Grid.Column="0" Background="{StaticResource SidebarBgBrush}">
+        <!-- ══════════════════════════════════════════════════════════
+             SIDEBAR TRÁI: NAVY DARK #0F172A THEO MẪU MOCKUP
+        ══════════════════════════════════════════════════════════ -->
+        <Border Grid.Column="0" Background="#0F172A">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/> <!-- Brand -->
+                    <RowDefinition Height="Auto"/> <!-- User Profile Card (Cư dân) -->
+                    <RowDefinition Height="*"/>    <!-- Navigation List -->
+                    <RowDefinition Height="Auto"/> <!-- Đăng xuất -->
                 </Grid.RowDefinitions>
 
-                <!-- Brand -->
-                <StackPanel Grid.Row="0" Margin="24,24,24,32" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="32" Height="32" CornerRadius="{StaticResource RadiusSmall}" Background="{StaticResource PrimaryBrush}" Margin="0,0,12,0">
-                        <TextBlock Text="R" Foreground="White" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- 1. Brand Header -->
+                <StackPanel Grid.Row="0" Margin="20,22,20,16" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="36" Height="36" CornerRadius="8" Background="#2563EB" Margin="0,0,12,0">
+                        <TextBlock Text="🏢" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <StackPanel>
-                        <TextBlock Text="APARTMENT RMS" Foreground="White" FontWeight="Bold" FontSize="15"/>
-                        <TextBlock Text="Quản lý Tòa nhà &amp; Cư dân" Foreground="{StaticResource SidebarTextBrush}" FontSize="11" Margin="0,2,0,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="ResidenceManager" Foreground="White" FontWeight="Bold" FontSize="16"/>
+                        <TextBlock Text="Cổng thông tin cư dân" Foreground="#94A3B8" FontSize="11" Margin="0,2,0,0"/>
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Navigation List -->
+                <!-- 2. Thẻ hồ sơ cá nhân nhanh ở sidebar (khớp bản mẫu mockup) -->
+                <Border Grid.Row="1" Background="#1E293B" CornerRadius="12" Margin="14,0,14,16" Padding="12,10"
+                        Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Avatar với chấm online xanh -->
+                        <Grid Grid.Column="0" Margin="0,0,10,0">
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#334155">
+                                <TextBlock Text="👤" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border Width="10" Height="10" CornerRadius="5" Background="#22C55E" BorderBrush="#1E293B" BorderThickness="1.5"
+                                    HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                        </Grid>
+                        <!-- Tên cư dân & Căn hộ -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ResidentDisplayName}" Foreground="White" FontWeight="Bold" FontSize="13"/>
+                            <TextBlock Text="{Binding ResidentApartmentInfo}" Foreground="#94A3B8" FontSize="11" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 3. Danh sách Menu Điều hướng -->
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <!-- ADMIN MENU -->
                         <StackPanel Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="QUẢN TRỊ VIÊN" FontSize="11" FontWeight="Bold" Foreground="#6B7280" Margin="24,8,0,8" />
+                            <TextBlock Text="QUẢN TRỊ VIÊN" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="24,8,0,8" />
 
                             <!-- Apartment -->
                             <Button Command="{Binding ShowApartmentCommand}">
@@ -88,7 +115,7 @@
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ActiveTab}" Value="ApartmentViewModel">
-                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                <Setter Property="Background" Value="#2563EB" />
                                                 <Setter Property="Foreground" Value="White" />
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -101,18 +128,17 @@
                             </Button>
                         </StackPanel>
 
-                        <!-- RESIDENT MENU -->
+                        <!-- RESIDENT MENU (Khớp 100% 7 mục theo Mockup) -->
                         <StackPanel Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="CỔNG CƯ DÂN" FontSize="11" FontWeight="Bold" Foreground="#6B7280" Margin="24,8,0,8" />
-                            
-                            <!-- Home -->
+                            <!-- 1. Trang chủ -->
                             <Button Command="{Binding ShowResidentHomeCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ActiveTab}" Value="ResidentHomeViewModel">
-                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                <Setter Property="Background" Value="#2563EB" />
                                                 <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -123,112 +149,153 @@
                                 </StackPanel>
                             </Button>
 
-                            <!-- Profile -->
+                            <!-- 2. Thông tin cá nhân -->
                             <Button Command="{Binding ShowMyProfileCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ActiveTab}" Value="MyProfileViewModel">
-                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                <Setter Property="Background" Value="#2563EB" />
                                                 <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="👤" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Hồ sơ cá nhân"/>
+                                    <TextBlock Text="Thông tin cá nhân"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Apartment -->
+                            <!-- 3. Hồ sơ cư trú -->
                             <Button Command="{Binding ShowMyApartmentCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ActiveTab}" Value="MyApartmentViewModel">
-                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                                <Setter Property="Background" Value="#2563EB" />
                                                 <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🏢" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Căn hộ của tôi"/>
+                                    <TextBlock Text="📄" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Hồ sơ cư trú"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- Family -->
-                            <Button Command="{Binding ShowFamilyMembersCommand}">
+                            <!-- 4. Dịch vụ & yêu cầu (Tính năng đang phát triển) -->
+                            <Button Command="{Binding ShowServicesCommand}">
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ActiveTab}" Value="FamilyMembersViewModel">
-                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-                                                <Setter Property="Foreground" Value="White" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="👨‍👩‍👧‍👦" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Thành viên"/>
+                                    <TextBlock Text="🛠" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Dịch vụ &amp; yêu cầu"/>
                                 </StackPanel>
                             </Button>
 
-                            <!-- History -->
-                            <Button Command="{Binding ShowResidencyHistoryCommand}">
+                            <!-- 5. Thông báo (Tính năng đang phát triển) -->
+                            <Button Command="{Binding ShowNotificationsCommand}">
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ActiveTab}" Value="ResidencyHistoryViewModel">
-                                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-                                                <Setter Property="Foreground" Value="White" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🕒" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="Lịch sử cư trú"/>
+                                    <TextBlock Text="🔔" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Thông báo"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 6. Phí dịch vụ (Tính năng đang phát triển) -->
+                            <Button Command="{Binding ShowFeesCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="💲" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Phí dịch vụ"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 7. Phản ánh / kiến nghị (Tính năng đang phát triển) -->
+                            <Button Command="{Binding ShowFeedbackCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}"/>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="✏️" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Phản ánh / kiến nghị"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- Logout -->
-                <Button Grid.Row="3" Command="{Binding LogoutCommand}" Style="{StaticResource SidebarBtn}" Foreground="{StaticResource DangerBrush}" Margin="24">
+                <!-- 4. Nút Đăng xuất ở chân Sidebar -->
+                <Button Grid.Row="3" Command="{Binding LogoutCommand}" Style="{StaticResource SidebarBtn}"
+                        Foreground="#EF4444" Margin="14,14,14,20">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🚪" Margin="0,0,12,0" FontSize="16"/>
-                        <TextBlock Text="Đăng xuất"/>
+                        <TextBlock Text="Đăng xuất" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
             </Grid>
         </Border>
 
-        <!-- MAIN CONTENT (Right) -->
-        <Grid Grid.Column="1" Background="{StaticResource PageBgBrush}">
+        <!-- ══════════════════════════════════════════════════════════
+             NỘI DUNG CHÍNH (BÊN PHẢI)
+        ══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Column="1" Background="#F8FAFC">
             <Grid.RowDefinitions>
-                <RowDefinition Height="72"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="74"/> <!-- Topbar Header -->
+                <RowDefinition Height="*"/>  <!-- Main View Content -->
             </Grid.RowDefinitions>
 
-            <!-- Topbar -->
-            <Border Grid.Row="0" Background="White" BorderThickness="0,0,0,1" BorderBrush="{StaticResource BorderBrush}">
-                <Grid Margin="32,0">
+            <!-- Topbar: Chuẩn theo mockup với lời chào, chuông thông báo & avatar -->
+            <Border Grid.Row="0" Background="White" BorderThickness="0,0,0,1" BorderBrush="#E2E8F0">
+                <Grid Margin="28,0">
+                    <!-- Lời chào bên trái -->
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="{Binding WelcomeMessage}" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextDarkBrush}"/>
-                        <TextBlock Text="{Binding RoleMessage}" FontSize="12"
-                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0"/>
+                        <TextBlock Text="{Binding ResidentGreeting}" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Chào mừng bạn đến với Cổng thông tin cư dân Chung cư ResidenceManager."
+                                   FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
                     </StackPanel>
-                    <TextBlock Text="RMS v1.0" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+
+                    <!-- Bên phải: Chuông thông báo đỏ & Avatar dropdown -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- Chuông thông báo có badge đỏ -->
+                        <Grid Margin="0,0,18,0" Cursor="Hand">
+                            <Grid.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding ShowNotificationsCommand}"/>
+                            </Grid.InputBindings>
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#F1F5F9">
+                                <TextBlock Text="🔔" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <!-- Badge số thông báo -->
+                            <Border Width="16" Height="16" CornerRadius="8" Background="#EF4444"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-2,0">
+                                <TextBlock Text="3" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Avatar góc phải -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Cursor="Hand">
+                            <StackPanel.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding ShowMyProfileCommand}"/>
+                            </StackPanel.InputBindings>
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1.5" Margin="0,0,6,0">
+                                <TextBlock Text="🏢" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="⌵" FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Dynamic Content -->
+            <!-- Dynamic Content Control -->
             <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}"/>
         </Grid>
     </Grid>

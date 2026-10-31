@@ -85,6 +85,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<FamilyMembersViewModel>();
                 services.AddTransient<MyVehiclesViewModel>();
                 services.AddTransient<ResidencyHistoryViewModel>();
+                services.AddTransient<UnderDevelopmentViewModel>();
             })
             .Build();
     }
@@ -159,6 +160,7 @@ public partial class App : System.Windows.Application
                 services.GetRequiredService<FamilyMembersViewModel>(),
                 services.GetRequiredService<MyVehiclesViewModel>(),
                 services.GetRequiredService<ResidencyHistoryViewModel>(),
+                services.GetRequiredService<UnderDevelopmentViewModel>(),
                 onLogout: () =>
                 {
                     mainWindow.DialogResult = false;
