@@ -7,10 +7,18 @@ using ApartmentResidenceManagement.Wpf.Commands;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
+public class ApartmentGalleryImageItem
+{
+    public string Title { get; set; } = string.Empty;
+    public string ImagePath { get; set; } = string.Empty;
+}
+
 public class ApartmentResidentMemberItem
 {
     public int STT { get; set; }
     public string AvatarIcon { get; set; } = "👤";
+    public string? AvatarImagePath { get; set; }
+    public bool HasAvatarImage => !string.IsNullOrEmpty(AvatarImagePath);
     public string FullName { get; set; } = string.Empty;
     public string Relationship { get; set; } = string.Empty;
     public string BirthDate { get; set; } = string.Empty;
@@ -29,6 +37,9 @@ public class MyApartmentViewModel : ViewModelBase
     private string _floorNumber = "12";
     private string _apartmentArea = "72 m²";
     private int _familyCount = 4;
+
+    // Ảnh căn hộ & gallery
+    private string _currentApartmentImage = "/Assets/apartment_interior_1.png";
 
     // Thông tin tòa nhà
     private int _buildingFloors = 20;
@@ -74,6 +85,19 @@ public class MyApartmentViewModel : ViewModelBase
         get => _familyCount;
         set => SetProperty(ref _familyCount, value);
     }
+
+    public string CurrentApartmentImage
+    {
+        get => _currentApartmentImage;
+        set => SetProperty(ref _currentApartmentImage, value);
+    }
+
+    public ObservableCollection<ApartmentGalleryImageItem> GalleryImages { get; } = new()
+    {
+        new ApartmentGalleryImageItem { Title = "Phòng khách & Bếp", ImagePath = "/Assets/apartment_interior_1.png" },
+        new ApartmentGalleryImageItem { Title = "Khu sinh hoạt chung", ImagePath = "/Assets/apartment_interior_2.png" },
+        new ApartmentGalleryImageItem { Title = "Không gian thư giãn", ImagePath = "/Assets/apartment_interior_3.png" }
+    };
 
     public int BuildingFloors
     {
@@ -134,11 +158,23 @@ public class MyApartmentViewModel : ViewModelBase
 
     #region Commands
     public ICommand RefreshCommand { get; }
+    public ICommand SelectGalleryImageCommand { get; }
     #endregion
 
     public MyApartmentViewModel()
     {
         RefreshCommand = new AsyncRelayCommand(_ => LoadApartmentDataAsync());
+        SelectGalleryImageCommand = new RelayCommand(p =>
+        {
+            if (p is string path && !string.IsNullOrEmpty(path))
+            {
+                CurrentApartmentImage = path;
+            }
+            else if (p is ApartmentGalleryImageItem item)
+            {
+                CurrentApartmentImage = item.ImagePath;
+            }
+        });
         InitDefaultData();
     }
 
@@ -149,6 +185,7 @@ public class MyApartmentViewModel : ViewModelBase
         {
             STT = 1,
             AvatarIcon = "👨",
+            AvatarImagePath = "/Assets/resident_avatar.png",
             FullName = "Nguyễn Văn Minh",
             Relationship = "Chủ hộ",
             BirthDate = "15/03/2002",
@@ -158,6 +195,7 @@ public class MyApartmentViewModel : ViewModelBase
         {
             STT = 2,
             AvatarIcon = "👩",
+            AvatarImagePath = "/Assets/wife_avatar.png",
             FullName = "Trần Thị Hoa",
             Relationship = "Vợ",
             BirthDate = "20/07/2002",

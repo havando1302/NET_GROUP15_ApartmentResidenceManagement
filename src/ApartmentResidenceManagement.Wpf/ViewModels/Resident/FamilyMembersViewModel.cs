@@ -13,6 +13,8 @@ public class AccordionFamilyMemberItem : ViewModelBase
     private bool _isExpanded;
 
     public string AvatarIcon { get; set; } = "👨";
+    public string? AvatarImagePath { get; set; }
+    public bool HasAvatarImage => !string.IsNullOrEmpty(AvatarImagePath);
     public string FullName { get; set; } = string.Empty;
     public string Relationship { get; set; } = string.Empty;
     public bool IsOwner { get; set; }
@@ -155,6 +157,7 @@ public class FamilyMembersViewModel : ViewModelBase
         _allMembers.Add(new AccordionFamilyMemberItem
         {
             AvatarIcon = "👨",
+            AvatarImagePath = "/Assets/resident_avatar.png",
             FullName = "Nguyễn Văn Minh",
             Relationship = "Chủ hộ",
             IsOwner = true,
@@ -170,6 +173,7 @@ public class FamilyMembersViewModel : ViewModelBase
         _allMembers.Add(new AccordionFamilyMemberItem
         {
             AvatarIcon = "👩",
+            AvatarImagePath = "/Assets/wife_avatar.png",
             FullName = "Trần Thị Hoa",
             Relationship = "Vợ",
             IsOwner = false,

@@ -73,11 +73,32 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Ảnh phòng khách bo tròn 14px -->
-                        <Border Grid.Column="0" CornerRadius="14" ClipToBounds="True" Height="145" VerticalAlignment="Center">
-                            <Image Source="/Assets/apartment_interior.jpg" Stretch="UniformToFill"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <!-- Khối ảnh căn hộ với 3 góc nhìn có thể bấm chọn -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <Border CornerRadius="12" ClipToBounds="True" Height="110">
+                                <Image Source="{Binding CurrentApartmentImage}" Stretch="UniformToFill"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <!-- Gallery 3 thumbnail bên dưới ảnh chính -->
+                            <ItemsControl ItemsSource="{Binding GalleryImages}" Margin="0,6,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="3"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Margin="2,0" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                Command="{Binding DataContext.SelectGalleryImageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Border Height="30" CornerRadius="6" ClipToBounds="True" BorderBrush="#CBD5E1" BorderThickness="1">
+                                                <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
 
                         <!-- Thông tin căn hộ -->
                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
@@ -267,8 +288,23 @@
 
                                             <!-- Avatar + Họ tên -->
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Border Width="28" Height="28" CornerRadius="14" Background="#EFF6FF" Margin="0,0,10,0">
-                                                    <TextBlock Text="{Binding AvatarIcon}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border Width="30" Height="30" CornerRadius="15" Background="#EFF6FF" Margin="0,0,10,0" ClipToBounds="True">
+                                                    <Grid>
+                                                        <Image Source="{Binding AvatarImagePath}" Stretch="UniformToFill"
+                                                               Visibility="{Binding HasAvatarImage, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                        <TextBlock Text="{Binding AvatarIcon}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding HasAvatarImage}" Value="False">
+                                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
                                                 </Border>
                                                 <TextBlock Text="{Binding FullName}" FontSize="13.5" FontWeight="SemiBold" Foreground="#1E293B" VerticalAlignment="Center"/>
                                             </StackPanel>

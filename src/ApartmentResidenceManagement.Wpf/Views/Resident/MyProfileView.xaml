@@ -97,7 +97,7 @@
                             <!-- Hình tròn avatar -->
                             <Border Width="120" Height="120" CornerRadius="60" ClipToBounds="True" Background="#EFF6FF"
                                     BorderBrush="#BFDBFE" BorderThickness="2">
-                                <Image Source="/Assets/resident_avatar.jpg" Stretch="UniformToFill"
+                                <Image Source="/Assets/resident_avatar.png" Stretch="UniformToFill"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 

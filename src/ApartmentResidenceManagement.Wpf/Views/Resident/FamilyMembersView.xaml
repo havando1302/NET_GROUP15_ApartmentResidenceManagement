@@ -197,10 +197,25 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Avatar Icon -->
-                                            <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#EFF6FF"
-                                                    BorderBrush="#BFDBFE" BorderThickness="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding AvatarIcon}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <!-- Avatar Icon / Real Photo -->
+                                            <Border Grid.Column="0" Width="46" Height="46" CornerRadius="23" Background="#EFF6FF"
+                                                    BorderBrush="#BFDBFE" BorderThickness="1.5" VerticalAlignment="Center" ClipToBounds="True">
+                                                <Grid>
+                                                    <Image Source="{Binding AvatarImagePath}" Stretch="UniformToFill"
+                                                           Visibility="{Binding HasAvatarImage, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                    <TextBlock Text="{Binding AvatarIcon}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasAvatarImage}" Value="False">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
                                             </Border>
 
                                             <!-- Tên + Quan hệ + Badge Chủ hộ -->

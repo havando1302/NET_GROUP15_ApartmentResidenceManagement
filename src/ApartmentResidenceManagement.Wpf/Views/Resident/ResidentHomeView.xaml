@@ -93,7 +93,7 @@
                     <!-- Ảnh phòng khách bên phải bo góc cong và fade nhẹ -->
                     <Border Grid.Column="1" ClipToBounds="True" CornerRadius="0,18,18,0">
                         <Grid>
-                            <Image Source="/Assets/apartment_interior.jpg" Stretch="UniformToFill"
+                            <Image Source="/Assets/apartment_interior_1.png" Stretch="UniformToFill"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <Border>
                                 <Border.Background>
@@ -247,7 +247,7 @@
 
                             <!-- Ảnh căn hộ bo góc -->
                             <Border Grid.Column="0" CornerRadius="12" ClipToBounds="True" Height="115" VerticalAlignment="Center">
-                                <Image Source="/Assets/apartment_interior.jpg" Stretch="UniformToFill"
+                                <Image Source="/Assets/apartment_interior_2.png" Stretch="UniformToFill"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 
