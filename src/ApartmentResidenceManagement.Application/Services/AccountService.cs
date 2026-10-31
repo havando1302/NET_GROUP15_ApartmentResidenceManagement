@@ -33,7 +33,47 @@ public class AccountService
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
 
-        var account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        UserAccount? account = null;
+        try
+        {
+            account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        }
+        catch (Exception)
+        {
+            // Khi chưa bật MySQL (máy cá nhân / offline): Hỗ trợ tài khoản mẫu để test giao diện
+            if (username.Equals("resident_a", StringComparison.OrdinalIgnoreCase) && password == "resident123")
+            {
+                return new UserAccount
+                {
+                    Id = 2,
+                    Username = "resident_a",
+                    Role = UserRole.Resident,
+                    IsActive = true,
+                    ResidentId = 1,
+                    Resident = new Resident
+                    {
+                        Id = 1,
+                        FullName = "Nguyễn Văn A",
+                        PhoneNumber = "0901234567",
+                        Email = "nguyenvana@example.com"
+                    }
+                };
+            }
+
+            if (username.Equals("admin", StringComparison.OrdinalIgnoreCase) && password == "admin123")
+            {
+                return new UserAccount
+                {
+                    Id = 1,
+                    Username = "admin",
+                    Role = UserRole.Admin,
+                    IsActive = true
+                };
+            }
+
+            throw new BusinessRuleException("Không thể kết nối cơ sở dữ liệu MySQL và thông tin tài khoản không hợp lệ.");
+        }
+
         if (account == null)
         {
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");

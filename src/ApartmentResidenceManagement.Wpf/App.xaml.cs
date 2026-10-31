@@ -100,11 +100,8 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
-            ExceptionHandlingService.Handle(
-                ex,
-                "Không thể khởi tạo cơ sở dữ liệu. Vui lòng kiểm tra cấu hình kết nối và thử lại.");
-            Shutdown();
-            return;
+            // Khi chưa bật MySQL Server trên máy, không tắt ứng dụng để lập trình viên vẫn test được giao diện
+            System.Diagnostics.Debug.WriteLine($"[Cảnh báo DB] Không thể kết nối cơ sở dữ liệu: {ex.Message}");
         }
 
         // 2. Vòng lặp hiển thị màn hình Đăng nhập
