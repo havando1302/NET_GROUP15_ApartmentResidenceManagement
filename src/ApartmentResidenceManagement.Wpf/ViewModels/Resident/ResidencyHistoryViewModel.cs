@@ -16,10 +16,14 @@ public class HistorySessionItem : ViewModelBase
     public string FloorNumber { get; set; } = "12";
     public string DateRange { get; set; } = string.Empty;
     public string StartDate { get; set; } = string.Empty;
-    public string EndDate { get; set; } = "Hiện tại";
-    public string Duration { get; set; } = "20 ngày";
+    public string EndDate { get; set; } = "Chưa xác định";
+    public string Duration { get; set; } = string.Empty;
     public string Status { get; set; } = "Đang cư trú";
     public bool IsActive { get; set; } = true;
+
+    public string SessionSummaryText => IsActive
+        ? $"Đang cư trú tại căn hộ {ApartmentNumber} (Kết thúc: Chưa xác định)"
+        : $"Đã hoàn tất cư trú tại căn hộ {ApartmentNumber} ({DateRange})";
 
     public bool IsSelected
     {
@@ -150,15 +154,20 @@ public class ResidencyHistoryViewModel : ViewModelBase
     {
         Sessions.Clear();
 
+        var startActiveDate = new DateTime(2026, 1, 10);
+        int totalDays = Math.Max(1, (int)(DateTime.Today - startActiveDate).TotalDays);
+        string activeDuration = $"{totalDays} ngày (tính đến hôm nay)";
+        CurrentDurationText = activeDuration;
+
         var session1 = new HistorySessionItem
         {
             ApartmentNumber = "A-1203",
             BuildingBlock = "A",
             FloorNumber = "12",
-            DateRange = "10/01/2026 – Hiện tại",
+            DateRange = "10/01/2026 – Chưa xác định",
             StartDate = "10/01/2026",
-            EndDate = "Hiện tại",
-            Duration = "20 ngày",
+            EndDate = "Chưa xác định",
+            Duration = activeDuration,
             Status = "Đang cư trú",
             IsActive = true,
             IsSelected = true
@@ -172,7 +181,7 @@ public class ResidencyHistoryViewModel : ViewModelBase
             DateRange = "01/07/2024 – 09/01/2026",
             StartDate = "01/07/2024",
             EndDate = "09/01/2026",
-            Duration = "1 năm 6 tháng",
+            Duration = "1 năm 6 tháng (557 ngày)",
             Status = "Đã kết thúc",
             IsActive = false,
             IsSelected = false
@@ -185,9 +194,9 @@ public class ResidencyHistoryViewModel : ViewModelBase
         TimelineEvents.Clear();
         TimelineEvents.Add(new ResidencyTimelineEvent
         {
-            EventDate = "10/01/2026",
-            Title = "Bắt đầu cư trú",
-            Description = "Đăng ký cư trú tại căn hộ A-1203.",
+            EventDate = "10/01/2026 – Nay",
+            Title = "Đang cư trú (Hiện tại)",
+            Description = $"Đăng ký cư trú tại căn hộ A-1203 từ ngày 10/01/2026. Đã ở {totalDays} ngày và đang tiếp tục cư trú (ngày kết thúc: Chưa xác định).",
             Status = "Đang cư trú",
             IsActive = true,
             HasNextLine = true
@@ -195,9 +204,9 @@ public class ResidencyHistoryViewModel : ViewModelBase
 
         TimelineEvents.Add(new ResidencyTimelineEvent
         {
-            EventDate = "01/07/2024",
+            EventDate = "09/01/2026",
             Title = "Kết thúc cư trú",
-            Description = "Kết thúc cư trú tại căn hộ A-1008.",
+            Description = "Hoàn tất thủ tục chuyển căn hộ và kết thúc cư trú tại căn hộ A-1008 (thời gian ở: 1 năm 6 tháng).",
             Status = "Đã kết thúc",
             IsActive = false,
             HasNextLine = false

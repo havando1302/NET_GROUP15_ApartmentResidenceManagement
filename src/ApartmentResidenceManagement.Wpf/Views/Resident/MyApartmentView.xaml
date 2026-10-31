@@ -358,6 +358,17 @@
                                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
+                            <!-- Ngày kết thúc -->
+                            <Grid Margin="0,0,0,14">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📅" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Ngày kết thúc:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Border Background="#EFF6FF" CornerRadius="6" Padding="6,2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ResidencyEndDate}" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
+                                </Border>
+                            </Grid>
+
                             <!-- Thời gian cư trú -->
                             <Grid Margin="0,0,0,14">
                                 <StackPanel Orientation="Horizontal">

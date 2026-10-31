@@ -48,7 +48,8 @@ public class MyApartmentViewModel : ViewModelBase
 
     // Tình trạng cư trú
     private string _residencyStartDate = "10/01/2026";
-    private string _residencyDuration = "20 ngày";
+    private string _residencyEndDate = "Chưa xác định";
+    private string _residencyDuration = "Tính theo ngày thực tế";
     private string _residencyForm = "Cư trú thường trú";
     private string _residencyStatus = "Đang cư trú";
 
@@ -123,6 +124,12 @@ public class MyApartmentViewModel : ViewModelBase
         set => SetProperty(ref _residencyStartDate, value);
     }
 
+    public string ResidencyEndDate
+    {
+        get => _residencyEndDate;
+        set => SetProperty(ref _residencyEndDate, value);
+    }
+
     public string ResidencyDuration
     {
         get => _residencyDuration;
@@ -180,6 +187,12 @@ public class MyApartmentViewModel : ViewModelBase
 
     private void InitDefaultData()
     {
+        var startActiveDate = new DateTime(2026, 1, 10);
+        int days = Math.Max(1, (int)(DateTime.Today - startActiveDate).TotalDays);
+        ResidencyStartDate = "10/01/2026";
+        ResidencyEndDate = "Chưa xác định";
+        ResidencyDuration = $"{days} ngày (tính đến hôm nay)";
+
         ResidentMembers.Clear();
         ResidentMembers.Add(new ApartmentResidentMemberItem
         {

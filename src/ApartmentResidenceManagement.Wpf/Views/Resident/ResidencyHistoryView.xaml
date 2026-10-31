@@ -248,12 +248,46 @@
                             </StackPanel>
 
                             <!-- Khung Badge lớn trạng thái cư trú của căn đã chọn -->
-                            <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="10"
-                                    Padding="14,10" Margin="0,0,0,16">
+                            <Border CornerRadius="10" Padding="14,10" Margin="0,0,0,16">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedSession.IsActive}" Value="True">
+                                                <Setter Property="Background" Value="#ECFDF5"/>
+                                                <Setter Property="BorderBrush" Value="#A7F3D0"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Foreground="#16A34A" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding SelectedSession.ApartmentNumber, StringFormat='Đang cư trú tại căn hộ {0}'}"
-                                               FontSize="13.5" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center"/>
+                                    <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#64748B"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedSession.IsActive}" Value="True">
+                                                        <Setter Property="Foreground" Value="#16A34A"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding SelectedSession.SessionSummaryText}"
+                                               FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#475569"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedSession.IsActive}" Value="True">
+                                                        <Setter Property="Foreground" Value="#16A34A"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
                             </Border>
 
