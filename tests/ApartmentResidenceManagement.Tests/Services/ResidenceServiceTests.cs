@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -612,5 +612,28 @@ public class ResidenceServiceTests
         Assert.False(result.IsSuccess);
         Assert.Contains("tương lai", result.ErrorMessage);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegisterResidence_BoundaryDateOfBirth_ShouldSucceed_Regression()
+    {
+        // Regression test for QA: Ngay bat dau bang dung ngay sinh cua cu dan phai thanh cong (bien hop le)
+        var dob = new DateTime(2000, 5, 20);
+        var apartment = new Apartment { Id = 1, ApartmentNumber = "101", Status = ApartmentStatus.Empty };
+        var resident = new Resident { Id = 10, DateOfBirth = dob };
+
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(apartment);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(resident);
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByApartmentIdAsync(1)).ReturnsAsync(new List<ResidenceHistory>());
+        _mockResidenceHistoryRepo.Setup(r => r.GetHistoryByResidentIdAsync(10)).ReturnsAsync(new List<ResidenceHistory>());
+
+        var result = await _service.RegisterResidenceAsync(1, 10, RelationshipType.Tenant, dob);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(ApartmentStatus.Occupied, apartment.Status);
+        _mockResidenceHistoryRepo.Verify(r => r.AddAsync(It.IsAny<ResidenceHistory>()), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
 }
