@@ -86,7 +86,6 @@
                     <ColumnDefinition Width="22"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-
                 <!-- ──────────────────────────────────────────────────────────
                      CỘT TRÁI: THẺ PROFILE AVATAR CƯ DÂN
                 ────────────────────────────────────────────────────────── -->
@@ -97,7 +96,7 @@
                             <!-- Hình tròn avatar -->
                             <Border Width="120" Height="120" CornerRadius="60" ClipToBounds="True" Background="#EFF6FF"
                                     BorderBrush="#BFDBFE" BorderThickness="2">
-                                <Image Source="/Assets/resident_avatar.png" Stretch="UniformToFill"
+                                <Image Source="{Binding AvatarPath}" Stretch="UniformToFill"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 
@@ -122,10 +121,42 @@
                                    HorizontalAlignment="Center" Margin="0,0,0,6"/>
 
                         <!-- Badge: Cư dân -->
-                        <Border HorizontalAlignment="Center" Background="#EFF6FF" CornerRadius="12" Padding="12,4" Margin="0,0,0,18">
+                        <Border HorizontalAlignment="Center" Background="#EFF6FF" CornerRadius="12" Padding="12,4" Margin="0,0,0,14">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="👤" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Cư dân" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- BỘ SƯU TẬP 7 AVATAR GIA ĐÌNH ĐỂ CHỌN NHANH -->
+                        <Border Margin="0,0,0,16" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="10"
+                                Width="250"
+                                Visibility="{Binding IsAvatarPickerOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Chọn ảnh đại diện:" FontSize="12" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                    <Button Command="{Binding ToggleAvatarPickerCommand}" Content="✕" FontSize="11" Foreground="#64748B"
+                                            Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand" Padding="4"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding AvailableAvatars}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.SelectAvatarCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip="{Binding Name}"
+                                                    Margin="3" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                                <Border Width="42" Height="42" CornerRadius="21" BorderBrush="#CBD5E1" BorderThickness="1.5" ClipToBounds="True">
+                                                    <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </Border>
 

@@ -205,6 +205,7 @@ public class MyApartmentViewModel : ViewModelBase
         {
             STT = 3,
             AvatarIcon = "👦",
+            AvatarImagePath = "/Assets/avatar_son.png",
             FullName = "Nguyễn Gia Bảo",
             Relationship = "Con",
             BirthDate = "05/09/2018",
@@ -213,8 +214,9 @@ public class MyApartmentViewModel : ViewModelBase
         ResidentMembers.Add(new ApartmentResidentMemberItem
         {
             STT = 4,
-            AvatarIcon = "👦",
-            FullName = "Nguyễn Minh Anh",
+            AvatarIcon = "👧",
+            AvatarImagePath = "/Assets/avatar_daughter.png",
+            FullName = "Nguyễn An Nhiên",
             Relationship = "Con",
             BirthDate = "12/11/2022",
             Status = "Đang cư trú"

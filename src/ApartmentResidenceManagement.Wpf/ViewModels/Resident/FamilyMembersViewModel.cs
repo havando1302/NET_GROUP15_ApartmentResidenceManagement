@@ -189,6 +189,7 @@ public class FamilyMembersViewModel : ViewModelBase
         _allMembers.Add(new AccordionFamilyMemberItem
         {
             AvatarIcon = "👦",
+            AvatarImagePath = "/Assets/avatar_son.png",
             FullName = "Nguyễn Gia Bảo",
             Relationship = "Con",
             IsOwner = false,
@@ -203,12 +204,13 @@ public class FamilyMembersViewModel : ViewModelBase
 
         _allMembers.Add(new AccordionFamilyMemberItem
         {
-            AvatarIcon = "👦",
-            FullName = "Nguyễn Minh Anh",
+            AvatarIcon = "👧",
+            AvatarImagePath = "/Assets/avatar_daughter.png",
+            FullName = "Nguyễn An Nhiên",
             Relationship = "Con",
             IsOwner = false,
             BirthDate = "12/11/2022",
-            Gender = "Nam",
+            Gender = "Nữ",
             IdentityCard = "---",
             Hometown = "Đan Phượng, Hà Nội",
             PhoneNumber = "---",

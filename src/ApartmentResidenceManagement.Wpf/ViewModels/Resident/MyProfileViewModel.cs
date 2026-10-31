@@ -6,6 +6,13 @@ using ApartmentResidenceManagement.Wpf.Commands;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
+public class AvatarPresetItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string ImagePath { get; set; } = string.Empty;
+}
+
 public class MyProfileViewModel : ViewModelBase
 {
     private UserAccount? _account;
@@ -144,6 +151,31 @@ public class MyProfileViewModel : ViewModelBase
         get => _errorMessage;
         set => SetProperty(ref _errorMessage, value);
     }
+
+    private string _avatarPath = "/Assets/resident_avatar.png";
+    public string AvatarPath
+    {
+        get => _avatarPath;
+        set => SetProperty(ref _avatarPath, value);
+    }
+
+    private bool _isAvatarPickerOpen;
+    public bool IsAvatarPickerOpen
+    {
+        get => _isAvatarPickerOpen;
+        set => SetProperty(ref _isAvatarPickerOpen, value);
+    }
+
+    public System.Collections.ObjectModel.ObservableCollection<AvatarPresetItem> AvailableAvatars { get; } = new()
+    {
+        new AvatarPresetItem { Name = "Nguyễn Văn Minh", Role = "Chủ hộ", ImagePath = "/Assets/resident_avatar.png" },
+        new AvatarPresetItem { Name = "Trần Thị Hoa", Role = "Vợ", ImagePath = "/Assets/wife_avatar.png" },
+        new AvatarPresetItem { Name = "Nguyễn Gia Bảo", Role = "Con trai", ImagePath = "/Assets/avatar_son.png" },
+        new AvatarPresetItem { Name = "Nguyễn An Nhiên", Role = "Con gái", ImagePath = "/Assets/avatar_daughter.png" },
+        new AvatarPresetItem { Name = "Nguyễn Văn Hùng", Role = "Ông nội", ImagePath = "/Assets/avatar_grandfather.png" },
+        new AvatarPresetItem { Name = "Lê Thị Mai", Role = "Bà nội", ImagePath = "/Assets/avatar_grandmother.png" },
+        new AvatarPresetItem { Name = "Nguyễn Tuấn Anh", Role = "Em trai", ImagePath = "/Assets/avatar_young_man.png" }
+    };
     #endregion
 
     #region Commands
@@ -151,6 +183,8 @@ public class MyProfileViewModel : ViewModelBase
     public ICommand RefreshCommand { get; }
     public ICommand ResetCommand { get; }
     public ICommand UpdatePhotoCommand { get; }
+    public ICommand ToggleAvatarPickerCommand { get; }
+    public ICommand SelectAvatarCommand { get; }
     #endregion
 
     public MyProfileViewModel()
@@ -158,11 +192,25 @@ public class MyProfileViewModel : ViewModelBase
         SaveProfileCommand = new AsyncRelayCommand(_ => SaveProfileAsync());
         RefreshCommand = new AsyncRelayCommand(_ => LoadProfileAsync());
         ResetCommand = new RelayCommand(_ => ResetEditForm());
-        UpdatePhotoCommand = new RelayCommand(_ =>
+        ToggleAvatarPickerCommand = new RelayCommand(_ => IsAvatarPickerOpen = !IsAvatarPickerOpen);
+        SelectAvatarCommand = new RelayCommand(p =>
         {
-            SuccessMessage = "Tính năng thay đổi ảnh đại diện đã mở, bạn có thể chọn ảnh từ máy.";
-            ErrorMessage = string.Empty;
+            if (p is string path && !string.IsNullOrEmpty(path))
+            {
+                AvatarPath = path;
+                IsAvatarPickerOpen = false;
+                SuccessMessage = "Đã cập nhật ảnh đại diện thành công!";
+                ErrorMessage = string.Empty;
+            }
+            else if (p is AvatarPresetItem item)
+            {
+                AvatarPath = item.ImagePath;
+                IsAvatarPickerOpen = false;
+                SuccessMessage = $"Đã đổi ảnh đại diện sang {item.Name} ({item.Role}) thành công!";
+                ErrorMessage = string.Empty;
+            }
         });
+        UpdatePhotoCommand = ToggleAvatarPickerCommand;
     }
 
     public void Initialize(UserAccount account)
