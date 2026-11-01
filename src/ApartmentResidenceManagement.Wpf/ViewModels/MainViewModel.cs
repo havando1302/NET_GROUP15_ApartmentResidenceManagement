@@ -134,8 +134,8 @@ public class MainViewModel : ViewModelBase
         // Đặt Tab mặc định ban đầu dựa vào Role
         if (IsAdmin)
         {
-            _currentViewModel = DashboardVm;
-            _ = DashboardVm.LoadStatsAsync();
+            _currentViewModel = ApartmentVm;
+            _ = ApartmentVm.LoadDataAsync();
         }
         else
         {

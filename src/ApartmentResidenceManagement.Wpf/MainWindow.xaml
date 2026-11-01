@@ -16,6 +16,8 @@
     <Window.Resources>
         <!-- DataTemplate mapping -->
         <DataTemplate DataType="{x:Type viewModels:ApartmentViewModel}"><views:ApartmentView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ResidentViewModel}"><views:ResidentView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ResidencyViewModel}"><views:ResidencyView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidentHomeViewModel}"><views:ResidentHomeView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyProfileViewModel}"><views:MyProfileView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyApartmentViewModel}"><views:MyApartmentView /></DataTemplate>
@@ -81,6 +83,7 @@
                 </StackPanel>
 
                 <!-- 2. Thẻ hồ sơ cá nhân nhanh ở sidebar (khớp bản mẫu mockup) -->
+                <!-- Cho Cư dân -->
                 <Border Grid.Row="1" Background="#1E293B" CornerRadius="12" Margin="14,0,14,16" Padding="12,10"
                         Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid>
@@ -100,6 +103,26 @@
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="{Binding ResidentDisplayName}" Foreground="White" FontWeight="Bold" FontSize="13"/>
                             <TextBlock Text="{Binding ResidentApartmentInfo}" Foreground="#94A3B8" FontSize="11" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Cho Quản trị viên -->
+                <Border Grid.Row="1" Background="#1E293B" CornerRadius="12" Margin="14,0,14,16" Padding="12,10"
+                        Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="38" Height="38" CornerRadius="19" Background="#065F46" Margin="0,0,10,0">
+                            <TextBlock Text="🛡️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding WelcomeMessage}" Foreground="White" FontWeight="Bold" FontSize="13"/>
+                            <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Margin="0,4,0,0" Background="#064E3B">
+                                <TextBlock Text="{Binding RoleMessage}" FontSize="10" FontWeight="SemiBold" Foreground="#34D399"/>
+                            </Border>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -126,6 +149,42 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🏢" Margin="0,0,12,0" FontSize="16"/>
                                     <TextBlock Text="Quản lý Căn hộ"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Resident -->
+                            <Button Command="{Binding ShowResidentCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="ResidentViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👥" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Quản lý Cư dân"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Residency & Member Requests -->
+                            <Button Command="{Binding ShowResidencyCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="ResidencyViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📋" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Quản lý Cư trú"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -254,16 +313,21 @@
             <Border Grid.Row="0" Background="White" BorderThickness="0,0,0,1" BorderBrush="#E2E8F0">
                 <Grid Margin="28,0">
                     <!-- Lời chào bên trái -->
-                    <StackPanel VerticalAlignment="Center">
+                    <StackPanel VerticalAlignment="Center" Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="HỆ THỐNG QUẢN LÝ CƯ TRÚ" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Khu vực Quản trị viên • Quản lý Căn hộ, Cư dân và Cư trú"
+                                   FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Center" Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="{Binding ResidentGreeting}" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
                         <TextBlock Text="Chào mừng bạn đến với Cổng thông tin cư dân Chung cư ResidenceManager."
                                    FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
                     </StackPanel>
 
-                    <!-- Bên phải: Chuông thông báo đỏ & Avatar dropdown -->
+                    <!-- Bên phải: Chuông thông báo & Avatar dropdown -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <!-- Chuông thông báo có badge đỏ -->
-                        <Grid Margin="0,0,18,0" Cursor="Hand">
+                        <!-- Chuông thông báo có badge đỏ (cho Cư dân) -->
+                        <Grid Margin="0,0,18,0" Cursor="Hand" Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Grid.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding ShowNotificationsCommand}"/>
                             </Grid.InputBindings>
@@ -282,8 +346,15 @@
                             <StackPanel.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding ShowMyProfileCommand}"/>
                             </StackPanel.InputBindings>
-                            <Border Width="38" Height="38" CornerRadius="19" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1.5" Margin="0,0,6,0" ClipToBounds="True">
+                            <!-- Cho Cư dân -->
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1.5" Margin="0,0,6,0" ClipToBounds="True"
+                                    Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <Image Source="/Assets/resident_avatar.png" Stretch="UniformToFill"/>
+                            </Border>
+                            <!-- Cho Admin -->
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#065F46" Margin="0,0,6,0"
+                                    Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="🛡️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="⌵" FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
                         </StackPanel>

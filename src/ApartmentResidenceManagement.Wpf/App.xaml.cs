@@ -71,6 +71,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<ResidenceService>();
                 services.AddTransient<VehicleService>();
                 services.AddTransient<AccountService>();
+                services.AddTransient<MemberRequestService>();
 
                 // 5. Đăng ký Views và ViewModels (Presentation UI)
                 services.AddTransient<LoginViewModel>();
@@ -101,25 +102,25 @@ public partial class App : System.Windows.Application
         // Tránh tự động tắt ứng dụng khi đóng LoginWindow để mở MainWindow
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-        // 1. Tự động chạy Migration và nạp dữ liệu Seed Data ở tiến trình nền (không làm chậm/đơ giao diện)
-        _ = Task.Run(async () =>
+        // 1. Tự động chạy Migration và nạp dữ liệu Seed Data khi ứng dụng khởi động
+        try
         {
-            try
-            {
-                using var scope = _host.Services.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                bool seedDemoData = _host.Services.GetRequiredService<IConfiguration>()
-                    .GetValue("Database:SeedDemoData", true);
-                await DatabaseInitializer.InitializeAsync(dbContext, seedDemoData);
-            }
-            catch (Exception ex)
-            {
-                // Khi chưa bật MySQL Server trên máy, không tắt ứng dụng để lập trình viên vẫn test được giao diện
-                System.Diagnostics.Debug.WriteLine($"[Cảnh báo DB] Không thể kết nối cơ sở dữ liệu: {ex.Message}");
-            }
-        });
+            using var scope = _host.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            bool seedDemoData = _host.Services.GetRequiredService<IConfiguration>()
+                .GetValue("Database:SeedDemoData", true);
+            await DatabaseInitializer.InitializeAsync(dbContext, seedDemoData);
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandlingService.Handle(
+                ex,
+                "Không thể khởi tạo cơ sở dữ liệu. Vui lòng kiểm tra cấu hình kết nối và thử lại.");
+            Shutdown();
+            return;
+        }
 
-        // 2. Mở màn hình Đăng nhập ngay lập tức không có độ trễ
+        // 2. Vòng lặp hiển thị màn hình Đăng nhập
         RunLoginLoop();
     }
 

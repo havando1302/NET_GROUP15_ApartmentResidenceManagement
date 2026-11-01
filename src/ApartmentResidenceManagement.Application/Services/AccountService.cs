@@ -44,7 +44,7 @@ public class AccountService
         }
         catch (Exception ex)
         {
-            throw new BusinessRuleException($"Không thể kết nối cơ sở dữ liệu: {ex.Message}");
+            throw new BusinessRuleException("Không thể kết nối cơ sở dữ liệu. Vui lòng thử lại sau.", ex);
         }
 
         if (account == null)

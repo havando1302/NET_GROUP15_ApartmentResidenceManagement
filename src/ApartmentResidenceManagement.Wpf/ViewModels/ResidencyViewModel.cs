@@ -16,19 +16,25 @@ public class ResidencyViewModel : ViewModelBase
     private readonly ResidenceService _residenceService;
     private readonly ApartmentService _apartmentService;
     private readonly ResidentService _residentService;
+    private readonly MemberRequestService? _memberRequestService;
     
     private List<ResidenceHistory> _allResidences = new();
+    private List<MemberRegistrationRequestItemViewModel> _allRequests = new();
 
-    // Lọc & Tìm kiếm
+    // Tab chuyển đổi: 0 = "Danh sách cư trú", 1 = "Yêu cầu thêm thành viên"
+    private int _selectedTabIndex = 0;
+
+    // Lọc & Tìm kiếm cư trú
     private string _searchText = string.Empty;
     private string _selectedStatusFilter = "Tất cả"; // Tất cả, Đang cư trú, Đã chuyển đi
     
     // UI Collections
     private ObservableCollection<ResidenceHistory> _residences = new();
+    private ObservableCollection<MemberRegistrationRequestItemViewModel> _requests = new();
     private List<Apartment> _availableApartments = new();
     private List<Resident> _availableResidents = new();
     
-    // Thao tác Form
+    // Thao tác Form Cư trú
     private ResidenceHistory? _selectedResidence;
     private bool _isFormOpen;
     private string _formTitle = string.Empty;
@@ -40,6 +46,12 @@ public class ResidencyViewModel : ViewModelBase
     private RelationshipType _selectedRelationshipType = RelationshipType.FamilyMember;
     private DateTime _startDateInput = DateTime.Today;
     private DateTime _endDateInput = DateTime.Today;
+
+    // Thao tác Từ chối Yêu cầu
+    private bool _isRejectDialogOpen;
+    private MemberRegistrationRequestItemViewModel? _requestToReject;
+    private string _rejectReasonInput = string.Empty;
+    private string _requestSuccessMessage = string.Empty;
     
     // Báo lỗi
     private string _errorMessage = string.Empty;
@@ -47,11 +59,37 @@ public class ResidencyViewModel : ViewModelBase
     private bool _isLoading;
 
     #region Properties
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set
+        {
+            if (SetProperty(ref _selectedTabIndex, value))
+            {
+                OnPropertyChanged(nameof(IsResidencesTab));
+                OnPropertyChanged(nameof(IsRequestsTab));
+            }
+        }
+    }
+
+    public bool IsResidencesTab => SelectedTabIndex == 0;
+    public bool IsRequestsTab => SelectedTabIndex == 1;
+
     public ObservableCollection<ResidenceHistory> Residences
     {
         get => _residences;
         set => SetProperty(ref _residences, value);
     }
+
+    public ObservableCollection<MemberRegistrationRequestItemViewModel> Requests
+    {
+        get => _requests;
+        set => SetProperty(ref _requests, value);
+    }
+
+    public int PendingRequestsCount => _allRequests.Count(r => r.Status == RequestStatus.Pending);
+    public bool HasPendingRequests => PendingRequestsCount > 0;
+    public bool HasRequests => Requests.Count > 0;
 
     public List<Apartment> AvailableApartments
     {
@@ -89,14 +127,14 @@ public class ResidencyViewModel : ViewModelBase
         }
     }
 
-    public List<string> StatusFilterOptions { get; } = new() { "Tất cả", "Đang cư trú", "Đã chuyển đi" };
-
-    public ResidenceHistory? SelectedResidence
+    public List<string> StatusFilterOptions { get; } = new()
     {
-        get => _selectedResidence;
-        set => SetProperty(ref _selectedResidence, value);
-    }
+        "Tất cả",
+        "Đang cư trú",
+        "Đã chuyển đi"
+    };
 
+    // Form Properties
     public bool IsFormOpen
     {
         get => _isFormOpen;
@@ -112,10 +150,27 @@ public class ResidencyViewModel : ViewModelBase
     public string ActionType
     {
         get => _actionType;
-        set => SetProperty(ref _actionType, value);
+        set
+        {
+            if (SetProperty(ref _actionType, value))
+            {
+                OnPropertyChanged(nameof(IsRegisterAction));
+                OnPropertyChanged(nameof(IsTerminateAction));
+                OnPropertyChanged(nameof(IsTransferAction));
+            }
+        }
     }
 
-    // Form inputs properties
+    public bool IsRegisterAction => ActionType == "Register";
+    public bool IsTerminateAction => ActionType == "Terminate";
+    public bool IsTransferAction => ActionType == "Transfer";
+
+    public ResidenceHistory? SelectedResidence
+    {
+        get => _selectedResidence;
+        set => SetProperty(ref _selectedResidence, value);
+    }
+
     public Apartment? SelectedApartmentInput
     {
         get => _selectedApartmentInput;
@@ -146,6 +201,25 @@ public class ResidencyViewModel : ViewModelBase
     {
         get => _endDateInput;
         set => SetProperty(ref _endDateInput, value);
+    }
+
+    // Reject Dialog Properties
+    public bool IsRejectDialogOpen
+    {
+        get => _isRejectDialogOpen;
+        set => SetProperty(ref _isRejectDialogOpen, value);
+    }
+
+    public string RejectReasonInput
+    {
+        get => _rejectReasonInput;
+        set => SetProperty(ref _rejectReasonInput, value);
+    }
+
+    public string RequestSuccessMessage
+    {
+        get => _requestSuccessMessage;
+        set => SetProperty(ref _requestSuccessMessage, value);
     }
 
     // Báo lỗi
@@ -181,13 +255,24 @@ public class ResidencyViewModel : ViewModelBase
     public ICommand OpenTransferFormCommand { get; }
     public ICommand SaveResidencyCommand { get; }
     public ICommand CancelFormCommand { get; }
+
+    public ICommand SwitchTabCommand { get; }
+    public ICommand ApproveRequestCommand { get; }
+    public ICommand OpenRejectDialogCommand { get; }
+    public ICommand ConfirmRejectRequestCommand { get; }
+    public ICommand CloseRejectDialogCommand { get; }
     #endregion
 
-    public ResidencyViewModel(ResidenceService residenceService, ApartmentService apartmentService, ResidentService residentService)
+    public ResidencyViewModel(
+        ResidenceService residenceService,
+        ApartmentService apartmentService,
+        ResidentService residentService,
+        MemberRequestService? memberRequestService = null)
     {
         _residenceService = residenceService;
         _apartmentService = apartmentService;
         _residentService = residentService;
+        _memberRequestService = memberRequestService;
 
         LoadResidencesCommand = new AsyncRelayCommand(_ => LoadDataAsync());
         OpenRegisterFormCommand = new RelayCommand(_ => OpenRegisterForm());
@@ -195,6 +280,50 @@ public class ResidencyViewModel : ViewModelBase
         OpenTransferFormCommand = new RelayCommand(r => OpenTransferForm(r));
         SaveResidencyCommand = new AsyncRelayCommand(_ => SaveResidencyAsync());
         CancelFormCommand = new RelayCommand(_ => CloseForm());
+
+        SwitchTabCommand = new RelayCommand(tab =>
+        {
+            if (tab is string s && int.TryParse(s, out int idx))
+            {
+                SelectedTabIndex = idx;
+            }
+            else if (tab is int i)
+            {
+                SelectedTabIndex = i;
+            }
+        });
+
+        ApproveRequestCommand = new AsyncRelayCommand(async p =>
+        {
+            if (p is MemberRegistrationRequestItemViewModel req && _memberRequestService != null)
+            {
+                await ApproveRequestAsync(req);
+            }
+        });
+
+        OpenRejectDialogCommand = new RelayCommand(p =>
+        {
+            if (p is MemberRegistrationRequestItemViewModel req)
+            {
+                _requestToReject = req;
+                RejectReasonInput = string.Empty;
+                IsRejectDialogOpen = true;
+            }
+        });
+
+        CloseRejectDialogCommand = new RelayCommand(_ =>
+        {
+            IsRejectDialogOpen = false;
+            _requestToReject = null;
+        });
+
+        ConfirmRejectRequestCommand = new AsyncRelayCommand(async _ =>
+        {
+            if (_requestToReject != null && _memberRequestService != null)
+            {
+                await RejectRequestAsync(_requestToReject, RejectReasonInput);
+            }
+        });
     }
 
     public async Task LoadDataAsync()
@@ -223,10 +352,162 @@ public class ResidencyViewModel : ViewModelBase
                 .ToList();
 
             ApplyFilters();
+
+            // Load requests
+            await LoadRequestsAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = "Lỗi khi lấy dữ liệu cư trú hoặc danh mục căn hộ/cư dân.";
+            ErrorMessage = $"Lỗi khi lấy dữ liệu cư trú hoặc danh mục: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public async Task LoadRequestsAsync()
+    {
+        _allRequests.Clear();
+        Requests.Clear();
+
+        if (_memberRequestService != null)
+        {
+            var reqs = await _memberRequestService.GetAllRequestsWithDetailsAsync();
+            foreach (var req in reqs)
+            {
+                string relText = req.RelationshipType switch
+                {
+                    RelationshipType.Owner => "Chủ hộ",
+                    RelationshipType.FamilyMember => "Thành viên gia đình",
+                    RelationshipType.Tenant => "Người thuê",
+                    RelationshipType.Temporary => "Tạm trú",
+                    _ => "Cư dân"
+                };
+
+                string statusText = req.Status switch
+                {
+                    RequestStatus.Pending => "Chờ duyệt",
+                    RequestStatus.Approved => "Đã duyệt",
+                    RequestStatus.Rejected => "Từ chối",
+                    _ => "Không xác định"
+                };
+
+                string bg = req.Status switch
+                {
+                    RequestStatus.Pending => "#FEF3C7",
+                    RequestStatus.Approved => "#DCFCE7",
+                    RequestStatus.Rejected => "#FEE2E2",
+                    _ => "#F1F5F9"
+                };
+
+                string fg = req.Status switch
+                {
+                    RequestStatus.Pending => "#D97706",
+                    RequestStatus.Approved => "#16A34A",
+                    RequestStatus.Rejected => "#DC2626",
+                    _ => "#475569"
+                };
+
+                string border = req.Status switch
+                {
+                    RequestStatus.Pending => "#FDE68A",
+                    RequestStatus.Approved => "#BBF7D0",
+                    RequestStatus.Rejected => "#FECACA",
+                    _ => "#CBD5E1"
+                };
+
+                var item = new MemberRegistrationRequestItemViewModel
+                {
+                    Id = req.Id,
+                    ApartmentId = req.ApartmentId,
+                    ApartmentNumber = req.Apartment?.ApartmentNumber ?? $"P.{req.ApartmentId}",
+                    RequesterResidentId = req.RequesterResidentId,
+                    RequesterName = req.RequesterResident?.FullName ?? "Cư dân",
+                    FullName = req.FullName,
+                    DateOfBirth = req.DateOfBirth,
+                    IdentityCard = req.IdentityCard,
+                    PhoneNumber = req.PhoneNumber,
+                    Email = req.Email,
+                    RelationshipType = req.RelationshipType,
+                    RelationshipText = relText,
+                    Status = req.Status,
+                    StatusText = statusText,
+                    StatusBadgeBg = bg,
+                    StatusBadgeFg = fg,
+                    StatusBadgeBorder = border,
+                    CreatedAt = req.CreatedAt,
+                    ProcessedAt = req.ProcessedAt,
+                    RejectReason = req.RejectReason
+                };
+
+                _allRequests.Add(item);
+                Requests.Add(item);
+            }
+        }
+
+        OnPropertyChanged(nameof(PendingRequestsCount));
+        OnPropertyChanged(nameof(HasPendingRequests));
+        OnPropertyChanged(nameof(HasRequests));
+    }
+
+    private async Task ApproveRequestAsync(MemberRegistrationRequestItemViewModel req)
+    {
+        if (_memberRequestService == null) return;
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        RequestSuccessMessage = string.Empty;
+
+        try
+        {
+            var res = await _memberRequestService.ApproveRequestAsync(req.Id);
+            if (res.IsSuccess)
+            {
+                RequestSuccessMessage = $"Đã phê duyệt và thêm thành viên '{req.FullName}' vào căn hộ {req.ApartmentNumber} thành công!";
+                await LoadDataAsync();
+            }
+            else
+            {
+                ErrorMessage = res.ErrorMessage ?? "Không thể phê duyệt yêu cầu.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task RejectRequestAsync(MemberRegistrationRequestItemViewModel req, string? reason)
+    {
+        if (_memberRequestService == null) return;
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        RequestSuccessMessage = string.Empty;
+
+        try
+        {
+            var res = await _memberRequestService.RejectRequestAsync(req.Id, reason);
+            if (res.IsSuccess)
+            {
+                IsRejectDialogOpen = false;
+                _requestToReject = null;
+                RequestSuccessMessage = $"Đã từ chối yêu cầu của '{req.FullName}'.";
+                await LoadRequestsAsync();
+            }
+            else
+            {
+                ErrorMessage = res.ErrorMessage ?? "Không thể từ chối yêu cầu.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi: {ex.Message}";
         }
         finally
         {
@@ -238,7 +519,6 @@ public class ResidencyViewModel : ViewModelBase
     {
         var filtered = _allResidences.AsEnumerable();
 
-        // 1. Lọc theo trạng thái
         if (SelectedStatusFilter == "Đang cư trú")
         {
             filtered = filtered.Where(rh => rh.IsActive);
@@ -248,14 +528,14 @@ public class ResidencyViewModel : ViewModelBase
             filtered = filtered.Where(rh => !rh.IsActive);
         }
 
-        // 2. Lọc theo text tìm kiếm
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            string keyword = SearchText.Trim().ToLower();
-            filtered = filtered.Where(rh => 
-                (rh.Resident != null && rh.Resident.FullName.ToLower().Contains(keyword)) ||
-                (rh.Resident != null && rh.Resident.IdentityCard != null && rh.Resident.IdentityCard.Contains(keyword)) ||
-                (rh.Apartment != null && rh.Apartment.ApartmentNumber.ToLower().Contains(keyword)));
+            var search = SearchText.Trim().ToLower();
+            filtered = filtered.Where(rh =>
+                (rh.Resident?.FullName != null && rh.Resident.FullName.ToLower().Contains(search)) ||
+                (rh.Resident?.IdentityCard != null && rh.Resident.IdentityCard.ToLower().Contains(search)) ||
+                (rh.Apartment?.ApartmentNumber != null && rh.Apartment.ApartmentNumber.ToLower().Contains(search))
+            );
         }
 
         Residences.Clear();
@@ -268,50 +548,59 @@ public class ResidencyViewModel : ViewModelBase
     private void OpenRegisterForm()
     {
         ErrorMessage = string.Empty;
-        FormTitle = "ĐĂNG KÝ CƯ TRÚ MỚI";
-        ActionType = "Register";
-        SelectedApartmentInput = AvailableApartments.FirstOrDefault();
-        SelectedResidentInput = AvailableResidents.FirstOrDefault();
+        SelectedResidence = null;
+        SelectedApartmentInput = null;
+        SelectedResidentInput = null;
         SelectedRelationshipType = RelationshipType.FamilyMember;
         StartDateInput = DateTime.Today;
+        ActionType = "Register";
+        FormTitle = "ĐĂNG KÝ CƯ TRÚ MỚI";
         IsFormOpen = true;
     }
 
-    private void OpenTerminateForm(object? parameter)
+    private void OpenTerminateForm(object? param)
     {
-        if (parameter is not ResidenceHistory rh) return;
-        SelectedResidence = rh;
-        ErrorMessage = string.Empty;
-        FormTitle = $"KẾT THÚC CƯ TRÚ - {rh.Resident?.FullName}";
-        ActionType = "Terminate";
-        EndDateInput = DateTime.Today;
-        IsFormOpen = true;
+        if (param is ResidenceHistory rh)
+        {
+            ErrorMessage = string.Empty;
+            SelectedResidence = rh;
+            SelectedApartmentInput = rh.Apartment;
+            SelectedResidentInput = rh.Resident;
+            SelectedRelationshipType = rh.RelationshipType;
+            StartDateInput = rh.StartDate;
+            EndDateInput = DateTime.Today;
+            ActionType = "Terminate";
+            FormTitle = $"KẾT THÚC CƯ TRÚ: {rh.Resident?.FullName} ({rh.Apartment?.ApartmentNumber})";
+            IsFormOpen = true;
+        }
     }
 
-    private void OpenTransferForm(object? parameter)
+    private void OpenTransferForm(object? param)
     {
-        if (parameter is not ResidenceHistory rh) return;
-        SelectedResidence = rh;
-        ErrorMessage = string.Empty;
-        FormTitle = $"CHUYỂN CĂN HỘ - {rh.Resident?.FullName}";
-        ActionType = "Transfer";
-        SelectedApartmentInput = AvailableApartments.FirstOrDefault(a => a.Id != rh.ApartmentId);
-        SelectedRelationshipType = rh.RelationshipType;
-        StartDateInput = DateTime.Today;
-        IsFormOpen = true;
+        if (param is ResidenceHistory rh)
+        {
+            ErrorMessage = string.Empty;
+            SelectedResidence = rh;
+            SelectedResidentInput = rh.Resident;
+            SelectedApartmentInput = null;
+            SelectedRelationshipType = rh.RelationshipType;
+            StartDateInput = DateTime.Today;
+            ActionType = "Transfer";
+            FormTitle = $"CHUYỂN HỘ CHO: {rh.Resident?.FullName} (Hiện tại: {rh.Apartment?.ApartmentNumber})";
+            IsFormOpen = true;
+        }
     }
 
     private void CloseForm()
     {
         IsFormOpen = false;
         ErrorMessage = string.Empty;
-        SelectedResidence = null;
     }
 
     private async Task SaveResidencyAsync()
     {
         ErrorMessage = string.Empty;
-
+        IsLoading = true;
         try
         {
             if (ActionType == "Register")
@@ -327,56 +616,71 @@ public class ResidencyViewModel : ViewModelBase
                     return;
                 }
 
-                var result = await _residenceService.RegisterResidenceAsync(
+                var res = await _residenceService.RegisterResidenceAsync(
                     SelectedApartmentInput.Id,
                     SelectedResidentInput.Id,
                     SelectedRelationshipType,
                     StartDateInput
                 );
-                if (!result.IsSuccess)
+
+                if (!res.IsSuccess)
                 {
-                    ErrorMessage = result.ErrorMessage;
+                    ErrorMessage = res.ErrorMessage ?? "Đăng ký cư trú thất bại.";
                     return;
                 }
             }
             else if (ActionType == "Terminate")
             {
-                if (SelectedResidence == null) return;
-                var result = await _residenceService.TerminateResidenceAsync(SelectedResidence.Id, EndDateInput);
-                if (!result.IsSuccess)
+                if (SelectedResidence == null)
                 {
-                    ErrorMessage = result.ErrorMessage;
+                    ErrorMessage = "Không tìm thấy hồ sơ cư trú cần kết thúc.";
+                    return;
+                }
+
+                var res = await _residenceService.TerminateResidenceAsync(SelectedResidence.Id, EndDateInput);
+                if (!res.IsSuccess)
+                {
+                    ErrorMessage = res.ErrorMessage ?? "Kết thúc cư trú thất bại.";
                     return;
                 }
             }
             else if (ActionType == "Transfer")
             {
-                if (SelectedResidence == null) return;
+                if (SelectedResidence == null)
+                {
+                    ErrorMessage = "Không tìm thấy hồ sơ cư trú hiện tại.";
+                    return;
+                }
                 if (SelectedApartmentInput == null)
                 {
-                    ErrorMessage = "Vui lòng chọn căn hộ mới.";
+                    ErrorMessage = "Vui lòng chọn căn hộ mới cần chuyển đến.";
                     return;
                 }
 
-                var result = await _residenceService.TransferApartmentAsync(
+                var res = await _residenceService.TransferApartmentAsync(
                     SelectedResidence.ResidentId,
                     SelectedApartmentInput.Id,
                     SelectedRelationshipType,
                     StartDateInput
                 );
-                if (!result.IsSuccess)
+
+                if (!res.IsSuccess)
                 {
-                    ErrorMessage = result.ErrorMessage;
+                    ErrorMessage = res.ErrorMessage ?? "Chuyển căn hộ thất bại.";
                     return;
                 }
             }
 
-            IsFormOpen = false;
+            CloseForm();
             await LoadDataAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = "Lỗi hệ thống khi xử lý nghiệp vụ cư trú.";
+            ErrorMessage = $"Đã xảy ra lỗi: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 }

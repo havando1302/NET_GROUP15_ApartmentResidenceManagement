@@ -17,8 +17,10 @@ public class ResidentPortalTests
     private readonly Mock<IResidentRepository> _mockResidentRepo;
     private readonly Mock<IApartmentRepository> _mockApartmentRepo;
     private readonly Mock<IResidenceHistoryRepository> _mockResidenceHistoryRepo;
+    private readonly Mock<IMemberRegistrationRequestRepository> _mockRequestRepo;
     private readonly ResidenceService _residenceService;
     private readonly ResidentService _residentService;
+    private readonly MemberRequestService _memberRequestService;
 
     public ResidentPortalTests()
     {
@@ -26,13 +28,16 @@ public class ResidentPortalTests
         _mockResidentRepo = new Mock<IResidentRepository>();
         _mockApartmentRepo = new Mock<IApartmentRepository>();
         _mockResidenceHistoryRepo = new Mock<IResidenceHistoryRepository>();
+        _mockRequestRepo = new Mock<IMemberRegistrationRequestRepository>();
 
         _mockUow.Setup(u => u.Residents).Returns(_mockResidentRepo.Object);
         _mockUow.Setup(u => u.Apartments).Returns(_mockApartmentRepo.Object);
         _mockUow.Setup(u => u.ResidenceHistories).Returns(_mockResidenceHistoryRepo.Object);
+        _mockUow.Setup(u => u.MemberRegistrationRequests).Returns(_mockRequestRepo.Object);
 
         _residenceService = new ResidenceService(_mockUow.Object);
         _residentService = new ResidentService(_mockUow.Object);
+        _memberRequestService = new MemberRequestService(_mockUow.Object, _residenceService);
     }
 
     private UserAccount CreateSampleUserAccount(int id = 1, string username = "resident1", string fullName = "Nguyễn Văn Minh", string phone = "0987 654 321")
@@ -113,6 +118,12 @@ public class ResidentPortalTests
 
         _mockResidenceHistoryRepo.Setup(r => r.GetHistoryByResidentIdAsync(residentId))
             .ReturnsAsync(new List<ResidenceHistory> { activeResidence, oldResidence });
+
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(apartmentId))
+            .ReturnsAsync(apt);
+
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(residentId))
+            .ReturnsAsync(resident);
     }
 
     #region ResidentHomeViewModel Tests
@@ -408,6 +419,96 @@ public class ResidentPortalTests
         Assert.Equal("Tạm vắng", member.Status);
         Assert.Equal(initialHometown, member.Hometown);
         Assert.Contains("Trần Thị Hoa", vm.EditSuccessMessage);
+    }
+
+    [Fact]
+    public async Task FamilyMembersViewModel_AddRequestModal_SubmitsSuccessfullyAndLoadsRequests()
+    {
+        // Arrange
+        int resId = 1;
+        int aptId = 101;
+        SetupMockResidenceData(resId, aptId, "A-1203");
+        var requestsList = new List<MemberRegistrationRequest>();
+        _mockRequestRepo.Setup(r => r.GetByApartmentIdAsync(aptId))
+            .ReturnsAsync(() => requestsList.ToList());
+        _mockRequestRepo.Setup(r => r.AddAsync(It.IsAny<MemberRegistrationRequest>()))
+            .Callback<MemberRegistrationRequest>(r => requestsList.Add(r));
+
+        var vm = new FamilyMembersViewModel(_residenceService, _memberRequestService);
+        var account = CreateSampleUserAccount(resId);
+        vm.Initialize(account);
+        await vm.LoadDataAsync();
+
+        // Act: Open modal
+        vm.OpenAddRequestModalCommand.Execute(null);
+        Assert.True(vm.IsAddRequestModalOpen);
+
+        // Fill data
+        vm.NewMemberFullName = "Nguyễn Văn Em";
+        vm.NewMemberDateOfBirth = new DateTime(2008, 10, 10);
+        vm.NewMemberIdentityCard = "012345678999";
+        vm.NewMemberPhoneNumber = "0988776655";
+        vm.SelectedRelationshipType = RelationshipType.FamilyMember;
+
+        // Submit
+        if (vm.SubmitAddRequestCommand is ApartmentResidenceManagement.Wpf.Commands.AsyncRelayCommand asyncCmd)
+        {
+            await asyncCmd.ExecuteAsync(null);
+        }
+        else
+        {
+            vm.SubmitAddRequestCommand.Execute(null);
+        }
+
+        // Assert
+        Assert.True(string.IsNullOrEmpty(vm.AddRequestErrorMessage), vm.AddRequestErrorMessage);
+        Assert.False(vm.IsAddRequestModalOpen);
+        Assert.Contains("Nguyễn Văn Em", vm.AddRequestSuccessMessage);
+        Assert.Equal(1, vm.TotalRequestsCount);
+        Assert.Equal(1, vm.PendingRequestsCount);
+        Assert.Single(vm.FilteredRequests);
+    }
+
+    [Fact]
+    public async Task FamilyMembersViewModel_FilterRequests_FiltersByStatusCorrectly()
+    {
+        // Arrange
+        int resId = 1;
+        int aptId = 101;
+        SetupMockResidenceData(resId, aptId, "A-1203");
+
+        var requestsList = new List<MemberRegistrationRequest>
+        {
+            new MemberRegistrationRequest { Id = 1, ApartmentId = aptId, FullName = "Thành viên 1", Status = RequestStatus.Pending, CreatedAt = DateTime.Now },
+            new MemberRegistrationRequest { Id = 2, ApartmentId = aptId, FullName = "Thành viên 2", Status = RequestStatus.Approved, CreatedAt = DateTime.Now },
+            new MemberRegistrationRequest { Id = 3, ApartmentId = aptId, FullName = "Thành viên 3", Status = RequestStatus.Rejected, CreatedAt = DateTime.Now, RejectReason = "Thiếu giấy tờ" }
+        };
+
+        _mockRequestRepo.Setup(r => r.GetByApartmentIdAsync(aptId))
+            .ReturnsAsync(requestsList);
+
+        var vm = new FamilyMembersViewModel(_residenceService, _memberRequestService);
+        var account = CreateSampleUserAccount(resId);
+        vm.Initialize(account);
+        await vm.LoadDataAsync();
+
+        // Default filter: Tất cả
+        Assert.Equal(3, vm.FilteredRequests.Count);
+
+        // Filter: Chờ duyệt
+        vm.SelectedRequestFilter = "Chờ duyệt";
+        Assert.Single(vm.FilteredRequests);
+        Assert.Equal("Thành viên 1", vm.FilteredRequests[0].FullName);
+
+        // Filter: Đã duyệt
+        vm.SelectedRequestFilter = "Đã duyệt";
+        Assert.Single(vm.FilteredRequests);
+        Assert.Equal("Thành viên 2", vm.FilteredRequests[0].FullName);
+
+        // Filter: Từ chối
+        vm.SelectedRequestFilter = "Từ chối";
+        Assert.Single(vm.FilteredRequests);
+        Assert.Equal("Thành viên 3", vm.FilteredRequests[0].FullName);
     }
     #endregion
 

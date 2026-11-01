@@ -32,26 +32,26 @@ public class MyApartmentViewModel : ViewModelBase
     private UserAccount? _account;
 
     // Thông tin căn hộ
-    private string _apartmentNumber = "A-1203";
-    private string _buildingBlock = "A";
-    private string _floorNumber = "12";
-    private string _apartmentArea = "72 m²";
-    private int _familyCount = 4;
+    private string _apartmentNumber = "---";
+    private string _buildingBlock = "---";
+    private string _floorNumber = "---";
+    private string _apartmentArea = "---";
+    private int _familyCount = 0;
 
     // Ảnh căn hộ & gallery
     private string _currentApartmentImage = "/Assets/apartment_interior_1.png";
 
     // Thông tin tòa nhà
     private int _buildingFloors = 20;
-    private int _buildingElevators = 4;
-    private int _buildingTotalApartments = 120;
+    private int _buildingElevators = 2;
+    private int _buildingTotalApartments = 50;
 
     // Tình trạng cư trú
-    private string _residencyStartDate = "10/01/2026";
-    private string _residencyEndDate = "Chưa xác định";
-    private string _residencyDuration = "Tính theo ngày thực tế";
-    private string _residencyForm = "Cư trú thường trú";
-    private string _residencyStatus = "Đang cư trú";
+    private string _residencyStartDate = "---";
+    private string _residencyEndDate = "---";
+    private string _residencyDuration = "---";
+    private string _residencyForm = "---";
+    private string _residencyStatus = "Chưa có cư trú hoạt động";
 
     private bool _isLoading;
     private string _errorMessage = string.Empty;
