@@ -206,8 +206,15 @@ public class FamilyMembersViewModel : ViewModelBase
     public ICommand SaveMemberEditCommand { get; }
     #endregion
 
-    public FamilyMembersViewModel()
+    private readonly Application.Services.ResidenceService? _residenceService;
+
+    public FamilyMembersViewModel() : this(null)
     {
+    }
+
+    public FamilyMembersViewModel(Application.Services.ResidenceService? residenceService)
+    {
+        _residenceService = residenceService;
         RefreshCommand = new AsyncRelayCommand(_ => LoadFamilyMembersAsync());
 
         OpenEditMemberModalCommand = new RelayCommand(p =>
@@ -217,7 +224,7 @@ public class FamilyMembersViewModel : ViewModelBase
                 _editingMember = member;
                 EditMemberFullName = member.FullName;
                 EditMemberRelationship = member.Relationship;
-                EditMemberPhone = member.PhoneNumber == "---" ? "" : member.PhoneNumber;
+                EditMemberPhone = member.PhoneNumber == "Chưa cập nhật" || member.PhoneNumber == "---" ? "" : member.PhoneNumber;
                 EditMemberHometown = member.Hometown;
                 EditMemberStatus = member.Status;
                 EditErrorMessage = string.Empty;
@@ -242,7 +249,7 @@ public class FamilyMembersViewModel : ViewModelBase
                 return;
             }
 
-            _editingMember.PhoneNumber = string.IsNullOrWhiteSpace(EditMemberPhone) ? "---" : EditMemberPhone.Trim();
+            _editingMember.PhoneNumber = string.IsNullOrWhiteSpace(EditMemberPhone) ? "Chưa cập nhật" : EditMemberPhone.Trim();
             _editingMember.Status = EditMemberStatus;
 
             IsEditMemberModalOpen = false;
@@ -250,8 +257,6 @@ public class FamilyMembersViewModel : ViewModelBase
             _editingMember = null;
             FilterMembers();
         });
-
-        InitDefaultMembers();
     }
 
     public void Initialize(UserAccount account)
@@ -260,13 +265,57 @@ public class FamilyMembersViewModel : ViewModelBase
         _ = LoadFamilyMembersAsync();
     }
 
-    public Task LoadFamilyMembersAsync()
+    public async Task LoadFamilyMembersAsync()
     {
         IsLoading = true;
+        ErrorMessage = string.Empty;
+
         try
         {
-            InitDefaultMembers();
-            ErrorMessage = string.Empty;
+            _allMembers.Clear();
+
+            if (_residenceService != null && _account?.ResidentId.HasValue == true)
+            {
+                var activeResidence = await _residenceService.GetActiveResidenceByResidentIdAsync(_account.ResidentId.Value);
+                if (activeResidence != null)
+                {
+                    var allActive = await _residenceService.GetActiveResidencesByApartmentIdAsync(activeResidence.ApartmentId);
+                    bool isFirst = true;
+                    foreach (var memberRes in allActive)
+                    {
+                        var res = memberRes.Resident;
+                        bool isOwner = memberRes.RelationshipType == Domain.Enums.RelationshipType.Owner;
+                        string relText = memberRes.RelationshipType switch
+                        {
+                            Domain.Enums.RelationshipType.Owner => "Chủ hộ",
+                            Domain.Enums.RelationshipType.FamilyMember => "Thành viên gia đình",
+                            Domain.Enums.RelationshipType.Tenant => "Người thuê",
+                            Domain.Enums.RelationshipType.Temporary => "Tạm trú",
+                            _ => "Cư dân"
+                        };
+
+                        _allMembers.Add(new AccordionFamilyMemberItem
+                        {
+                            AvatarIcon = isOwner ? "👨" : "👤",
+                            AvatarImagePath = isOwner ? "/Assets/resident_avatar.png" : null,
+                            FullName = res != null ? res.FullName : "Thành viên",
+                            Relationship = relText,
+                            IsOwner = isOwner,
+                            BirthDate = res != null ? res.DateOfBirth.ToString("dd/MM/yyyy") : "---",
+                            Gender = "Chưa cập nhật",
+                            IdentityCard = res?.IdentityCard ?? "Chưa cập nhật",
+                            Hometown = "Chưa cập nhật",
+                            PhoneNumber = !string.IsNullOrWhiteSpace(res?.PhoneNumber) ? res.PhoneNumber : "Chưa cập nhật",
+                            Status = "Đang cư trú",
+                            IsExpanded = isFirst
+                        });
+
+                        isFirst = false;
+                    }
+                }
+            }
+
+            FilterMembers();
         }
         catch (Exception ex)
         {
@@ -276,78 +325,6 @@ public class FamilyMembersViewModel : ViewModelBase
         {
             IsLoading = false;
         }
-
-        return Task.CompletedTask;
-    }
-
-    private void InitDefaultMembers()
-    {
-        _allMembers.Clear();
-        _allMembers.Add(new AccordionFamilyMemberItem
-        {
-            AvatarIcon = "👨",
-            AvatarImagePath = "/Assets/resident_avatar.png",
-            FullName = "Nguyễn Văn Minh",
-            Relationship = "Chủ hộ",
-            IsOwner = true,
-            BirthDate = "15/03/2002",
-            Gender = "Nam",
-            IdentityCard = "012345678901",
-            Hometown = "Đan Phượng, Hà Nội",
-            PhoneNumber = "0987 654 321",
-            Status = "Đang cư trú",
-            IsExpanded = true
-        });
-
-        _allMembers.Add(new AccordionFamilyMemberItem
-        {
-            AvatarIcon = "👩",
-            AvatarImagePath = "/Assets/wife_avatar.png",
-            FullName = "Trần Thị Hoa",
-            Relationship = "Vợ",
-            IsOwner = false,
-            BirthDate = "20/07/2002",
-            Gender = "Nữ",
-            IdentityCard = "012345678902",
-            Hometown = "Thạch Thất, Hà Nội",
-            PhoneNumber = "0987 654 322",
-            Status = "Đang cư trú",
-            IsExpanded = false
-        });
-
-        _allMembers.Add(new AccordionFamilyMemberItem
-        {
-            AvatarIcon = "👦",
-            AvatarImagePath = "/Assets/avatar_son.png",
-            FullName = "Nguyễn Gia Bảo",
-            Relationship = "Con",
-            IsOwner = false,
-            BirthDate = "05/09/2018",
-            Gender = "Nam",
-            IdentityCard = "---",
-            Hometown = "Đan Phượng, Hà Nội",
-            PhoneNumber = "---",
-            Status = "Đang cư trú",
-            IsExpanded = false
-        });
-
-        _allMembers.Add(new AccordionFamilyMemberItem
-        {
-            AvatarIcon = "👧",
-            AvatarImagePath = "/Assets/avatar_daughter.png",
-            FullName = "Nguyễn An Nhiên",
-            Relationship = "Con",
-            IsOwner = false,
-            BirthDate = "12/11/2022",
-            Gender = "Nữ",
-            IdentityCard = "---",
-            Hometown = "Đan Phượng, Hà Nội",
-            PhoneNumber = "---",
-            Status = "Đang cư trú",
-            IsExpanded = false
-        });
-
-        FilterMembers();
     }
 
     private void FilterMembers()

@@ -115,9 +115,9 @@ public class MainViewModel : ViewModelBase
         MyVehiclesVm.Initialize(_account);
         ResidencyHistoryVm.Initialize(_account);
 
-        string displayName = _account.Resident?.FullName ?? (_account.Username == "admin" ? "Ban quản lý" : "Nguyễn Văn Minh");
+        string displayName = _account.Resident?.FullName ?? (_account.Username == "admin" ? "Ban quản lý" : _account.Username);
         ResidentDisplayName = displayName;
-        ResidentApartmentInfo = "Cư dân • Căn hộ A-1203";
+        ResidentApartmentInfo = _account.Resident != null ? $"Cư dân • {_account.Username}" : "Cư dân";
         ResidentGreeting = $"Xin chào, {displayName}! 👋";
 
         if (_account.Role == UserRole.Admin)

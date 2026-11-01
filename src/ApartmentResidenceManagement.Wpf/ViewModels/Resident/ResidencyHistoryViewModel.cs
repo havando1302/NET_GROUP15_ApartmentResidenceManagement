@@ -110,18 +110,25 @@ public class ResidencyHistoryViewModel : ViewModelBase
     public ICommand SelectSessionCommand { get; }
     #endregion
 
-    public ResidencyHistoryViewModel()
+    private readonly Application.Services.ResidenceService? _residenceService;
+
+    public ResidencyHistoryViewModel() : this(null)
     {
+    }
+
+    public ResidencyHistoryViewModel(Application.Services.ResidenceService? residenceService)
+    {
+        _residenceService = residenceService;
         RefreshCommand = new AsyncRelayCommand(_ => LoadHistoryAsync());
         SelectSessionCommand = new RelayCommand(param =>
         {
             if (param is HistorySessionItem item)
             {
+                foreach (var s in Sessions) s.IsSelected = false;
+                item.IsSelected = true;
                 SelectedSession = item;
             }
         });
-
-        InitDefaultHistory();
     }
 
     public void Initialize(UserAccount account)
@@ -130,13 +137,86 @@ public class ResidencyHistoryViewModel : ViewModelBase
         _ = LoadHistoryAsync();
     }
 
-    public Task LoadHistoryAsync()
+    public async Task LoadHistoryAsync()
     {
         IsLoading = true;
+        ErrorMessage = string.Empty;
+
         try
         {
-            InitDefaultHistory();
-            ErrorMessage = string.Empty;
+            Sessions.Clear();
+            TimelineEvents.Clear();
+
+            if (_residenceService != null && _account?.ResidentId.HasValue == true)
+            {
+                var historyList = (await _residenceService.GetHistoryByResidentIdAsync(_account.ResidentId.Value)).ToList();
+                TotalResidencyCount = historyList.Count;
+                DistinctApartmentsCount = historyList.Select(h => h.ApartmentId).Distinct().Count();
+
+                int idx = 0;
+                foreach (var h in historyList)
+                {
+                    var apt = h.Apartment;
+                    string aptNum = apt != null ? apt.ApartmentNumber : $"Căn hộ #{h.ApartmentId}";
+                    string bBlock = apt != null && apt.ApartmentNumber.Contains('-') ? apt.ApartmentNumber.Split('-')[0] : "A";
+                    string fNum = apt != null ? apt.Floor.ToString() : "1";
+                    string startStr = h.StartDate.ToString("dd/MM/yyyy");
+                    string endStr = h.EndDate.HasValue ? h.EndDate.Value.ToString("dd/MM/yyyy") : "Chưa xác định";
+                    string rangeStr = $"{startStr} – {endStr}";
+
+                    int days = Math.Max(1, (int)((h.EndDate ?? DateTime.Today) - h.StartDate.Date).TotalDays);
+                    string durStr = h.IsActive ? $"{days} ngày (tính đến hôm nay)" : $"{days} ngày";
+
+                    if (h.IsActive)
+                    {
+                        CurrentDurationText = durStr;
+                    }
+
+                    var sessionItem = new HistorySessionItem
+                    {
+                        ApartmentNumber = aptNum,
+                        BuildingBlock = bBlock,
+                        FloorNumber = fNum,
+                        DateRange = rangeStr,
+                        StartDate = startStr,
+                        EndDate = endStr,
+                        Duration = durStr,
+                        Status = h.IsActive ? "Đang cư trú" : "Đã kết thúc",
+                        IsActive = h.IsActive,
+                        IsSelected = idx == 0
+                    };
+
+                    Sessions.Add(sessionItem);
+                    if (idx == 0) SelectedSession = sessionItem;
+
+                    TimelineEvents.Add(new ResidencyTimelineEvent
+                    {
+                        EventDate = h.IsActive ? $"{startStr} – Nay" : rangeStr,
+                        Title = h.IsActive ? "Đang cư trú (Hiện tại)" : $"Cư trú tại căn hộ {aptNum}",
+                        Description = h.IsActive
+                            ? $"Đăng ký cư trú tại căn hộ {aptNum} từ ngày {startStr}. Đã ở {days} ngày và đang tiếp tục cư trú (ngày kết thúc: Chưa xác định)."
+                            : $"Đã hoàn tất cư trú tại căn hộ {aptNum} từ ngày {startStr} đến {endStr} (thời gian ở: {days} ngày).",
+                        Status = h.IsActive ? "Đang cư trú" : "Đã kết thúc",
+                        IsActive = h.IsActive,
+                        HasNextLine = idx < historyList.Count - 1
+                    });
+
+                    idx++;
+                }
+
+                if (string.IsNullOrEmpty(CurrentDurationText))
+                {
+                    CurrentDurationText = "0 ngày";
+                }
+            }
+            else
+            {
+                TotalResidencyCount = 0;
+                DistinctApartmentsCount = 0;
+                CurrentDurationText = "0 ngày";
+            }
+
+            OnPropertyChanged(nameof(HasHistory));
         }
         catch (Exception ex)
         {
@@ -146,72 +226,5 @@ public class ResidencyHistoryViewModel : ViewModelBase
         {
             IsLoading = false;
         }
-
-        return Task.CompletedTask;
-    }
-
-    private void InitDefaultHistory()
-    {
-        Sessions.Clear();
-
-        var startActiveDate = new DateTime(2026, 1, 10);
-        int totalDays = Math.Max(1, (int)(DateTime.Today - startActiveDate).TotalDays);
-        string activeDuration = $"{totalDays} ngày (tính đến hôm nay)";
-        CurrentDurationText = activeDuration;
-
-        var session1 = new HistorySessionItem
-        {
-            ApartmentNumber = "A-1203",
-            BuildingBlock = "A",
-            FloorNumber = "12",
-            DateRange = "10/01/2026 – Chưa xác định",
-            StartDate = "10/01/2026",
-            EndDate = "Chưa xác định",
-            Duration = activeDuration,
-            Status = "Đang cư trú",
-            IsActive = true,
-            IsSelected = true
-        };
-
-        var session2 = new HistorySessionItem
-        {
-            ApartmentNumber = "A-1008",
-            BuildingBlock = "A",
-            FloorNumber = "10",
-            DateRange = "01/07/2024 – 09/01/2026",
-            StartDate = "01/07/2024",
-            EndDate = "09/01/2026",
-            Duration = "1 năm 6 tháng (557 ngày)",
-            Status = "Đã kết thúc",
-            IsActive = false,
-            IsSelected = false
-        };
-
-        Sessions.Add(session1);
-        Sessions.Add(session2);
-        SelectedSession = session1;
-
-        TimelineEvents.Clear();
-        TimelineEvents.Add(new ResidencyTimelineEvent
-        {
-            EventDate = "10/01/2026 – Nay",
-            Title = "Đang cư trú (Hiện tại)",
-            Description = $"Đăng ký cư trú tại căn hộ A-1203 từ ngày 10/01/2026. Đã ở {totalDays} ngày và đang tiếp tục cư trú (ngày kết thúc: Chưa xác định).",
-            Status = "Đang cư trú",
-            IsActive = true,
-            HasNextLine = true
-        });
-
-        TimelineEvents.Add(new ResidencyTimelineEvent
-        {
-            EventDate = "09/01/2026",
-            Title = "Kết thúc cư trú",
-            Description = "Hoàn tất thủ tục chuyển căn hộ và kết thúc cư trú tại căn hộ A-1008 (thời gian ở: 1 năm 6 tháng).",
-            Status = "Đã kết thúc",
-            IsActive = false,
-            HasNextLine = false
-        });
-
-        OnPropertyChanged(nameof(HasHistory));
     }
 }

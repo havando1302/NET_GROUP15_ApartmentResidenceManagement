@@ -168,8 +168,15 @@ public class MyApartmentViewModel : ViewModelBase
     public ICommand SelectGalleryImageCommand { get; }
     #endregion
 
-    public MyApartmentViewModel()
+    private readonly Application.Services.ResidenceService? _residenceService;
+
+    public MyApartmentViewModel() : this(null)
     {
+    }
+
+    public MyApartmentViewModel(Application.Services.ResidenceService? residenceService)
+    {
+        _residenceService = residenceService;
         RefreshCommand = new AsyncRelayCommand(_ => LoadApartmentDataAsync());
         SelectGalleryImageCommand = new RelayCommand(p =>
         {
@@ -182,58 +189,6 @@ public class MyApartmentViewModel : ViewModelBase
                 CurrentApartmentImage = item.ImagePath;
             }
         });
-        InitDefaultData();
-    }
-
-    private void InitDefaultData()
-    {
-        var startActiveDate = new DateTime(2026, 1, 10);
-        int days = Math.Max(1, (int)(DateTime.Today - startActiveDate).TotalDays);
-        ResidencyStartDate = "10/01/2026";
-        ResidencyEndDate = "Chưa xác định";
-        ResidencyDuration = $"{days} ngày (tính đến hôm nay)";
-
-        ResidentMembers.Clear();
-        ResidentMembers.Add(new ApartmentResidentMemberItem
-        {
-            STT = 1,
-            AvatarIcon = "👨",
-            AvatarImagePath = "/Assets/resident_avatar.png",
-            FullName = "Nguyễn Văn Minh",
-            Relationship = "Chủ hộ",
-            BirthDate = "15/03/2002",
-            Status = "Đang cư trú"
-        });
-        ResidentMembers.Add(new ApartmentResidentMemberItem
-        {
-            STT = 2,
-            AvatarIcon = "👩",
-            AvatarImagePath = "/Assets/wife_avatar.png",
-            FullName = "Trần Thị Hoa",
-            Relationship = "Vợ",
-            BirthDate = "20/07/2002",
-            Status = "Đang cư trú"
-        });
-        ResidentMembers.Add(new ApartmentResidentMemberItem
-        {
-            STT = 3,
-            AvatarIcon = "👦",
-            AvatarImagePath = "/Assets/avatar_son.png",
-            FullName = "Nguyễn Gia Bảo",
-            Relationship = "Con",
-            BirthDate = "05/09/2018",
-            Status = "Đang cư trú"
-        });
-        ResidentMembers.Add(new ApartmentResidentMemberItem
-        {
-            STT = 4,
-            AvatarIcon = "👧",
-            AvatarImagePath = "/Assets/avatar_daughter.png",
-            FullName = "Nguyễn An Nhiên",
-            Relationship = "Con",
-            BirthDate = "12/11/2022",
-            Status = "Đang cư trú"
-        });
     }
 
     public void Initialize(UserAccount account)
@@ -242,13 +197,87 @@ public class MyApartmentViewModel : ViewModelBase
         _ = LoadApartmentDataAsync();
     }
 
-    public Task LoadApartmentDataAsync()
+    public async Task LoadApartmentDataAsync()
     {
         IsLoading = true;
+        ErrorMessage = string.Empty;
+
         try
         {
-            InitDefaultData();
-            ErrorMessage = string.Empty;
+            if (_residenceService != null && _account?.ResidentId.HasValue == true)
+            {
+                var activeResidence = await _residenceService.GetActiveResidenceByResidentIdAsync(_account.ResidentId.Value);
+                if (activeResidence != null)
+                {
+                    var apt = activeResidence.Apartment;
+                    ApartmentNumber = apt != null ? apt.ApartmentNumber : "Chưa cập nhật";
+                    BuildingBlock = apt != null && apt.ApartmentNumber.Contains('-') ? apt.ApartmentNumber.Split('-')[0] : "A";
+                    FloorNumber = apt != null ? apt.Floor.ToString() : "1";
+                    ApartmentArea = apt != null ? $"{apt.Area} m²" : "0 m²";
+
+                    var startDate = activeResidence.StartDate.Date;
+                    int days = Math.Max(1, (int)(DateTime.Today - startDate).TotalDays);
+                    ResidencyStartDate = startDate.ToString("dd/MM/yyyy");
+                    ResidencyEndDate = activeResidence.EndDate.HasValue ? activeResidence.EndDate.Value.ToString("dd/MM/yyyy") : "Chưa xác định";
+                    ResidencyDuration = $"{days} ngày (tính đến hôm nay)";
+                    ResidencyStatus = "Đang cư trú";
+
+                    var allActive = await _residenceService.GetActiveResidencesByApartmentIdAsync(activeResidence.ApartmentId);
+                    ResidentMembers.Clear();
+                    int stt = 1;
+                    foreach (var memberRes in allActive)
+                    {
+                        var res = memberRes.Resident;
+                        string relationName = memberRes.RelationshipType switch
+                        {
+                            Domain.Enums.RelationshipType.Owner => "Chủ hộ",
+                            Domain.Enums.RelationshipType.FamilyMember => "Thành viên gia đình",
+                            Domain.Enums.RelationshipType.Tenant => "Người thuê",
+                            Domain.Enums.RelationshipType.Temporary => "Tạm trú",
+                            _ => "Cư dân"
+                        };
+
+                        ResidentMembers.Add(new ApartmentResidentMemberItem
+                        {
+                            STT = stt++,
+                            AvatarIcon = memberRes.RelationshipType == Domain.Enums.RelationshipType.Owner ? "👨" : "👤",
+                            AvatarImagePath = memberRes.RelationshipType == Domain.Enums.RelationshipType.Owner ? "/Assets/resident_avatar.png" : null,
+                            FullName = res != null ? res.FullName : "Thành viên",
+                            Relationship = relationName,
+                            BirthDate = res != null ? res.DateOfBirth.ToString("dd/MM/yyyy") : "---",
+                            Status = "Đang cư trú"
+                        });
+                    }
+
+                    FamilyCount = ResidentMembers.Count;
+                }
+                else
+                {
+                    ApartmentNumber = "Chưa có căn hộ đang cư trú";
+                    BuildingBlock = "---";
+                    FloorNumber = "---";
+                    ApartmentArea = "0 m²";
+                    FamilyCount = 0;
+                    ResidencyStartDate = "---";
+                    ResidencyEndDate = "---";
+                    ResidencyDuration = "---";
+                    ResidencyStatus = "Chưa có cư trú hoạt động";
+                    ResidentMembers.Clear();
+                }
+            }
+            else
+            {
+                ApartmentNumber = "Chưa có căn hộ đang cư trú";
+                BuildingBlock = "---";
+                FloorNumber = "---";
+                ApartmentArea = "0 m²";
+                FamilyCount = 0;
+                ResidencyStartDate = "---";
+                ResidencyEndDate = "---";
+                ResidencyDuration = "---";
+                ResidencyStatus = "Chưa có cư trú hoạt động";
+                ResidentMembers.Clear();
+            }
         }
         catch (Exception ex)
         {
@@ -258,7 +287,5 @@ public class MyApartmentViewModel : ViewModelBase
         {
             IsLoading = false;
         }
-
-        return Task.CompletedTask;
     }
 }

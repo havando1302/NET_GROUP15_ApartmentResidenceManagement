@@ -108,24 +108,16 @@ public class ResidentHomeViewModel : ViewModelBase
     public ICommand ViewAllAnnouncementsCommand { get; private set; } = null!;
     #endregion
 
-    public ResidentHomeViewModel(
-        Action? onRegisterTemporaryStay = null,
-        Action? onRequestService = null,
-        Action? onSendFeedback = null,
-        Action? onLookupFees = null,
-        Action? onViewAllAnnouncements = null,
-        Action? onViewApartmentDetail = null,
-        Action? onViewAllHistory = null)
+    private readonly Application.Services.ResidenceService? _residenceService;
+
+    public ResidentHomeViewModel() : this(null)
     {
+    }
+
+    public ResidentHomeViewModel(Application.Services.ResidenceService? residenceService)
+    {
+        _residenceService = residenceService;
         RefreshCommand = new AsyncRelayCommand(_ => LoadStatsAsync());
-        ConfigureNavigation(
-            onRegisterTemporaryStay, 
-            onRequestService, 
-            onSendFeedback, 
-            onLookupFees, 
-            onViewAllAnnouncements,
-            onViewApartmentDetail,
-            onViewAllHistory);
     }
 
     public void ConfigureNavigation(
@@ -157,57 +149,69 @@ public class ResidentHomeViewModel : ViewModelBase
     public void Initialize(UserAccount account)
     {
         _account = account;
-        UpdateFromAccount();
+        _ = LoadStatsAsync();
     }
 
-    private void UpdateFromAccount()
-    {
-        if (_account == null) return;
-
-        if (_account.Resident != null)
-        {
-            ResidentName = _account.Resident.FullName;
-            ResidencyStatus = "Đang cư trú";
-            ApartmentNumber = "A-1203";
-            BuildingBlock = "A";
-            FloorNumber = "12";
-            ApartmentArea = "72 m²";
-            FamilyCount = 4;
-            ResidencyChangesCount = 2;
-            PendingRequestsCount = 0;
-            NewAnnouncementsCount = 3;
-        }
-        else
-        {
-            ResidentName = _account.Username == "admin" ? "Ban quản lý" : "Nguyễn Văn Minh";
-            ResidencyStatus = "Đang cư trú";
-            ApartmentNumber = "A-1203";
-            BuildingBlock = "A";
-            FloorNumber = "12";
-            ApartmentArea = "72 m²";
-            FamilyCount = 4;
-            ResidencyChangesCount = 2;
-            PendingRequestsCount = 0;
-            NewAnnouncementsCount = 3;
-        }
-    }
-
-    public Task LoadStatsAsync()
+    public async Task LoadStatsAsync()
     {
         IsLoading = true;
+        ErrorMessage = string.Empty;
+
         try
         {
-            UpdateFromAccount();
-            ErrorMessage = string.Empty;
+            if (_account == null) return;
+
+            ResidentName = _account.Resident?.FullName ?? (_account.Username == "admin" ? "Ban quản lý" : _account.Username);
+
+            if (_residenceService != null && _account.ResidentId.HasValue)
+            {
+                var activeResidence = await _residenceService.GetActiveResidenceByResidentIdAsync(_account.ResidentId.Value);
+                if (activeResidence != null)
+                {
+                    var apt = activeResidence.Apartment;
+                    ApartmentNumber = apt != null ? apt.ApartmentNumber : "Chưa cập nhật";
+                    BuildingBlock = apt != null && apt.ApartmentNumber.Contains('-') ? apt.ApartmentNumber.Split('-')[0] : "A";
+                    FloorNumber = apt != null ? apt.Floor.ToString() : "1";
+                    ApartmentArea = apt != null ? $"{apt.Area} m²" : "0 m²";
+                    ResidencyStatus = "Đang cư trú";
+
+                    var allActive = await _residenceService.GetActiveResidencesByApartmentIdAsync(activeResidence.ApartmentId);
+                    FamilyCount = allActive.Count();
+                }
+                else
+                {
+                    ApartmentNumber = "Chưa có căn hộ";
+                    BuildingBlock = "---";
+                    FloorNumber = "---";
+                    ApartmentArea = "0 m²";
+                    ResidencyStatus = "Chưa có cư trú hoạt động";
+                    FamilyCount = 0;
+                }
+
+                var history = await _residenceService.GetHistoryByResidentIdAsync(_account.ResidentId.Value);
+                ResidencyChangesCount = history.Count();
+            }
+            else
+            {
+                ApartmentNumber = "Chưa có căn hộ";
+                BuildingBlock = "---";
+                FloorNumber = "---";
+                ApartmentArea = "0 m²";
+                ResidencyStatus = "Chưa có cư trú hoạt động";
+                FamilyCount = 0;
+                ResidencyChangesCount = 0;
+            }
+
+            PendingRequestsCount = 0;
+            NewAnnouncementsCount = 3;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = "Không thể làm mới thông tin tổng quan.";
+            ErrorMessage = $"Không thể làm mới thông tin tổng quan: {ex.Message}";
         }
         finally
         {
             IsLoading = false;
         }
-        return Task.CompletedTask;
     }
 }
