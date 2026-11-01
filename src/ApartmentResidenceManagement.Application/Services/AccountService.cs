@@ -33,45 +33,18 @@ public class AccountService
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
 
-        UserAccount? account = null;
+        UserAccount? account;
         try
         {
             account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
         }
-        catch (Exception)
+        catch (BusinessRuleException)
         {
-            // Khi chưa bật MySQL (máy cá nhân / offline): Hỗ trợ tài khoản mẫu để test giao diện
-            if ((username.Equals("resident_a", StringComparison.OrdinalIgnoreCase) || username.Equals("demo.resident", StringComparison.OrdinalIgnoreCase)) && password == "resident123")
-            {
-                return new UserAccount
-                {
-                    Id = 2,
-                    Username = username.ToLower(),
-                    Role = UserRole.Resident,
-                    IsActive = true,
-                    ResidentId = 1,
-                    Resident = new Resident
-                    {
-                        Id = 1,
-                        FullName = "Nguyễn Văn A",
-                        PhoneNumber = "0901234567",
-                        Email = "nguyenvana@example.com"
-                    }
-                };
-            }
-
-            if ((username.Equals("admin", StringComparison.OrdinalIgnoreCase) || username.Equals("demo.admin", StringComparison.OrdinalIgnoreCase)) && password == "admin123")
-            {
-                return new UserAccount
-                {
-                    Id = 1,
-                    Username = username.ToLower(),
-                    Role = UserRole.Admin,
-                    IsActive = true
-                };
-            }
-
-            throw new BusinessRuleException("Không thể kết nối cơ sở dữ liệu MySQL và thông tin tài khoản không hợp lệ.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new BusinessRuleException($"Không thể kết nối cơ sở dữ liệu: {ex.Message}");
         }
 
         if (account == null)
