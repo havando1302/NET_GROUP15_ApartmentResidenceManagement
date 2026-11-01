@@ -172,6 +172,32 @@ public class ResidentPortalTests
         Assert.False(vm.IsAvatarPickerOpen);
         Assert.Contains("Trần Thị Hoa", vm.SuccessMessage);
     }
+
+    [Fact]
+    public void MyProfileViewModel_EditModal_AllowsEditingEmailAndPhone()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        var account = CreateSampleUserAccount();
+        vm.Initialize(account);
+
+        // Act: Open modal
+        vm.OpenEditModalCommand.Execute(null);
+        Assert.True(vm.IsEditModalOpen);
+        Assert.Equal(vm.PhoneNumber, vm.EditPhoneNumber);
+        Assert.Equal(vm.Email, vm.EditEmail);
+
+        // Act: Edit and Save
+        vm.EditPhoneNumber = "0933888999";
+        vm.EditEmail = "new_minh@apartment.vn";
+        vm.SaveProfileCommand.Execute(null);
+
+        // Assert
+        Assert.False(vm.IsEditModalOpen);
+        Assert.Equal("0933888999", vm.PhoneNumber);
+        Assert.Equal("new_minh@apartment.vn", vm.Email);
+        Assert.Contains("thành công", vm.SuccessMessage);
+    }
     #endregion
 
     #region MyApartmentViewModel Tests
@@ -262,6 +288,30 @@ public class ResidentPortalTests
         // Act: clear search
         vm.SearchText = string.Empty;
         Assert.Equal(4, vm.FilteredMembers.Count);
+    }
+
+    [Fact]
+    public void FamilyMembersViewModel_EditMemberModal_UpdatesMemberPhoneAndStatus()
+    {
+        // Arrange
+        var vm = new FamilyMembersViewModel();
+        var member = vm.FilteredMembers[1]; // Trần Thị Hoa
+
+        // Act: Open edit member modal
+        vm.OpenEditMemberModalCommand.Execute(member);
+        Assert.True(vm.IsEditMemberModalOpen);
+        Assert.Equal("Trần Thị Hoa", vm.EditMemberFullName);
+
+        // Act: Update phone and status
+        vm.EditMemberPhone = "0911223344";
+        vm.EditMemberStatus = "Tạm vắng";
+        vm.SaveMemberEditCommand.Execute(null);
+
+        // Assert
+        Assert.False(vm.IsEditMemberModalOpen);
+        Assert.Equal("0911223344", member.PhoneNumber);
+        Assert.Equal("Tạm vắng", member.Status);
+        Assert.Contains("Trần Thị Hoa", vm.EditSuccessMessage);
     }
     #endregion
 

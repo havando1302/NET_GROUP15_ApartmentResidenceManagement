@@ -11,6 +11,9 @@ namespace ApartmentResidenceManagement.Wpf.ViewModels;
 public class AccordionFamilyMemberItem : ViewModelBase
 {
     private bool _isExpanded;
+    private string _phoneNumber = string.Empty;
+    private string _hometown = string.Empty;
+    private string _status = "Đang cư trú";
 
     public string AvatarIcon { get; set; } = "👨";
     public string? AvatarImagePath { get; set; }
@@ -21,9 +24,24 @@ public class AccordionFamilyMemberItem : ViewModelBase
     public string BirthDate { get; set; } = string.Empty;
     public string Gender { get; set; } = "Nam";
     public string IdentityCard { get; set; } = string.Empty;
-    public string Hometown { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string Status { get; set; } = "Đang cư trú";
+
+    public string Hometown
+    {
+        get => _hometown;
+        set => SetProperty(ref _hometown, value);
+    }
+
+    public string PhoneNumber
+    {
+        get => _phoneNumber;
+        set => SetProperty(ref _phoneNumber, value);
+    }
+
+    public string Status
+    {
+        get => _status;
+        set => SetProperty(ref _status, value);
+    }
 
     public bool IsExpanded
     {
@@ -57,6 +75,17 @@ public class FamilyMembersViewModel : ViewModelBase
     private string _searchText = string.Empty;
     private bool _isLoading;
     private string _errorMessage = string.Empty;
+
+    // Chỉnh sửa thông tin thành viên
+    private bool _isEditMemberModalOpen;
+    private AccordionFamilyMemberItem? _editingMember;
+    private string _editMemberFullName = string.Empty;
+    private string _editMemberRelationship = string.Empty;
+    private string _editMemberPhone = string.Empty;
+    private string _editMemberHometown = string.Empty;
+    private string _editMemberStatus = "Đang cư trú";
+    private string _editSuccessMessage = string.Empty;
+    private string _editErrorMessage = string.Empty;
 
     private readonly ObservableCollection<AccordionFamilyMemberItem> _allMembers = new();
 
@@ -111,17 +140,118 @@ public class FamilyMembersViewModel : ViewModelBase
         set => SetProperty(ref _errorMessage, value);
     }
 
+    public bool IsEditMemberModalOpen
+    {
+        get => _isEditMemberModalOpen;
+        set => SetProperty(ref _isEditMemberModalOpen, value);
+    }
+
+    public string EditMemberFullName
+    {
+        get => _editMemberFullName;
+        set => SetProperty(ref _editMemberFullName, value);
+    }
+
+    public string EditMemberRelationship
+    {
+        get => _editMemberRelationship;
+        set => SetProperty(ref _editMemberRelationship, value);
+    }
+
+    public string EditMemberPhone
+    {
+        get => _editMemberPhone;
+        set => SetProperty(ref _editMemberPhone, value);
+    }
+
+    public string EditMemberHometown
+    {
+        get => _editMemberHometown;
+        set => SetProperty(ref _editMemberHometown, value);
+    }
+
+    public string EditMemberStatus
+    {
+        get => _editMemberStatus;
+        set => SetProperty(ref _editMemberStatus, value);
+    }
+
+    public string EditSuccessMessage
+    {
+        get => _editSuccessMessage;
+        set => SetProperty(ref _editSuccessMessage, value);
+    }
+
+    public string EditErrorMessage
+    {
+        get => _editErrorMessage;
+        set => SetProperty(ref _editErrorMessage, value);
+    }
+
+    public ObservableCollection<string> AvailableStatuses { get; } = new()
+    {
+        "Đang cư trú",
+        "Tạm vắng",
+        "Tạm trú"
+    };
+
     public ObservableCollection<AccordionFamilyMemberItem> FilteredMembers { get; } = new();
     public bool HasMembers => FilteredMembers.Count > 0;
     #endregion
 
     #region Commands
     public ICommand RefreshCommand { get; }
+    public ICommand OpenEditMemberModalCommand { get; }
+    public ICommand CloseEditMemberModalCommand { get; }
+    public ICommand SaveMemberEditCommand { get; }
     #endregion
 
     public FamilyMembersViewModel()
     {
         RefreshCommand = new AsyncRelayCommand(_ => LoadFamilyMembersAsync());
+
+        OpenEditMemberModalCommand = new RelayCommand(p =>
+        {
+            if (p is AccordionFamilyMemberItem member)
+            {
+                _editingMember = member;
+                EditMemberFullName = member.FullName;
+                EditMemberRelationship = member.Relationship;
+                EditMemberPhone = member.PhoneNumber == "---" ? "" : member.PhoneNumber;
+                EditMemberHometown = member.Hometown;
+                EditMemberStatus = member.Status;
+                EditErrorMessage = string.Empty;
+                IsEditMemberModalOpen = true;
+            }
+        });
+
+        CloseEditMemberModalCommand = new RelayCommand(_ =>
+        {
+            IsEditMemberModalOpen = false;
+            _editingMember = null;
+            EditErrorMessage = string.Empty;
+        });
+
+        SaveMemberEditCommand = new RelayCommand(_ =>
+        {
+            if (_editingMember == null) return;
+
+            if (!string.IsNullOrWhiteSpace(EditMemberPhone) && EditMemberPhone.Trim().Length < 8)
+            {
+                EditErrorMessage = "Số điện thoại không hợp lệ (tối thiểu 8 chữ số).";
+                return;
+            }
+
+            _editingMember.PhoneNumber = string.IsNullOrWhiteSpace(EditMemberPhone) ? "---" : EditMemberPhone.Trim();
+            _editingMember.Hometown = EditMemberHometown.Trim();
+            _editingMember.Status = EditMemberStatus;
+
+            IsEditMemberModalOpen = false;
+            EditSuccessMessage = $"Cập nhật thông tin thành viên {_editingMember.FullName} thành công!";
+            _editingMember = null;
+            FilterMembers();
+        });
+
         InitDefaultMembers();
     }
 

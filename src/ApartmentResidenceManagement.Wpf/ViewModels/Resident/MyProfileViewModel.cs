@@ -38,6 +38,8 @@ public class MyProfileViewModel : ViewModelBase
     private string _editPhoneNumber = "0987 654 321";
     private string _contactAddress = "Đan Phượng, Hà Nội";
     private string _editContactAddress = "Đan Phượng, Hà Nội";
+    private string _editEmail = "minhnv@gmail.com";
+    private bool _isEditModalOpen;
 
     // Trạng thái thông báo
     private string _successMessage = string.Empty;
@@ -78,6 +80,18 @@ public class MyProfileViewModel : ViewModelBase
     {
         get => _email;
         set => SetProperty(ref _email, value);
+    }
+
+    public string EditEmail
+    {
+        get => _editEmail;
+        set => SetProperty(ref _editEmail, value);
+    }
+
+    public bool IsEditModalOpen
+    {
+        get => _isEditModalOpen;
+        set => SetProperty(ref _isEditModalOpen, value);
     }
 
     public string Gender
@@ -188,10 +202,27 @@ public class MyProfileViewModel : ViewModelBase
     public ICommand UpdatePhotoCommand { get; }
     public ICommand ToggleAvatarPickerCommand { get; }
     public ICommand SelectAvatarCommand { get; }
+    public ICommand OpenEditModalCommand { get; }
+    public ICommand CloseEditModalCommand { get; }
     #endregion
 
     public MyProfileViewModel()
     {
+        OpenEditModalCommand = new RelayCommand(_ =>
+        {
+            EditPhoneNumber = PhoneNumber;
+            EditEmail = Email;
+            EditContactAddress = Hometown;
+            ErrorMessage = string.Empty;
+            IsEditModalOpen = true;
+        });
+
+        CloseEditModalCommand = new RelayCommand(_ =>
+        {
+            IsEditModalOpen = false;
+            ErrorMessage = string.Empty;
+        });
+
         SaveProfileCommand = new AsyncRelayCommand(_ => SaveProfileAsync());
         RefreshCommand = new AsyncRelayCommand(_ => LoadProfileAsync());
         ResetCommand = new RelayCommand(_ => ResetEditForm());
@@ -241,6 +272,7 @@ public class MyProfileViewModel : ViewModelBase
             PhoneNumber = !string.IsNullOrWhiteSpace(r.PhoneNumber) ? r.PhoneNumber : "0987 654 321";
             EditPhoneNumber = PhoneNumber;
             Email = !string.IsNullOrWhiteSpace(r.Email) ? r.Email : "minhnv@gmail.com";
+            EditEmail = Email;
         }
         else if (_account != null)
         {
@@ -249,6 +281,7 @@ public class MyProfileViewModel : ViewModelBase
             PhoneNumber = "0987 654 321";
             EditPhoneNumber = PhoneNumber;
             Email = $"{_account.Username}@gmail.com";
+            EditEmail = Email;
         }
 
         EditContactAddress = Hometown;
@@ -258,6 +291,7 @@ public class MyProfileViewModel : ViewModelBase
     private void ResetEditForm()
     {
         EditPhoneNumber = PhoneNumber;
+        EditEmail = Email;
         EditContactAddress = Hometown;
         ErrorMessage = string.Empty;
         SuccessMessage = "Đã khôi phục lại thông tin liên hệ ban đầu.";
@@ -274,7 +308,20 @@ public class MyProfileViewModel : ViewModelBase
             return Task.CompletedTask;
         }
 
+        if (string.IsNullOrWhiteSpace(EditEmail))
+        {
+            ErrorMessage = "Email liên hệ không được để trống.";
+            return Task.CompletedTask;
+        }
+
+        if (!EditEmail.Contains("@") || !EditEmail.Contains("."))
+        {
+            ErrorMessage = "Định dạng email không hợp lệ (ví dụ: cu_dan@apartment.vn).";
+            return Task.CompletedTask;
+        }
+
         PhoneNumber = EditPhoneNumber.Trim();
+        Email = EditEmail.Trim();
         if (!string.IsNullOrWhiteSpace(EditContactAddress))
         {
             Hometown = EditContactAddress.Trim();
@@ -283,8 +330,10 @@ public class MyProfileViewModel : ViewModelBase
         if (_account?.Resident != null)
         {
             _account.Resident.PhoneNumber = PhoneNumber;
+            _account.Resident.Email = Email;
         }
 
+        IsEditModalOpen = false;
         SuccessMessage = "Lưu thay đổi thông tin liên hệ thành công!";
         return Task.CompletedTask;
     }
