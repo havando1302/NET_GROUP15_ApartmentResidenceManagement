@@ -127,6 +127,44 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.ToTable("UserAccounts");
                 });
 
+            modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.Vehicle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RegistrationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("VehicleType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LicensePlate")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Vehicles", (string)null);
+                });
+
             modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.UserAccount", b =>
                 {
                     b.HasOne("ApartmentResidenceManagement.Domain.Entities.Resident", "Resident")
@@ -136,9 +174,22 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.Navigation("Resident");
                 });
 
+            modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.Vehicle", b =>
+                {
+                    b.HasOne("ApartmentResidenceManagement.Domain.Entities.Resident", "Owner")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("ApartmentResidenceManagement.Domain.Entities.Resident", b =>
                 {
                     b.Navigation("UserAccount");
+
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }
