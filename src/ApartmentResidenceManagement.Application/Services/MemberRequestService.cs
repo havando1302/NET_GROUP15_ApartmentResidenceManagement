@@ -160,60 +160,70 @@ public class MemberRequestService
 
     public async Task<OperationResult> ApproveRequestAsync(int requestId)
     {
-        var request = await _unitOfWork.MemberRegistrationRequests.GetByIdAsync(requestId);
-        if (request == null)
-            return OperationResult.Failure("Không tìm thấy yêu cầu.");
-
-        if (request.Status != RequestStatus.Pending)
-            return OperationResult.Failure("Yêu cầu này đã được xử lý trước đó.");
-
-        Resident? resident = null;
-        if (!string.IsNullOrWhiteSpace(request.IdentityCard))
+        try
         {
-            var found = await _unitOfWork.Residents.FindAsync(r => r.IdentityCard == request.IdentityCard);
-            resident = found.FirstOrDefault();
-        }
-
-        if (resident == null)
-        {
-            resident = new Resident
+            return await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                FullName = request.FullName,
-                DateOfBirth = request.DateOfBirth,
-                IdentityCard = request.IdentityCard,
-                PhoneNumber = request.PhoneNumber,
-                Email = request.Email
-            };
-            await _unitOfWork.Residents.AddAsync(resident);
-            await _unitOfWork.CompleteAsync();
+                var request = await _unitOfWork.MemberRegistrationRequests.GetByIdAsync(requestId);
+                if (request == null)
+                    return OperationResult.Failure("Không tìm thấy yêu cầu.");
+
+                if (request.Status != RequestStatus.Pending)
+                    return OperationResult.Failure("Yêu cầu này đã được xử lý trước đó.");
+
+                Resident? resident = null;
+                if (!string.IsNullOrWhiteSpace(request.IdentityCard))
+                {
+                    var found = await _unitOfWork.Residents.FindAsync(r => r.IdentityCard == request.IdentityCard);
+                    resident = found.FirstOrDefault();
+                }
+
+                if (resident == null)
+                {
+                    resident = new Resident
+                    {
+                        FullName = request.FullName,
+                        DateOfBirth = request.DateOfBirth,
+                        IdentityCard = request.IdentityCard,
+                        PhoneNumber = request.PhoneNumber,
+                        Email = request.Email
+                    };
+                    await _unitOfWork.Residents.AddAsync(resident);
+                    await _unitOfWork.CompleteAsync();
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(resident.PhoneNumber) && !string.IsNullOrWhiteSpace(request.PhoneNumber))
+                        resident.PhoneNumber = request.PhoneNumber;
+                    if (string.IsNullOrWhiteSpace(resident.Email) && !string.IsNullOrWhiteSpace(request.Email))
+                        resident.Email = request.Email;
+                    _unitOfWork.Residents.Update(resident);
+                    await _unitOfWork.CompleteAsync();
+                }
+
+                var regResult = await _residenceService.RegisterResidenceAsync(
+                    request.ApartmentId,
+                    resident.Id,
+                    request.RelationshipType,
+                    DateTime.Today);
+
+                if (!regResult.IsSuccess)
+                {
+                    throw new Domain.Exceptions.BusinessRuleException(regResult.ErrorMessage ?? "Không thể tạo bản ghi cư trú.");
+                }
+
+                request.Status = RequestStatus.Approved;
+                request.ProcessedAt = DateTime.Now;
+                _unitOfWork.MemberRegistrationRequests.Update(request);
+                await _unitOfWork.CompleteAsync();
+
+                return OperationResult.Success();
+            });
         }
-        else
+        catch (Exception ex)
         {
-            if (string.IsNullOrWhiteSpace(resident.PhoneNumber) && !string.IsNullOrWhiteSpace(request.PhoneNumber))
-                resident.PhoneNumber = request.PhoneNumber;
-            if (string.IsNullOrWhiteSpace(resident.Email) && !string.IsNullOrWhiteSpace(request.Email))
-                resident.Email = request.Email;
-            _unitOfWork.Residents.Update(resident);
-            await _unitOfWork.CompleteAsync();
+            return OperationResult.Failure(ex.Message);
         }
-
-        var regResult = await _residenceService.RegisterResidenceAsync(
-            request.ApartmentId,
-            resident.Id,
-            request.RelationshipType,
-            DateTime.Today);
-
-        if (!regResult.IsSuccess)
-        {
-            return OperationResult.Failure(regResult.ErrorMessage ?? "Không thể tạo bản ghi cư trú.");
-        }
-
-        request.Status = RequestStatus.Approved;
-        request.ProcessedAt = DateTime.Now;
-        _unitOfWork.MemberRegistrationRequests.Update(request);
-        await _unitOfWork.CompleteAsync();
-
-        return OperationResult.Success();
     }
 
     public async Task<OperationResult> RejectRequestAsync(int requestId, string? reason)

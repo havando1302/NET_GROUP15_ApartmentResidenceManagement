@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using ApartmentResidenceManagement.Application.Common;
 using ApartmentResidenceManagement.Application.Services;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
@@ -34,6 +35,8 @@ public class MemberRequestServiceTests
         _mockUow.Setup(u => u.Residents).Returns(_mockResidentRepo.Object);
         _mockUow.Setup(u => u.ResidenceHistories).Returns(_mockResidenceHistoryRepo.Object);
         _mockUow.Setup(u => u.MemberRegistrationRequests).Returns(_mockRequestRepo.Object);
+        _mockUow.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task<OperationResult>>>()))
+            .Returns<Func<Task<OperationResult>>>(op => op());
 
         _residenceService = new ResidenceService(_mockUow.Object);
         _service = new MemberRequestService(_mockUow.Object, _residenceService);
@@ -176,5 +179,21 @@ public class MemberRequestServiceTests
         Assert.NotNull(req.ProcessedAt);
         _mockRequestRepo.Verify(r => r.Update(req), Times.Once);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ApproveRequestAsync_WhenTransactionFails_ReturnsFailure()
+    {
+        // Arrange
+        int reqId = 15;
+        _mockRequestRepo.Setup(r => r.GetByIdAsync(reqId))
+            .ThrowsAsync(new System.Exception("Simulated database failure during transaction"));
+
+        // Act
+        var result = await _service.ApproveRequestAsync(reqId);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Simulated database failure", result.ErrorMessage);
     }
 }

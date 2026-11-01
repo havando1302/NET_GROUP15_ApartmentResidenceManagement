@@ -266,6 +266,22 @@ public class ResidentPortalTests
     }
 
     [Fact]
+    public void MyProfileViewModel_SaveProfile_WithInvalidPhoneFormat_SetsErrorMessage()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel(_residentService);
+        vm.EditPhoneNumber = "abc";
+        vm.EditEmail = "valid@apartment.vn";
+
+        // Act
+        vm.SaveProfileCommand.Execute(null);
+
+        // Assert
+        Assert.Contains("Số điện thoại không hợp lệ", vm.ErrorMessage);
+        Assert.Empty(vm.SuccessMessage);
+    }
+
+    [Fact]
     public void MyProfileViewModel_ResetCommand_RestoresOriginalValues()
     {
         // Arrange
@@ -387,6 +403,45 @@ public class ResidentPortalTests
         // Act: clear search
         vm.SearchText = string.Empty;
         Assert.Equal(2, vm.FilteredMembers.Count);
+    }
+
+    [Fact]
+    public async Task FamilyMembersViewModel_LoadMembers_RetainsRelationshipFromDb_AndDoesNotGuessFromName()
+    {
+        // Arrange
+        int aptId = 101;
+        var apt = new Apartment { Id = aptId, ApartmentNumber = "A-1203", Floor = 12, Area = 75, Status = ApartmentStatus.Occupied };
+        var tenant = new Resident { Id = 303, FullName = "Trần Thị Lan", DateOfBirth = new DateTime(1995, 5, 20) };
+        var tenantResidence = new ResidenceHistory
+        {
+            Id = 5,
+            ResidentId = 303,
+            ApartmentId = aptId,
+            Apartment = apt,
+            Resident = tenant,
+            RelationshipType = RelationshipType.Tenant,
+            StartDate = new DateTime(2026, 2, 1),
+            EndDate = null,
+            IsActive = true
+        };
+
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(303)).ReturnsAsync(tenantResidence);
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByApartmentIdAsync(aptId)).ReturnsAsync(new List<ResidenceHistory> { tenantResidence });
+
+        var vm = new FamilyMembersViewModel(_residenceService);
+        var account = CreateSampleUserAccount(303, "lan", "Trần Thị Lan");
+
+        // Act
+        vm.Initialize(account);
+        await vm.LoadFamilyMembersAsync();
+
+        // Assert
+        Assert.Single(vm.FilteredMembers);
+        var member = vm.FilteredMembers[0];
+        Assert.Equal("Trần Thị Lan", member.FullName);
+        Assert.Equal("Người thuê", member.Relationship);
+        Assert.Equal("Chưa cập nhật", member.Gender);
+        Assert.Equal("Chưa cập nhật", member.Hometown);
     }
 
     [Fact]

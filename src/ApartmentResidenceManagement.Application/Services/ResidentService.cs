@@ -31,9 +31,9 @@ public class ResidentService
         if (!string.IsNullOrWhiteSpace(phoneNumber))
         {
             phoneNumber = phoneNumber.Trim();
-            if (phoneNumber.Length > 20)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^0\d{9}$"))
             {
-                throw new Domain.Exceptions.BusinessRuleException("Số điện thoại không được vượt quá 20 ký tự.");
+                throw new Domain.Exceptions.BusinessRuleException("Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).");
             }
             resident.PhoneNumber = phoneNumber;
         }
@@ -50,9 +50,9 @@ public class ResidentService
             {
                 throw new Domain.Exceptions.BusinessRuleException("Email không được vượt quá 100 ký tự.");
             }
-            if (!email.Contains('@') || !email.Contains('.'))
+            if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
-                throw new Domain.Exceptions.BusinessRuleException("Địa chỉ email không đúng định dạng.");
+                throw new Domain.Exceptions.BusinessRuleException("Địa chỉ email không đúng định dạng hợp lệ.");
             }
             resident.Email = email;
         }

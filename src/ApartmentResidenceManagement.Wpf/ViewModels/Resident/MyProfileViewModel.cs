@@ -360,13 +360,19 @@ public class MyProfileViewModel : ViewModelBase
             return;
         }
 
+        if (!System.Text.RegularExpressions.Regex.IsMatch(phoneToSave, @"^0\d{9}$"))
+        {
+            ErrorMessage = "Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).";
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(emailToSave))
         {
             ErrorMessage = "Email liên hệ không được để trống.";
             return;
         }
 
-        if (!emailToSave.Contains("@") || !emailToSave.Contains("."))
+        if (!System.Text.RegularExpressions.Regex.IsMatch(emailToSave, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
             ErrorMessage = "Định dạng email không hợp lệ (ví dụ: cu_dan@apartment.vn).";
             return;

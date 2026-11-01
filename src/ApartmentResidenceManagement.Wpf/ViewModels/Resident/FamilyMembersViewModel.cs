@@ -664,28 +664,13 @@ public class FamilyMembersViewModel : ViewModelBase
                     string relText = memberRes.RelationshipType switch
                     {
                         RelationshipType.Owner => "Chủ hộ",
-                        RelationshipType.FamilyMember => "Vợ/Chồng/Con",
+                        RelationshipType.FamilyMember => "Thành viên gia đình",
                         RelationshipType.Tenant => "Người thuê",
                         RelationshipType.Temporary => "Tạm trú",
                         _ => "Cư dân"
                     };
 
-                    string avatarPath = "/Assets/avatar_young_man.png";
-                    if (isOwner)
-                    {
-                        avatarPath = "/Assets/resident_avatar.png";
-                        relText = "Chủ hộ";
-                    }
-                    else if (res != null && (res.FullName.Contains("Thị") || res.FullName.Contains("Mai") || res.FullName.Contains("Lan")))
-                    {
-                        avatarPath = "/Assets/wife_avatar.png";
-                        relText = "Vợ";
-                    }
-                    else if (res != null && (res.FullName.Contains("Đức") || res.FullName.Contains("Minh") || res.FullName.Contains("Nam")))
-                    {
-                        avatarPath = "/Assets/avatar_son.png";
-                        relText = "Con";
-                    }
+                    string avatarPath = isOwner ? "/Assets/resident_avatar.png" : "/Assets/avatar_young_man.png";
 
                     _allMembers.Add(new AccordionFamilyMemberItem
                     {
@@ -694,11 +679,11 @@ public class FamilyMembersViewModel : ViewModelBase
                         FullName = res != null ? res.FullName : "Thành viên",
                         Relationship = relText,
                         IsOwner = isOwner,
-                        BirthDate = res != null ? res.DateOfBirth.ToString("dd/MM/yyyy") : "---",
-                        Gender = "Nam",
-                        IdentityCard = res?.IdentityCard ?? "---",
+                        BirthDate = res != null ? res.DateOfBirth.ToString("dd/MM/yyyy") : "Chưa cập nhật",
+                        Gender = "Chưa cập nhật",
+                        IdentityCard = !string.IsNullOrWhiteSpace(res?.IdentityCard) ? res.IdentityCard : "Chưa cập nhật",
                         PhoneNumber = !string.IsNullOrWhiteSpace(res?.PhoneNumber) ? res.PhoneNumber : "Chưa cập nhật",
-                        Hometown = "Hà Nội",
+                        Hometown = "Chưa cập nhật",
                         Status = "Đang cư trú",
                         IsExpanded = false
                     });
