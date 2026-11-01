@@ -355,7 +355,7 @@
                                         <Grid Margin="4,0,0,4">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="28"/>
-                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="145"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>

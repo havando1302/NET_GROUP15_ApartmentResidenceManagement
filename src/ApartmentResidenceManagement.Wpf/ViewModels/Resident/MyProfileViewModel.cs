@@ -207,14 +207,22 @@ public class MyProfileViewModel : ViewModelBase
     #endregion
 
     private readonly Application.Services.ResidentService? _residentService;
+    private readonly Application.Services.ResidenceService? _residenceService;
 
-    public MyProfileViewModel() : this(null)
+    public MyProfileViewModel() : this(null, null)
     {
     }
 
-    public MyProfileViewModel(Application.Services.ResidentService? residentService)
+    public MyProfileViewModel(Application.Services.ResidentService? residentService) : this(residentService, null)
+    {
+    }
+
+    public MyProfileViewModel(
+        Application.Services.ResidentService? residentService,
+        Application.Services.ResidenceService? residenceService)
     {
         _residentService = residentService;
+        _residenceService = residenceService;
 
         OpenEditModalCommand = new RelayCommand(_ =>
         {
@@ -296,6 +304,37 @@ public class MyProfileViewModel : ViewModelBase
 
         EditContactAddress = Hometown;
         ContactAddress = Hometown;
+
+        // Nạp thông tin căn hộ thật nếu có ResidenceService
+        if (_residenceService != null && _account?.ResidentId.HasValue == true)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var activeResidence = await _residenceService.GetActiveResidenceByResidentIdAsync(_account.ResidentId.Value);
+                    if (activeResidence != null)
+                    {
+                        var apt = activeResidence.Apartment;
+                        ApartmentNumber = apt != null ? apt.ApartmentNumber : "Chưa cập nhật";
+                        BuildingBlock = apt != null && apt.ApartmentNumber.Contains('-') ? apt.ApartmentNumber.Split('-')[0] : "A";
+                        FloorNumber = apt != null ? apt.Floor.ToString() : "1";
+                        JoinDate = activeResidence.StartDate.ToString("dd/MM/yyyy");
+                    }
+                    else
+                    {
+                        ApartmentNumber = "Chưa có căn hộ";
+                        BuildingBlock = "---";
+                        FloorNumber = "---";
+                        JoinDate = "Chưa tham gia";
+                    }
+                }
+                catch (Exception)
+                {
+                    // Giữ nguyên fallback an toàn
+                }
+            });
+        }
     }
 
     private void ResetEditForm()
