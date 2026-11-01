@@ -150,6 +150,28 @@ public class ResidentPortalTests
         Assert.Equal("Đan Phượng, Hà Nội", vm.EditContactAddress);
         Assert.Contains("khôi phục", vm.SuccessMessage);
     }
+
+    [Fact]
+    public void MyProfileViewModel_AvatarPresets_AndSelectionCommand_WorkCorrectly()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        Assert.Equal(10, vm.AvailableAvatars.Count);
+        Assert.False(vm.IsAvatarPickerOpen);
+
+        // Act: toggle picker
+        vm.ToggleAvatarPickerCommand.Execute(null);
+        Assert.True(vm.IsAvatarPickerOpen);
+
+        // Act: select avatar preset
+        var chosenPreset = vm.AvailableAvatars[1]; // Trần Thị Hoa
+        vm.SelectAvatarCommand.Execute(chosenPreset);
+
+        // Assert
+        Assert.Equal("/Assets/wife_avatar.png", vm.AvatarPath);
+        Assert.False(vm.IsAvatarPickerOpen);
+        Assert.Contains("Trần Thị Hoa", vm.SuccessMessage);
+    }
     #endregion
 
     #region MyApartmentViewModel Tests
@@ -169,6 +191,33 @@ public class ResidentPortalTests
         Assert.Equal(4, vm.ResidentMembers.Count);
         Assert.Equal("Đang cư trú", vm.ResidencyStatus);
         Assert.Equal(20, vm.BuildingFloors);
+    }
+
+    [Fact]
+    public void MyApartmentViewModel_ActiveResidency_EndDateIsUndetermined_AndDurationIsDynamic()
+    {
+        // Arrange
+        var vm = new MyApartmentViewModel();
+
+        // Assert
+        Assert.Equal("Chưa xác định", vm.ResidencyEndDate);
+        Assert.Equal("10/01/2026", vm.ResidencyStartDate);
+        Assert.Contains("ngày (tính đến hôm nay)", vm.ResidencyDuration);
+        Assert.True(vm.ResidentMembers.Count >= 4);
+    }
+
+    [Fact]
+    public void MyApartmentViewModel_SelectGalleryImage_UpdatesCurrentImage()
+    {
+        // Arrange
+        var vm = new MyApartmentViewModel();
+        var targetImage = vm.GalleryImages[1];
+
+        // Act
+        vm.SelectGalleryImageCommand.Execute(targetImage);
+
+        // Assert
+        Assert.Equal(targetImage.ImagePath, vm.CurrentApartmentImage);
     }
     #endregion
 
@@ -206,6 +255,10 @@ public class ResidentPortalTests
         Assert.Single(vm.FilteredMembers);
         Assert.Equal("Trần Thị Hoa", vm.FilteredMembers[0].FullName);
 
+        // Act: search by relationship
+        vm.SearchText = "Con";
+        Assert.Equal(2, vm.FilteredMembers.Count);
+
         // Act: clear search
         vm.SearchText = string.Empty;
         Assert.Equal(4, vm.FilteredMembers.Count);
@@ -229,6 +282,21 @@ public class ResidentPortalTests
         Assert.Equal("A-1008", vm.SelectedSession.ApartmentNumber);
         Assert.True(secondSession.IsSelected);
         Assert.False(vm.Sessions[0].IsSelected);
+    }
+
+    [Fact]
+    public void ResidencyHistoryViewModel_ActiveSession_EndDateIsUndetermined_AndSummaryContainsChuaXacDinh()
+    {
+        // Arrange
+        var vm = new ResidencyHistoryViewModel();
+        var activeSession = vm.Sessions[0];
+
+        // Assert
+        Assert.True(activeSession.IsActive);
+        Assert.Equal("Chưa xác định", activeSession.EndDate);
+        Assert.Contains("Chưa xác định", activeSession.DateRange);
+        Assert.Contains("ngày (tính đến hôm nay)", activeSession.Duration);
+        Assert.Contains("Chưa xác định", activeSession.SessionSummaryText);
     }
 
     [Fact]
