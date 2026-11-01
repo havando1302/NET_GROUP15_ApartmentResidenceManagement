@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Domain.Interfaces;
@@ -171,5 +171,18 @@ public class AccountServiceTests
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "anyPassword"));
         Assert.Contains("đã bị khóa", ex.Message);
+    }
+
+    [Fact]
+    public async Task Login_DatabaseConnectionFails_ThrowsBusinessRuleException()
+    {
+        // Arrange
+        string username = "resident_a";
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username))
+            .ThrowsAsync(new System.Exception("Cannot connect to MySQL server"));
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "resident123"));
+        Assert.Contains("Không thể kết nối cơ sở dữ liệu", ex.Message);
     }
 }
