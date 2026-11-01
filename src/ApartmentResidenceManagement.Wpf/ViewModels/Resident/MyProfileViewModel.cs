@@ -206,12 +206,20 @@ public class MyProfileViewModel : ViewModelBase
     public ICommand CloseEditModalCommand { get; }
     #endregion
 
-    public MyProfileViewModel()
+    private readonly Application.Services.ResidentService? _residentService;
+
+    public MyProfileViewModel() : this(null)
     {
+    }
+
+    public MyProfileViewModel(Application.Services.ResidentService? residentService)
+    {
+        _residentService = residentService;
+
         OpenEditModalCommand = new RelayCommand(_ =>
         {
-            EditPhoneNumber = PhoneNumber;
-            EditEmail = Email;
+            EditPhoneNumber = PhoneNumber == "Chưa cập nhật" ? string.Empty : PhoneNumber;
+            EditEmail = Email == "Chưa cập nhật" ? string.Empty : Email;
             EditContactAddress = Hometown;
             ErrorMessage = string.Empty;
             IsEditModalOpen = true;
@@ -269,19 +277,21 @@ public class MyProfileViewModel : ViewModelBase
             var r = _account.Resident;
             ResidentId = $"CD-{r.Id:D4}";
             FullName = r.FullName;
-            PhoneNumber = !string.IsNullOrWhiteSpace(r.PhoneNumber) ? r.PhoneNumber : "0987 654 321";
-            EditPhoneNumber = PhoneNumber;
-            Email = !string.IsNullOrWhiteSpace(r.Email) ? r.Email : "minhnv@gmail.com";
-            EditEmail = Email;
+            DobText = r.DateOfBirth.ToString("dd/MM/yyyy");
+            IdentityCard = !string.IsNullOrWhiteSpace(r.IdentityCard) ? r.IdentityCard : "Chưa cập nhật";
+            PhoneNumber = !string.IsNullOrWhiteSpace(r.PhoneNumber) ? r.PhoneNumber : "Chưa cập nhật";
+            EditPhoneNumber = PhoneNumber == "Chưa cập nhật" ? string.Empty : PhoneNumber;
+            Email = !string.IsNullOrWhiteSpace(r.Email) ? r.Email : "Chưa cập nhật";
+            EditEmail = Email == "Chưa cập nhật" ? string.Empty : Email;
         }
         else if (_account != null)
         {
             ResidentId = $"CD-{_account.Id:D4}";
-            FullName = "Nguyễn Văn Minh";
-            PhoneNumber = "0987 654 321";
-            EditPhoneNumber = PhoneNumber;
-            Email = $"{_account.Username}@gmail.com";
-            EditEmail = Email;
+            FullName = _account.Username;
+            PhoneNumber = "Chưa cập nhật";
+            EditPhoneNumber = string.Empty;
+            Email = "Chưa cập nhật";
+            EditEmail = string.Empty;
         }
 
         EditContactAddress = Hometown;
@@ -290,47 +300,66 @@ public class MyProfileViewModel : ViewModelBase
 
     private void ResetEditForm()
     {
-        EditPhoneNumber = PhoneNumber;
-        EditEmail = Email;
+        EditPhoneNumber = PhoneNumber == "Chưa cập nhật" ? string.Empty : PhoneNumber;
+        EditEmail = Email == "Chưa cập nhật" ? string.Empty : Email;
         EditContactAddress = Hometown;
         ErrorMessage = string.Empty;
         SuccessMessage = "Đã khôi phục lại thông tin liên hệ ban đầu.";
     }
 
-    private Task SaveProfileAsync()
+    private async Task SaveProfileAsync()
     {
         SuccessMessage = string.Empty;
         ErrorMessage = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(EditPhoneNumber))
+        var phoneToSave = EditPhoneNumber?.Trim();
+        var emailToSave = EditEmail?.Trim();
+
+        if (string.IsNullOrWhiteSpace(phoneToSave))
         {
             ErrorMessage = "Số điện thoại liên hệ không được để trống.";
-            return Task.CompletedTask;
+            return;
         }
 
-        if (string.IsNullOrWhiteSpace(EditEmail))
+        if (string.IsNullOrWhiteSpace(emailToSave))
         {
             ErrorMessage = "Email liên hệ không được để trống.";
-            return Task.CompletedTask;
+            return;
         }
 
-        if (!EditEmail.Contains("@") || !EditEmail.Contains("."))
+        if (!emailToSave.Contains("@") || !emailToSave.Contains("."))
         {
             ErrorMessage = "Định dạng email không hợp lệ (ví dụ: cu_dan@apartment.vn).";
-            return Task.CompletedTask;
+            return;
         }
 
-        PhoneNumber = EditPhoneNumber.Trim();
-        Email = EditEmail.Trim();
-
-        if (_account?.Resident != null)
+        // Lưu xuống DB thật nếu có ResidentService và ResidentId
+        if (_residentService != null && _account?.ResidentId != null)
         {
-            _account.Resident.PhoneNumber = PhoneNumber;
-            _account.Resident.Email = Email;
+            try
+            {
+                var updatedResident = await _residentService.UpdateContactAsync(_account.ResidentId.Value, phoneToSave, emailToSave);
+                if (_account.Resident != null)
+                {
+                    _account.Resident.PhoneNumber = updatedResident.PhoneNumber;
+                    _account.Resident.Email = updatedResident.Email;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Lỗi khi lưu dữ liệu xuống database: {ex.Message}";
+                return;
+            }
+        }
+        else if (_account?.Resident != null)
+        {
+            _account.Resident.PhoneNumber = phoneToSave;
+            _account.Resident.Email = emailToSave;
         }
 
+        PhoneNumber = phoneToSave;
+        Email = emailToSave;
         IsEditModalOpen = false;
-        SuccessMessage = "Lưu thay đổi thông tin liên hệ thành công!";
-        return Task.CompletedTask;
+        SuccessMessage = "Lưu thay đổi thông tin liên hệ xuống cơ sở dữ liệu thành công!";
     }
 }
