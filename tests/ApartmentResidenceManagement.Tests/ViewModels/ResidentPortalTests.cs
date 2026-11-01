@@ -97,24 +97,27 @@ public class ResidentPortalTests
     }
 
     [Fact]
-    public async Task MyProfileViewModel_SaveProfile_UpdatesPhoneNumberAndAddress()
+    public async Task MyProfileViewModel_SaveProfile_UpdatesPhoneNumberAndEmail_LeavesHometownUnchanged()
     {
         // Arrange
         var vm = new MyProfileViewModel();
         var account = CreateSampleUserAccount(5, "user5", "Nguyễn Văn Minh", "0900000001");
         vm.Initialize(account);
+        var initialHometown = vm.Hometown;
 
         // Act
         vm.EditPhoneNumber = "0988776655";
-        vm.EditContactAddress = "Cầu Giấy, Hà Nội";
+        vm.EditEmail = "new_email@apartment.vn";
         vm.SaveProfileCommand.Execute(null);
 
         // Assert
         Assert.Equal("Lưu thay đổi thông tin liên hệ thành công!", vm.SuccessMessage);
         Assert.Equal(string.Empty, vm.ErrorMessage);
         Assert.Equal("0988776655", vm.PhoneNumber);
-        Assert.Equal("Cầu Giấy, Hà Nội", vm.Hometown);
+        Assert.Equal("new_email@apartment.vn", vm.Email);
+        Assert.Equal(initialHometown, vm.Hometown);
         Assert.Equal("0988776655", account.Resident!.PhoneNumber);
+        Assert.Equal("new_email@apartment.vn", account.Resident!.Email);
     }
 
     [Fact]
@@ -296,6 +299,7 @@ public class ResidentPortalTests
         // Arrange
         var vm = new FamilyMembersViewModel();
         var member = vm.FilteredMembers[1]; // Trần Thị Hoa
+        var initialHometown = member.Hometown;
 
         // Act: Open edit member modal
         vm.OpenEditMemberModalCommand.Execute(member);
@@ -311,6 +315,7 @@ public class ResidentPortalTests
         Assert.False(vm.IsEditMemberModalOpen);
         Assert.Equal("0911223344", member.PhoneNumber);
         Assert.Equal("Tạm vắng", member.Status);
+        Assert.Equal(initialHometown, member.Hometown); // Hometown must remain unchanged
         Assert.Contains("Trần Thị Hoa", vm.EditSuccessMessage);
     }
     #endregion

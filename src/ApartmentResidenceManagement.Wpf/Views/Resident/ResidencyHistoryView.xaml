@@ -262,8 +262,12 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="✓" FontSize="14" FontWeight="Bold" Margin="0,0,8,0" VerticalAlignment="Top">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#64748B"/>
@@ -275,8 +279,8 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="{Binding SelectedSession.SessionSummaryText}"
-                                               FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="1" Text="{Binding SelectedSession.SessionSummaryText}" TextWrapping="Wrap"
+                                               FontSize="13" FontWeight="Bold" VerticalAlignment="Center">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#475569"/>
@@ -288,7 +292,7 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                </StackPanel>
+                                </Grid>
                             </Border>
 
                             <!-- Lưới thông số căn hộ đã chọn (2 hàng x 3 cột) -->
@@ -327,10 +331,10 @@
                                     <TextBlock Text="📅 Kết thúc: " Style="{StaticResource HistoryLabel}"/>
                                     <TextBlock Text="{Binding SelectedSession.EndDate}" Style="{StaticResource HistoryValue}"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                                    <TextBlock Text="🕒 Thời gian: " Style="{StaticResource HistoryLabel}"/>
-                                    <TextBlock Text="{Binding SelectedSession.Duration}" Style="{StaticResource HistoryValue}"/>
-                                </StackPanel>
+                                <DockPanel Grid.Row="2" Grid.Column="2">
+                                    <TextBlock Text="🕒 Thời gian: " Style="{StaticResource HistoryLabel}" DockPanel.Dock="Left"/>
+                                    <TextBlock Text="{Binding SelectedSession.Duration}" Style="{StaticResource HistoryValue}" FontSize="12.5" TextWrapping="Wrap"/>
+                                </DockPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -381,8 +385,8 @@
 
                                             <!-- Tiêu đề & Mô tả sự kiện -->
                                             <StackPanel Grid.Column="2" VerticalAlignment="Top" Margin="0,0,14,14">
-                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"/>
-                                                <TextBlock Text="{Binding Description}" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                             </StackPanel>
 
                                             <!-- Badge Trạng thái -->

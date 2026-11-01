@@ -306,7 +306,8 @@
                                                         </TextBlock>
                                                     </Grid>
                                                 </Border>
-                                                <TextBlock Text="{Binding FullName}" FontSize="13.5" FontWeight="SemiBold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding FullName}" FontSize="13.5" FontWeight="SemiBold" Foreground="#1E293B"
+                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
 
                                             <!-- Quan hệ -->
@@ -371,12 +372,17 @@
 
                             <!-- Thời gian cư trú -->
                             <Grid Margin="0,0,0,14">
-                                <StackPanel Orientation="Horizontal">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="🔄" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Thời gian cư trú:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Thời gian:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock Text="{Binding ResidencyDuration}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"
-                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ResidencyDuration}" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Right"/>
                             </Grid>
 
                             <!-- Hình thức -->

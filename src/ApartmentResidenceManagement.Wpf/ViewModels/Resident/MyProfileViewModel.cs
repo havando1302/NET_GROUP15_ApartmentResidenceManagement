@@ -322,10 +322,6 @@ public class MyProfileViewModel : ViewModelBase
 
         PhoneNumber = EditPhoneNumber.Trim();
         Email = EditEmail.Trim();
-        if (!string.IsNullOrWhiteSpace(EditContactAddress))
-        {
-            Hometown = EditContactAddress.Trim();
-        }
 
         if (_account?.Resident != null)
         {

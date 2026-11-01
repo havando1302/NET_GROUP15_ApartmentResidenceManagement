@@ -30,8 +30,8 @@
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="MinHeight" Value="42"/>
+            <Setter Property="Padding" Value="12,6"/>
         </Style>
 
         <Style x:Key="LockedFieldText" TargetType="TextBlock">
@@ -237,8 +237,8 @@
                                     Padding="14,10" Margin="0,0,0,20">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="ℹ️" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Các trường định danh pháp lý (họ tên, ngày sinh, CCCD, giới tính, địa chỉ thường trú) không thể sửa. Số điện thoại và Email được phép cập nhật."
-                                               FontSize="12.5" Foreground="#1E40AF" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Các trường định danh pháp lý (CCCD, Họ tên, Ngày sinh, Quê quán, Giới tính, Thường trú) là cố định không thể sửa đổi. Cư dân chỉ có thể chỉnh sửa Số điện thoại và Email liên hệ."
+                                               FontSize="12.5" Foreground="#1E40AF" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
 
@@ -259,28 +259,23 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Hàng 0: Họ và tên (Khóa) | Quê quán / Địa chỉ liên hệ (Sửa được) -->
+                                <!-- Hàng 0: Họ và tên (Khóa) | Quê quán (Khóa định danh) -->
                                 <StackPanel Grid.Row="0" Grid.Column="0">
                                     <TextBlock Text="Họ và tên" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
                                         <Grid>
-                                            <TextBlock Text="{Binding FullName}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="{Binding FullName}" Style="{StaticResource LockedFieldText}" Margin="0,0,24,0" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="0" Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                        <TextBlock Text="Quê quán / Liên hệ" Style="{StaticResource FieldLabel}" Margin="0"/>
-                                        <Border Background="#EFF6FF" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="Sửa được" FontSize="10.5" FontWeight="SemiBold" Foreground="#2563EB"/>
-                                        </Border>
-                                    </StackPanel>
-                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Height="42" Padding="12,0">
+                                    <TextBlock Text="Quê quán" Style="{StaticResource FieldLabel}"/>
+                                    <Border Style="{StaticResource LockedFieldBorder}">
                                         <Grid>
-                                            <TextBlock Text="{Binding Hometown}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A"/>
-                                            <TextBlock Text="📍" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Hometown}" Style="{StaticResource LockedFieldText}" FontSize="13" Margin="0,0,24,0" TextWrapping="Wrap"/>
+                                            <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
                                 </StackPanel>
@@ -290,7 +285,7 @@
                                     <TextBlock Text="Ngày sinh" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
                                         <Grid>
-                                            <TextBlock Text="{Binding DobText}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="{Binding DobText}" Style="{StaticResource LockedFieldText}" Margin="0,0,24,0" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -303,9 +298,9 @@
                                             <TextBlock Text="Sửa được" FontSize="10.5" FontWeight="SemiBold" Foreground="#2563EB"/>
                                         </Border>
                                     </StackPanel>
-                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Height="42" Padding="12,0">
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" MinHeight="42" Padding="12,6">
                                         <Grid>
-                                            <TextBlock Text="{Binding PhoneNumber}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A"/>
+                                            <TextBlock Text="{Binding PhoneNumber}" Style="{StaticResource LockedFieldText}" Margin="0,0,24,0" Foreground="#0F172A"/>
                                             <TextBlock Text="📞" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -316,7 +311,7 @@
                                     <TextBlock Text="Số CCCD" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
                                         <Grid>
-                                            <TextBlock Text="{Binding IdentityCard}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="{Binding IdentityCard}" Style="{StaticResource LockedFieldText}" Margin="0,0,24,0" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -329,9 +324,10 @@
                                             <TextBlock Text="Sửa được" FontSize="10.5" FontWeight="SemiBold" Foreground="#2563EB"/>
                                         </Border>
                                     </StackPanel>
-                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Height="42" Padding="12,0">
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" MinHeight="42" Padding="12,6">
                                         <Grid>
-                                            <TextBlock Text="{Binding Email}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A"/>
+                                            <TextBlock Text="{Binding Email}" Style="{StaticResource LockedFieldText}" Margin="0,0,24,0" Foreground="#0F172A"
+                                                       FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding Email}"/>
                                             <TextBlock Text="✉️" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -342,7 +338,7 @@
                                     <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
                                         <Grid>
-                                            <TextBlock Text="{Binding Gender}" Style="{StaticResource LockedFieldText}"/>
+                                            <TextBlock Text="{Binding Gender}" Style="{StaticResource LockedFieldText}" Margin="0,0,24,0"/>
                                             <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -352,7 +348,8 @@
                                     <TextBlock Text="Địa chỉ thường trú" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
                                         <Grid>
-                                            <TextBlock Text="{Binding PermanentAddress}" Style="{StaticResource LockedFieldText}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding PermanentAddress}" Style="{StaticResource LockedFieldText}" FontSize="12.5"
+                                                       Margin="0,0,24,0" TextWrapping="Wrap" LineHeight="18"/>
                                             <TextBlock Text="🔒" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
@@ -366,7 +363,7 @@
     </ScrollViewer>
 
     <!-- ══════════════════════════════════════════════════════════════════
-         MODAL OVERLAY: DIALOG CHỈNH SỬA THÔNG TIN LIÊN HỆ (SĐT, EMAIL, QUÊ QUÁN)
+         MODAL OVERLAY: DIALOG CHỈNH SỬA THÔNG TIN LIÊN HỆ (SĐT, EMAIL)
     ══════════════════════════════════════════════════════════════════ -->
     <Grid Visibility="{Binding IsEditModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
           Panel.ZIndex="200">
@@ -394,7 +391,7 @@
                         </Border>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="Chỉnh sửa thông tin liên hệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
-                            <TextBlock Text="Cập nhật số điện thoại, email và địa chỉ liên lạc" FontSize="12" Foreground="#64748B"/>
+                            <TextBlock Text="Cập nhật số điện thoại và email liên hệ của bạn" FontSize="12" Foreground="#64748B"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -452,7 +449,7 @@
                 </StackPanel>
 
                 <!-- Trường 2: Email -->
-                <StackPanel Margin="0,0,0,14">
+                <StackPanel Margin="0,0,0,22">
                     <TextBlock Text="Email liên hệ *" Style="{StaticResource FieldLabel}"/>
                     <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
                         <Grid>
@@ -462,23 +459,6 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="✉️" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
                             <TextBox Grid.Column="1" Text="{Binding EditEmail, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
-                                     VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-                </StackPanel>
-
-                <!-- Trường 3: Quê quán / Địa chỉ liên hệ -->
-                <StackPanel Margin="0,0,0,20">
-                    <TextBlock Text="Quê quán / Địa chỉ liên lạc" Style="{StaticResource FieldLabel}"/>
-                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="26"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="📍" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding EditContactAddress, UpdateSourceTrigger=PropertyChanged}"
                                      BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
                                      VerticalAlignment="Center"/>
                         </Grid>

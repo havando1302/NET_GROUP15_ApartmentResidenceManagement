@@ -245,7 +245,8 @@
                                             <!-- Tên + Quan hệ + Badge Chủ hộ -->
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding FullName}" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding FullName}" FontSize="15" FontWeight="Bold" Foreground="#0F172A"
+                                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                     <!-- Badge Chủ hộ nếu là Owner -->
                                                     <Border Margin="10,0,0,0" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
                                                             CornerRadius="6" Padding="6,2" VerticalAlignment="Center"
@@ -328,24 +329,24 @@
                                                     </StackPanel>
 
                                                     <!-- Hàng 2: Số CCCD | Quê quán -->
-                                                    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
-                                                        <TextBlock Text="🪪 Số CCCD: " Style="{StaticResource DetailLabel}"/>
+                                                    <DockPanel Grid.Row="2" Grid.Column="0">
+                                                        <TextBlock Text="🪪 Số CCCD: " Style="{StaticResource DetailLabel}" DockPanel.Dock="Left"/>
                                                         <TextBlock Text="{Binding IdentityCard}" Style="{StaticResource DetailValue}"/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                                                        <TextBlock Text="🏠 Quê quán: " Style="{StaticResource DetailLabel}"/>
-                                                        <TextBlock Text="{Binding Hometown}" Style="{StaticResource DetailValue}"/>
-                                                    </StackPanel>
+                                                    </DockPanel>
+                                                    <DockPanel Grid.Row="2" Grid.Column="2">
+                                                        <TextBlock Text="🏠 Quê quán: " Style="{StaticResource DetailLabel}" DockPanel.Dock="Left"/>
+                                                        <TextBlock Text="{Binding Hometown}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                                    </DockPanel>
 
-                                                    <!-- Hàng 4: Số điện thoại | Quan hệ với chủ hộ -->
-                                                    <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal">
-                                                        <TextBlock Text="📞 Số điện thoại: " Style="{StaticResource DetailLabel}"/>
+                                                    <!-- Hàng 4: Số điện thoại | Quan hệ -->
+                                                    <DockPanel Grid.Row="4" Grid.Column="0">
+                                                        <TextBlock Text="📞 Số điện thoại: " Style="{StaticResource DetailLabel}" DockPanel.Dock="Left"/>
                                                         <TextBlock Text="{Binding PhoneNumber}" Style="{StaticResource DetailValue}"/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                                                        <TextBlock Text="👥 Quan hệ với chủ hộ: " Style="{StaticResource DetailLabel}"/>
-                                                        <TextBlock Text="{Binding Relationship}" Style="{StaticResource DetailValue}"/>
-                                                    </StackPanel>
+                                                    </DockPanel>
+                                                    <DockPanel Grid.Row="4" Grid.Column="2">
+                                                        <TextBlock Text="👥 Quan hệ: " Style="{StaticResource DetailLabel}" DockPanel.Dock="Left"/>
+                                                        <TextBlock Text="{Binding Relationship}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                                    </DockPanel>
                                                 </Grid>
 
                                                 <!-- Nút mở modal chỉnh sửa trong accordion body -->
@@ -476,29 +477,20 @@
                     </Border>
                 </StackPanel>
 
-                <!-- Trường 2: Quê quán / Nơi ở -->
-                <StackPanel Margin="0,0,0,14">
-                    <TextBlock Text="Quê quán / Địa chỉ liên hệ" FontSize="12.5" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,6"/>
-                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="26"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="📍" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding EditMemberHometown, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
-                                     VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-                </StackPanel>
-
-                <!-- Trường 3: Trạng thái cư trú -->
-                <StackPanel Margin="0,0,0,20">
+                <!-- Trường 2: Trạng thái cư trú -->
+                <StackPanel Margin="0,0,0,16">
                     <TextBlock Text="Trạng thái cư trú" FontSize="12.5" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,6"/>
                     <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding EditMemberStatus}"
                               Height="42" FontSize="13.5" FontWeight="SemiBold" VerticalContentAlignment="Center"/>
                 </StackPanel>
+
+                <!-- Ghi chú định danh cố định -->
+                <Border Background="#F1F5F9" CornerRadius="8" Padding="10,8" Margin="0,0,0,20">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔒" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="CCCD, Ngày sinh, Giới tính và Quê quán là định danh pháp lý cố định." FontSize="11.5" Foreground="#64748B" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
                 <!-- Action Buttons -->
                 <Grid>

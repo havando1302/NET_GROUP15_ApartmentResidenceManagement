@@ -243,7 +243,6 @@ public class FamilyMembersViewModel : ViewModelBase
             }
 
             _editingMember.PhoneNumber = string.IsNullOrWhiteSpace(EditMemberPhone) ? "---" : EditMemberPhone.Trim();
-            _editingMember.Hometown = EditMemberHometown.Trim();
             _editingMember.Status = EditMemberStatus;
 
             IsEditMemberModalOpen = false;
