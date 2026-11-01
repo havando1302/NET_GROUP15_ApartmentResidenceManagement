@@ -44,6 +44,24 @@ public sealed class AsyncRelayCommand : ICommand
         }
     }
 
+    public async Task ExecuteAsync(object? parameter = null)
+    {
+        if (!CanExecute(parameter))
+        {
+            return;
+        }
+
+        try
+        {
+            _isExecuting = true;
+            await _execute(parameter);
+        }
+        finally
+        {
+            _isExecuting = false;
+        }
+    }
+
     public event EventHandler? CanExecuteChanged
     {
         add => CommandManager.RequerySuggested += value;

@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Input;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
@@ -25,6 +26,7 @@ public class MainViewModel : ViewModelBase
     public FamilyMembersViewModel FamilyMembersVm { get; }
     public MyVehiclesViewModel MyVehiclesVm { get; }
     public ResidencyHistoryViewModel ResidencyHistoryVm { get; }
+    public UnderDevelopmentViewModel UnderDevelopmentVm { get; }
 
     public ViewModelBase CurrentViewModel
     {
@@ -42,6 +44,9 @@ public class MainViewModel : ViewModelBase
 
     public string WelcomeMessage { get; }
     public string RoleMessage { get; }
+    public string ResidentDisplayName { get; }
+    public string ResidentApartmentInfo { get; }
+    public string ResidentGreeting { get; }
     public bool IsAdmin => _account.Role == UserRole.Admin;
     public bool IsResident => !IsAdmin;
 
@@ -60,6 +65,13 @@ public class MainViewModel : ViewModelBase
     public ICommand ShowFamilyMembersCommand { get; }
     public ICommand ShowMyVehiclesCommand { get; }
     public ICommand ShowResidencyHistoryCommand { get; }
+
+    // Các tính năng đang phát triển (Resident)
+    public ICommand ShowServicesCommand { get; }
+    public ICommand ShowNotificationsCommand { get; }
+    public ICommand ShowFeesCommand { get; }
+    public ICommand ShowFeedbackCommand { get; }
+
     public ICommand LogoutCommand { get; }
 
     public MainViewModel(
@@ -76,6 +88,7 @@ public class MainViewModel : ViewModelBase
         FamilyMembersViewModel familyMembersVm,
         MyVehiclesViewModel myVehiclesVm,
         ResidencyHistoryViewModel residencyHistoryVm,
+        UnderDevelopmentViewModel? underDevelopmentVm = null,
         Action? onLogout = null)
     {
         _account = account;
@@ -92,6 +105,7 @@ public class MainViewModel : ViewModelBase
         FamilyMembersVm = familyMembersVm;
         MyVehiclesVm = myVehiclesVm;
         ResidencyHistoryVm = residencyHistoryVm;
+        UnderDevelopmentVm = underDevelopmentVm ?? new UnderDevelopmentViewModel(() => CurrentViewModel = ResidentHomeVm);
 
         // Khởi tạo thông tin UserAccount cho Resident ViewModels
         ResidentHomeVm.Initialize(_account);
@@ -101,6 +115,11 @@ public class MainViewModel : ViewModelBase
         MyVehiclesVm.Initialize(_account);
         ResidencyHistoryVm.Initialize(_account);
 
+        string displayName = _account.Resident?.FullName ?? (_account.Username == "admin" ? "Ban quản lý" : _account.Username);
+        ResidentDisplayName = displayName;
+        ResidentApartmentInfo = _account.Resident != null ? $"Cư dân • {_account.Username}" : "Cư dân";
+        ResidentGreeting = $"Xin chào, {displayName}! 👋";
+
         if (_account.Role == UserRole.Admin)
         {
             WelcomeMessage = $"Xin chào, {_account.Username}!";
@@ -108,7 +127,6 @@ public class MainViewModel : ViewModelBase
         }
         else
         {
-            string displayName = _account.Resident?.FullName ?? _account.Username;
             WelcomeMessage = $"Xin chào cư dân, {displayName}!";
             RoleMessage = $"Cư dân ({_account.Username})";
         }
@@ -116,8 +134,8 @@ public class MainViewModel : ViewModelBase
         // Đặt Tab mặc định ban đầu dựa vào Role
         if (IsAdmin)
         {
-            _currentViewModel = DashboardVm;
-            _ = DashboardVm.LoadStatsAsync();
+            _currentViewModel = ApartmentVm;
+            _ = ApartmentVm.LoadDataAsync();
         }
         else
         {
@@ -176,6 +194,63 @@ public class MainViewModel : ViewModelBase
             CurrentViewModel = ResidencyHistoryVm;
             _ = ResidencyHistoryVm.LoadHistoryAsync();
         });
+
+        // Các tính năng đang phát triển (Hiển thị màn hình thông báo thân thiện)
+        ShowServicesCommand = new RelayCommand(_ => {
+            UnderDevelopmentVm.SetFeature("Dịch vụ & Yêu cầu", "Hệ thống đăng ký sửa chữa, bảo trì kỹ thuật và đặt chỗ tiện ích nội khu đang được hoàn thiện.", "🛠");
+            CurrentViewModel = UnderDevelopmentVm;
+        });
+        ShowNotificationsCommand = new RelayCommand(_ => {
+            UnderDevelopmentVm.SetFeature("Thông báo hệ thống", "Trung tâm quản lý và lưu trữ thông báo từ Ban quản lý tòa nhà đang được phát triển.", "🔔");
+            CurrentViewModel = UnderDevelopmentVm;
+        });
+        ShowFeesCommand = new RelayCommand(_ => {
+            UnderDevelopmentVm.SetFeature("Phí dịch vụ & Thanh toán", "Chức năng tra cứu biểu phí, hoá đơn điện nước và thanh toán trực tuyến đang được hoàn thiện.", "💳");
+            CurrentViewModel = UnderDevelopmentVm;
+        });
+        ShowFeedbackCommand = new RelayCommand(_ => {
+            UnderDevelopmentVm.SetFeature("Phản ánh & Kiến nghị", "Kênh tiếp nhận ý kiến đóng góp và phản ánh sự cố nội khu đang được phát triển.", "✏️");
+            CurrentViewModel = UnderDevelopmentVm;
+        });
+
+        // Kết nối nút hành động nhanh trên Trang chủ Cư dân tới màn hình Tính năng đang phát triển
+        ResidentHomeVm.ConfigureNavigation(
+            onRegisterTemporaryStay: () =>
+            {
+                UnderDevelopmentVm.SetFeature("Đăng ký tạm trú", "Hệ thống tiếp nhận hồ sơ khai báo cư trú và đăng ký tạm trú trực tuyến cho cư dân đang được hoàn thiện.", "📄");
+                CurrentViewModel = UnderDevelopmentVm;
+            },
+            onRequestService: () =>
+            {
+                UnderDevelopmentVm.SetFeature("Yêu cầu dịch vụ", "Hệ thống đăng ký sửa chữa kỹ thuật, bảo trì căn hộ và đặt chỗ tiện ích nội khu đang được hoàn thiện.", "🛠");
+                CurrentViewModel = UnderDevelopmentVm;
+            },
+            onSendFeedback: () =>
+            {
+                UnderDevelopmentVm.SetFeature("Phản ánh / kiến nghị", "Kênh tiếp nhận ý kiến đóng góp, phản hồi chất lượng và báo cáo sự cố chung cư đang được phát triển.", "📢");
+                CurrentViewModel = UnderDevelopmentVm;
+            },
+            onLookupFees: () =>
+            {
+                UnderDevelopmentVm.SetFeature("Tra cứu phí dịch vụ", "Chức năng tra cứu bảng kê phí quản lý, tiền điện nước và thanh toán trực tuyến đang được hoàn thiện.", "💳");
+                CurrentViewModel = UnderDevelopmentVm;
+            },
+            onViewAllAnnouncements: () =>
+            {
+                UnderDevelopmentVm.SetFeature("Tất cả thông báo", "Trung tâm quản lý, lọc và xem chi tiết các thông báo từ Ban quản lý tòa nhà đang được phát triển.", "🔔");
+                CurrentViewModel = UnderDevelopmentVm;
+            },
+            onViewApartmentDetail: () =>
+            {
+                CurrentViewModel = MyApartmentVm;
+                _ = MyApartmentVm.LoadApartmentDataAsync();
+            },
+            onViewAllHistory: () =>
+            {
+                CurrentViewModel = ResidencyHistoryVm;
+                _ = ResidencyHistoryVm.LoadHistoryAsync();
+            }
+        );
 
         // Command Đăng xuất: gọi callback để đóng MainWindow từ App.xaml.cs
         LogoutCommand = new RelayCommand(_ => onLogout?.Invoke());

@@ -12,6 +12,8 @@ public class AppDbContext : DbContext
     public DbSet<Resident> Residents { get; set; } = null!;
     public DbSet<UserAccount> UserAccounts { get; set; } = null!;
     public DbSet<Apartment> Apartments { get; set; } = null!;
+    public DbSet<ResidenceHistory> ResidenceHistories { get; set; } = null!;
+    public DbSet<MemberRegistrationRequest> MemberRegistrationRequests { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

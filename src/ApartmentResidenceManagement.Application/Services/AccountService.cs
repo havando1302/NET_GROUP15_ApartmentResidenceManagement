@@ -33,7 +33,20 @@ public class AccountService
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
 
-        var account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        UserAccount? account;
+        try
+        {
+            account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        }
+        catch (BusinessRuleException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new BusinessRuleException("Không thể kết nối cơ sở dữ liệu. Vui lòng thử lại sau.", ex);
+        }
+
         if (account == null)
         {
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");

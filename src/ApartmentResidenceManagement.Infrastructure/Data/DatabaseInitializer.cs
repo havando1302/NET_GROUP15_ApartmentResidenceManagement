@@ -58,7 +58,23 @@ public static class DatabaseInitializer
             },
             new UserAccount
             {
+                Username = "demo.admin",
+                PasswordHash = adminPasswordHash,
+                Role = UserRole.Admin,
+                ResidentId = null,
+                IsActive = true
+            },
+            new UserAccount
+            {
                 Username = "resident_a",
+                PasswordHash = residentPasswordHash,
+                Role = UserRole.Resident,
+                ResidentId = residentA.Id,
+                IsActive = true
+            },
+            new UserAccount
+            {
+                Username = "demo.resident",
                 PasswordHash = residentPasswordHash,
                 Role = UserRole.Resident,
                 ResidentId = residentA.Id,
