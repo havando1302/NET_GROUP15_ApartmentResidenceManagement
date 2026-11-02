@@ -329,7 +329,7 @@
                 </UniformGrid>
 
                 <!-- ══════════════════════════════════════════════════════════
-                     3. ACTION BUTTONS (Đăng ký / Chuyển căn / Kết thúc)
+                     3. ACTION BUTTONS (Đăng ký / Chuyển căn / Kết thúc / Yêu cầu thành viên)
                 ══════════════════════════════════════════════════════════ -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
                     <!-- Button: + Đăng ký cư trú -->
@@ -396,6 +396,32 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
+
+                    <!-- Button: 🔔 Yêu cầu thêm thành viên (Chuyển lên hàng menu thao tác) -->
+                    <Button Command="{Binding SwitchTabCommand}" CommandParameter="2"
+                            Background="White" Foreground="#1E293B" BorderBrush="#CBD5E1" BorderThickness="1"
+                            Padding="18,10" Margin="12,0,0,0" FontSize="13" FontWeight="SemiBold" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔔 " FontSize="14" Margin="0,-1,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Yêu cầu thêm thành viên" VerticalAlignment="Center"/>
+                                        <Border Margin="8,0,0,0" Background="#EF4444" CornerRadius="10" Padding="6,1" VerticalAlignment="Center"
+                                                Visibility="{Binding HasPendingRequests, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="{Binding PendingRequestsCount}" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                        <Setter Property="BorderBrush" Value="#94A3B8"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
                 </StackPanel>
 
                 <!-- ERROR / SUCCESS NOTIFICATIONS -->
@@ -412,44 +438,51 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="340"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- ────────────────────────────────────────────────────────
                          LEFT COLUMN: TABS, FILTERS, DATAGRID & PAGINATION
                     ──────────────────────────────────────────────────────── -->
-                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <StackPanel Grid.Column="0">
 
-                        <!-- TABS BAR -->
+                        <!-- TABS BAR (Chỉ 2 Tab chính: Đang cư trú & Lịch sử cư trú) -->
                         <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal">
                                 <!-- Tab 1: Đang cư trú -->
-                                <RadioButton Content="{Binding ActiveResidentsCount, StringFormat='👥 Đang cư trú ({0})'}"
-                                             IsChecked="{Binding IsActiveTab, Mode=TwoWay}"
+                                <RadioButton IsChecked="{Binding IsActiveTab, Mode=TwoWay}"
                                              Style="{StaticResource ResidenceTabButtonStyle}"
-                                             Command="{Binding SwitchTabCommand}" CommandParameter="0"/>
+                                             Command="{Binding SwitchTabCommand}" CommandParameter="0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="👥 Đang cư trú (" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding ActiveResidentsCount}" FontSize="14" FontWeight="Bold"/>
+                                        <TextBlock Text=")" FontSize="14" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </RadioButton>
 
                                 <!-- Tab 2: Lịch sử cư trú -->
-                                <RadioButton Content="{Binding EndedCount, StringFormat='🕒 Lịch sử cư trú ({0})'}"
-                                             IsChecked="{Binding IsHistoryTab, Mode=TwoWay}"
+                                <RadioButton IsChecked="{Binding IsHistoryTab, Mode=TwoWay}"
                                              Style="{StaticResource ResidenceTabButtonStyle}"
                                              Command="{Binding SwitchTabCommand}" CommandParameter="1"
-                                             Margin="16,0,0,0"/>
+                                             Margin="16,0,0,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🕒 Lịch sử cư trú (" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding EndedCount}" FontSize="14" FontWeight="Bold"/>
+                                        <TextBlock Text=")" FontSize="14" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </RadioButton>
 
-                                <!-- Tab 3: Yêu cầu thành viên -->
+                                <!-- Tab 3 (Hiện khi đang ở view Yêu cầu thành viên để dễ nhận biết) -->
                                 <RadioButton IsChecked="{Binding IsRequestsTab, Mode=TwoWay}"
                                              Style="{StaticResource ResidenceTabButtonStyle}"
                                              Command="{Binding SwitchTabCommand}" CommandParameter="2"
-                                             Margin="16,0,0,0">
-                                    <RadioButton.Content>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🔔 Yêu cầu thêm thành viên"/>
-                                            <Border Margin="6,0,0,0" Background="#EF4444" CornerRadius="10" Padding="6,1" VerticalAlignment="Center"
-                                                    Visibility="{Binding HasPendingRequests, Converter={StaticResource BoolToVis}}">
-                                                <TextBlock Text="{Binding PendingRequestsCount}" FontSize="11" FontWeight="Bold" Foreground="White"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </RadioButton.Content>
+                                             Margin="16,0,0,0"
+                                             Visibility="{Binding IsRequestsTab, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🔔 Yêu cầu thêm thành viên (" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Requests.Count}" FontSize="14" FontWeight="Bold"/>
+                                        <TextBlock Text=")" FontSize="14" FontWeight="SemiBold"/>
+                                    </StackPanel>
                                 </RadioButton>
                             </StackPanel>
                         </Border>
@@ -657,7 +690,7 @@
                                     <Button Content="‹" Command="{Binding PreviousPageCommand}"
                                             Style="{StaticResource PageNavBtnStyle}" IsEnabled="{Binding CanPreviousPage}"/>
 
-                                    <ItemsControl ItemsSource="{Binding PageNumbers}">
+                                    <ItemsControl ItemsSource="{Binding PaginationPages}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <StackPanel Orientation="Horizontal"/>
@@ -665,10 +698,58 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Button Content="{Binding}"
-                                                        Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                        CommandParameter="{Binding}"
-                                                        Style="{StaticResource PageNavBtnStyle}"/>
+                                                <Grid Margin="2,0">
+                                                    <!-- Hiển thị dấu ba chấm nếu là ellipsis -->
+                                                    <TextBlock Text="{Binding DisplayText}"
+                                                               FontSize="13" FontWeight="Bold" Foreground="#94A3B8"
+                                                               VerticalAlignment="Center" Margin="6,0"
+                                                               Visibility="{Binding IsEllipsis, Converter={StaticResource BoolToVis}}"/>
+
+                                                    <!-- Nút bấm chuyển trang -->
+                                                    <Button Content="{Binding DisplayText}"
+                                                            Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Width="32" Height="32" Cursor="Hand">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="White"/>
+                                                                <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                                                <Setter Property="BorderThickness" Value="1"/>
+                                                                <Setter Property="Foreground" Value="#475569"/>
+                                                                <Setter Property="FontSize" Value="12.5"/>
+                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <Border x:Name="bd" CornerRadius="6"
+                                                                                    Background="{TemplateBinding Background}"
+                                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                                                                    <Setter Property="Foreground" Value="#0F172A"/>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsEllipsis}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                        <Setter Property="Background" Value="#2563EB"/>
+                                                                        <Setter Property="BorderBrush" Value="#2563EB"/>
+                                                                        <Setter Property="Foreground" Value="White"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                </Grid>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -734,20 +815,31 @@
                     <!-- ────────────────────────────────────────────────────────
                          RIGHT COLUMN: "CHI TIẾT CƯ TRÚ" (DETAIL PANEL & TIMELINE)
                     ──────────────────────────────────────────────────────── -->
-                    <Border Grid.Column="1" Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="20">
+                    <Border Grid.Column="1" Width="340" Margin="16,0,0,0"
+                            Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="20"
+                            Visibility="{Binding IsDetailPanelOpen, Converter={StaticResource BoolToVis}}">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="10" Opacity="0.04" ShadowDepth="2" Color="#000000"/>
                         </Border.Effect>
 
                         <StackPanel>
-                            <!-- Panel Header -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <Border Width="22" Height="22" CornerRadius="11" Background="#DBEAFE" Margin="0,0,8,0">
-                                    <TextBlock Text="ℹ" FontWeight="Bold" FontSize="13" Foreground="#2563EB"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Chi tiết cư trú" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                            </StackPanel>
+                            <!-- Panel Header với nút đóng ✕ -->
+                            <Grid Margin="0,0,0,16">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Width="22" Height="22" CornerRadius="11" Background="#DBEAFE" Margin="0,0,8,0">
+                                        <TextBlock Text="ℹ" FontWeight="Bold" FontSize="13" Foreground="#2563EB"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Chi tiết cư trú" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- Nút Đóng Chi tiết X -->
+                                <Button Command="{Binding CloseDetailPanelCommand}"
+                                        HorizontalAlignment="Right" Background="Transparent" BorderThickness="0"
+                                        Cursor="Hand" Padding="4" ToolTip="Đóng chi tiết">
+                                    <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
+                                </Button>
+                            </Grid>
 
                             <!-- CONTENT KHI CÓ CƯ DÂN ĐƯỢC CHỌN -->
                             <StackPanel Visibility="{Binding HasSelectedResidence, Converter={StaticResource BoolToVis}}">

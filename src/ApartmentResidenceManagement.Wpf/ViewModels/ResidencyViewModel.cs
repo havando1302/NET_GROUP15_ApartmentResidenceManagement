@@ -71,6 +71,14 @@ public class ResidenceTimelineItem
     public bool IsLast { get; set; }
     public bool ShowLine => !IsLast;
 }
+
+public class PaginationPageItem
+{
+    public int PageNumber { get; set; }
+    public string DisplayText { get; set; } = string.Empty;
+    public bool IsCurrent { get; set; }
+    public bool IsEllipsis { get; set; }
+}
 #endregion
 
 public class ResidencyViewModel : ViewModelBase
@@ -100,12 +108,14 @@ public class ResidencyViewModel : ViewModelBase
     private ObservableCollection<ResidenceDisplayItemViewModel> _pagedResidences = new();
     private ObservableCollection<string> _apartmentFilterOptions = new() { "Tất cả" };
     private ObservableCollection<int> _pageNumbers = new();
+    private ObservableCollection<PaginationPageItem> _paginationPages = new();
     private ObservableCollection<MemberRegistrationRequestItemViewModel> _requests = new();
     private List<Apartment> _availableApartments = new();
     private List<Resident> _availableResidents = new();
     private List<ResidenceHistory> _activeResidencesForSelection = new();
 
     // Detail Panel
+    private bool _isDetailPanelOpen = false;
     private ResidenceDisplayItemViewModel? _selectedResidenceItem;
     private ObservableCollection<ResidenceTimelineItem> _selectedResidentTimeline = new();
 
@@ -163,9 +173,30 @@ public class ResidencyViewModel : ViewModelBase
     }
 
     public bool IsResidencesTab => SelectedTabIndex == 0 || SelectedTabIndex == 1;
-    public bool IsActiveTab => SelectedTabIndex == 0;
-    public bool IsHistoryTab => SelectedTabIndex == 1;
-    public bool IsRequestsTab => SelectedTabIndex == 2;
+    public bool IsActiveTab
+    {
+        get => SelectedTabIndex == 0;
+        set
+        {
+            if (value && SelectedTabIndex != 0) SelectedTabIndex = 0;
+        }
+    }
+    public bool IsHistoryTab
+    {
+        get => SelectedTabIndex == 1;
+        set
+        {
+            if (value && SelectedTabIndex != 1) SelectedTabIndex = 1;
+        }
+    }
+    public bool IsRequestsTab
+    {
+        get => SelectedTabIndex == 2;
+        set
+        {
+            if (value && SelectedTabIndex != 2) SelectedTabIndex = 2;
+        }
+    }
     #endregion
 
     #region Collection Properties
@@ -204,6 +235,12 @@ public class ResidencyViewModel : ViewModelBase
     {
         get => _pageNumbers;
         set => SetProperty(ref _pageNumbers, value);
+    }
+
+    public ObservableCollection<PaginationPageItem> PaginationPages
+    {
+        get => _paginationPages;
+        set => SetProperty(ref _paginationPages, value);
     }
 
     public int PendingRequestsCount => _allRequests.Count(r => r.Status == RequestStatus.Pending);
@@ -329,6 +366,12 @@ public class ResidencyViewModel : ViewModelBase
     #endregion
 
     #region Detail Panel Properties
+    public bool IsDetailPanelOpen
+    {
+        get => _isDetailPanelOpen;
+        set => SetProperty(ref _isDetailPanelOpen, value);
+    }
+
     public ResidenceDisplayItemViewModel? SelectedResidenceItem
     {
         get => _selectedResidenceItem;
@@ -490,6 +533,7 @@ public class ResidencyViewModel : ViewModelBase
     public ICommand SaveResidencyCommand { get; }
     public ICommand CancelFormCommand { get; }
     public ICommand SelectResidenceCommand { get; }
+    public ICommand CloseDetailPanelCommand { get; }
 
     public ICommand SwitchTabCommand { get; }
     public ICommand NextPageCommand { get; }
@@ -526,7 +570,13 @@ public class ResidencyViewModel : ViewModelBase
             if (item is ResidenceDisplayItemViewModel displayItem)
             {
                 SelectedResidenceItem = displayItem;
+                IsDetailPanelOpen = true;
             }
+        });
+
+        CloseDetailPanelCommand = new RelayCommand(_ =>
+        {
+            IsDetailPanelOpen = false;
         });
 
         SwitchTabCommand = new RelayCommand(tab =>
@@ -553,7 +603,15 @@ public class ResidencyViewModel : ViewModelBase
 
         GoToPageCommand = new RelayCommand(p =>
         {
-            if (p is int pageNum && pageNum >= 1 && pageNum <= TotalPages)
+            int pageNum = 0;
+            if (p is PaginationPageItem pageItem)
+            {
+                if (!pageItem.IsEllipsis) pageNum = pageItem.PageNumber;
+            }
+            else if (p is int i) pageNum = i;
+            else if (p is string s && int.TryParse(s, out int parsed)) pageNum = parsed;
+
+            if (pageNum >= 1 && pageNum <= TotalPages)
             {
                 CurrentPage = pageNum;
             }
@@ -730,17 +788,91 @@ public class ResidencyViewModel : ViewModelBase
             PagedResidences.Add(new ResidenceDisplayItemViewModel(rh, stt++));
         }
 
-        // Tự động chọn bản ghi đầu tiên nếu chưa có mục nào được chọn
-        if (SelectedResidenceItem == null || !PagedResidences.Any(p => p.Id == SelectedResidenceItem.Id))
+        // Nếu panel chi tiết đang mở mà mục hiện tại không còn trong trang, chọn mục đầu tiên
+        if (IsDetailPanelOpen)
         {
-            SelectedResidenceItem = PagedResidences.FirstOrDefault();
+            if (SelectedResidenceItem == null || !PagedResidences.Any(p => p.Id == SelectedResidenceItem.Id))
+            {
+                SelectedResidenceItem = PagedResidences.FirstOrDefault();
+            }
         }
 
-        // Cập nhật PageNumbers
+        // Cập nhật PageNumbers (số nguyên)
         PageNumbers.Clear();
         for (int i = 1; i <= maxPages; i++)
         {
             PageNumbers.Add(i);
+        }
+
+        // Cập nhật PaginationPages (dạng thông minh cho UI)
+        PaginationPages.Clear();
+        if (maxPages <= 7)
+        {
+            for (int i = 1; i <= maxPages; i++)
+            {
+                PaginationPages.Add(new PaginationPageItem
+                {
+                    PageNumber = i,
+                    DisplayText = i.ToString(),
+                    IsCurrent = (i == CurrentPage),
+                    IsEllipsis = false
+                });
+            }
+        }
+        else
+        {
+            // Trang đầu
+            PaginationPages.Add(new PaginationPageItem
+            {
+                PageNumber = 1,
+                DisplayText = "1",
+                IsCurrent = (CurrentPage == 1),
+                IsEllipsis = false
+            });
+
+            if (CurrentPage > 4)
+            {
+                PaginationPages.Add(new PaginationPageItem { DisplayText = "...", IsEllipsis = true });
+            }
+
+            int start = Math.Max(2, CurrentPage - 1);
+            int end = Math.Min(maxPages - 1, CurrentPage + 1);
+
+            if (CurrentPage <= 4)
+            {
+                start = 2;
+                end = 4;
+            }
+            else if (CurrentPage >= maxPages - 3)
+            {
+                start = maxPages - 3;
+                end = maxPages - 1;
+            }
+
+            for (int i = start; i <= end; i++)
+            {
+                PaginationPages.Add(new PaginationPageItem
+                {
+                    PageNumber = i,
+                    DisplayText = i.ToString(),
+                    IsCurrent = (i == CurrentPage),
+                    IsEllipsis = false
+                });
+            }
+
+            if (CurrentPage < maxPages - 3)
+            {
+                PaginationPages.Add(new PaginationPageItem { DisplayText = "...", IsEllipsis = true });
+            }
+
+            // Trang cuối
+            PaginationPages.Add(new PaginationPageItem
+            {
+                PageNumber = maxPages,
+                DisplayText = maxPages.ToString(),
+                IsCurrent = (CurrentPage == maxPages),
+                IsEllipsis = false
+            });
         }
 
         OnPropertyChanged(nameof(PaginationSummary));
