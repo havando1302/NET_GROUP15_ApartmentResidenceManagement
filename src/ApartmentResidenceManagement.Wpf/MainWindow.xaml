@@ -15,13 +15,17 @@
 
     <Window.Resources>
         <!-- DataTemplate mapping -->
+        <DataTemplate DataType="{x:Type viewModels:DashboardViewModel}"><views:DashboardView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ApartmentViewModel}"><views:ApartmentView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidentViewModel}"><views:ResidentView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidencyViewModel}"><views:ResidencyView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:VehicleViewModel}"><views:VehicleView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:StatisticsViewModel}"><views:StatisticsView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidentHomeViewModel}"><views:ResidentHomeView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyProfileViewModel}"><views:MyProfileView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:MyApartmentViewModel}"><views:MyApartmentView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:FamilyMembersViewModel}"><views:FamilyMembersView /></DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:MyVehiclesViewModel}"><views:MyVehiclesView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:ResidencyHistoryViewModel}"><views:ResidencyHistoryView /></DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:UnderDevelopmentViewModel}"><views:UnderDevelopmentView /></DataTemplate>
 
@@ -134,6 +138,24 @@
                         <StackPanel Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock Text="QUẢN TRỊ VIÊN" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="24,8,0,8" />
 
+                            <!-- Dashboard -->
+                            <Button Command="{Binding ShowDashboardCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="DashboardViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📊" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Tổng quan"/>
+                                </StackPanel>
+                            </Button>
+
                             <!-- Apartment -->
                             <Button Command="{Binding ShowApartmentCommand}">
                                 <Button.Style>
@@ -185,6 +207,42 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📋" Margin="0,0,12,0" FontSize="16"/>
                                     <TextBlock Text="Quản lý Cư trú"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Vehicle -->
+                            <Button Command="{Binding ShowVehicleCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="VehicleViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🚗" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Quản lý Phương tiện"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Statistics -->
+                            <Button Command="{Binding ShowStatisticsCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="StatisticsViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📈" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Báo cáo Thống kê"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -267,7 +325,26 @@
                                 </StackPanel>
                             </Button>
 
-                            <!-- 5. Lịch sử cư trú -->
+                            <!-- 5. Phương tiện của tôi -->
+                            <Button Command="{Binding ShowMyVehiclesCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActiveTab}" Value="MyVehiclesViewModel">
+                                                <Setter Property="Background" Value="#2563EB" />
+                                                <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🚗" Margin="0,0,12,0" FontSize="16"/>
+                                    <TextBlock Text="Phương tiện của tôi"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- 6. Lịch sử cư trú -->
                             <Button Command="{Binding ShowResidencyHistoryCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource SidebarBtn}">
