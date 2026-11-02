@@ -114,8 +114,8 @@ public class ResidencyViewModel : ViewModelBase
     private List<Resident> _availableResidents = new();
     private List<ResidenceHistory> _activeResidencesForSelection = new();
 
-    // Detail Panel
-    private bool _isDetailPanelOpen = false;
+    // Detail Panel (Mặc định luôn mở để thấy rõ bao quát thông tin)
+    private bool _isDetailPanelOpen = true;
     private ResidenceDisplayItemViewModel? _selectedResidenceItem;
     private ObservableCollection<ResidenceTimelineItem> _selectedResidentTimeline = new();
 
