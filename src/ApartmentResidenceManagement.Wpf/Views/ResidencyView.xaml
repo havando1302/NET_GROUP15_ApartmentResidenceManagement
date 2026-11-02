@@ -662,7 +662,7 @@
 
                                 <DataGrid.Columns>
                                     <!-- Column #: STT -->
-                                    <DataGridTextColumn Header="#" Binding="{Binding Stt}" Width="45">
+                                    <DataGridTextColumn Header="#" Binding="{Binding Stt}" Width="48">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -675,7 +675,7 @@
                                     </DataGridTextColumn>
 
                                     <!-- Column 2: Mã cư dân -->
-                                    <DataGridTextColumn Header="Mã cư dân" Binding="{Binding ResidentCode}" Width="100">
+                                    <DataGridTextColumn Header="Mã cư dân" Binding="{Binding ResidentCode}" Width="1.1*" MinWidth="95">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#2563EB"/>
@@ -688,7 +688,7 @@
                                     </DataGridTextColumn>
 
                                     <!-- Column 3: Họ và tên -->
-                                    <DataGridTextColumn Header="Họ và tên" Binding="{Binding ResidentName}" Width="1.8*">
+                                    <DataGridTextColumn Header="Họ và tên" Binding="{Binding ResidentName}" Width="1.8*" MinWidth="150">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#0F172A"/>
@@ -696,15 +696,16 @@
                                                 <Setter Property="FontSize" Value="13"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                                 <Setter Property="Margin" Value="10,0"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
                                     <!-- Column 4: Căn hộ (Pill Badge) -->
-                                    <DataGridTemplateColumn Header="Căn hộ" Width="95">
+                                    <DataGridTemplateColumn Header="Căn hộ" Width="1.0*" MinWidth="85">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Border Background="#EFF6FF" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <Border Background="#EFF6FF" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0">
                                                     <TextBlock Text="{Binding ApartmentNumber}" FontWeight="Bold" FontSize="12.5" Foreground="#2563EB"/>
                                                 </Border>
                                             </DataTemplate>
@@ -712,7 +713,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Column 5: Ngày bắt đầu -->
-                                    <DataGridTextColumn Header="Ngày bắt đầu" Binding="{Binding FormattedStartDate}" Width="120">
+                                    <DataGridTextColumn Header="Ngày bắt đầu" Binding="{Binding FormattedStartDate}" Width="1.3*" MinWidth="110">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#334155"/>
@@ -724,7 +725,7 @@
                                     </DataGridTextColumn>
 
                                     <!-- Column 6: Thời gian cư trú -->
-                                    <DataGridTextColumn Header="Thời gian cư trú" Binding="{Binding ResidenceDuration}" Width="130">
+                                    <DataGridTextColumn Header="Thời gian cư trú" Binding="{Binding ResidenceDuration}" Width="1.4*" MinWidth="120">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#475569"/>
@@ -737,7 +738,7 @@
                                     </DataGridTextColumn>
 
                                     <!-- Column 7: Thao tác (Eye Detail Icon) -->
-                                    <DataGridTemplateColumn Header="Thao tác" Width="75">
+                                    <DataGridTemplateColumn Header="Thao tác" Width="80">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Button Style="{StaticResource EyeActionButtonStyle}"
@@ -882,7 +883,7 @@
                                       ColumnHeaderStyle="{StaticResource ModernDataGridHeader}">
                                 <DataGrid.Columns>
                                     <!-- Căn hộ -->
-                                    <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="90">
+                                    <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="1.0*" MinWidth="85">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="FontWeight" Value="Bold"/>
@@ -894,31 +895,33 @@
                                     </DataGridTextColumn>
 
                                     <!-- Người gửi -->
-                                    <DataGridTextColumn Header="Người gửi" Binding="{Binding RequesterName}" Width="1.2*">
+                                    <DataGridTextColumn Header="Người gửi" Binding="{Binding RequesterName}" Width="1.5*" MinWidth="130">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                                 <Setter Property="Foreground" Value="#0F172A"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                                 <Setter Property="Margin" Value="10,0"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
                                     <!-- Người cần thêm -->
-                                    <DataGridTextColumn Header="Người cần thêm" Binding="{Binding FullName}" Width="1.3*">
+                                    <DataGridTextColumn Header="Người cần thêm" Binding="{Binding FullName}" Width="1.6*" MinWidth="140">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                                 <Setter Property="Foreground" Value="#0F172A"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                                 <Setter Property="Margin" Value="10,0"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
                                     <!-- CCCD/CMND -->
-                                    <DataGridTextColumn Header="CCCD/CMND" Binding="{Binding IdentityCardText}" Width="130">
+                                    <DataGridTextColumn Header="CCCD/CMND" Binding="{Binding IdentityCardText}" Width="1.3*" MinWidth="120">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#475569"/>
@@ -929,19 +932,20 @@
                                     </DataGridTextColumn>
 
                                     <!-- Quan hệ -->
-                                    <DataGridTextColumn Header="Quan hệ" Binding="{Binding RelationshipText}" Width="150">
+                                    <DataGridTextColumn Header="Quan hệ" Binding="{Binding RelationshipText}" Width="1.4*" MinWidth="130">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#2563EB"/>
                                                 <Setter Property="FontWeight" Value="Medium"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                                 <Setter Property="Margin" Value="10,0"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
                                     <!-- Trạng thái (Pill Badge: Chưa duyệt / Đã duyệt / Từ chối) -->
-                                    <DataGridTemplateColumn Header="Trạng thái" Width="130">
+                                    <DataGridTemplateColumn Header="Trạng thái" Width="1.2*" MinWidth="115">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Background="{Binding StatusBadgeBg}"
@@ -950,7 +954,8 @@
                                                         CornerRadius="6"
                                                         Padding="10,3"
                                                         HorizontalAlignment="Left"
-                                                        VerticalAlignment="Center">
+                                                        VerticalAlignment="Center"
+                                                        Margin="10,0">
                                                     <TextBlock Text="{Binding StatusText}"
                                                                Foreground="{Binding StatusBadgeFg}"
                                                                FontWeight="SemiBold"
@@ -961,7 +966,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Thao tác: Khi chưa duyệt hiện rõ [Duyệt] & [Từ chối]; khi đã duyệt/từ chối thì ẩn nút -->
-                                    <DataGridTemplateColumn Header="Thao tác" Width="170">
+                                    <DataGridTemplateColumn Header="Thao tác" Width="160">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
