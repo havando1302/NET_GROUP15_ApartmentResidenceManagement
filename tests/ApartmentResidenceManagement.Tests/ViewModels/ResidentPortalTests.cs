@@ -440,7 +440,7 @@ public class ResidentPortalTests
         var member = vm.FilteredMembers[0];
         Assert.Equal("Trần Thị Lan", member.FullName);
         Assert.Equal("Người thuê", member.Relationship);
-        Assert.Equal("Chưa cập nhật", member.Gender);
+        Assert.Equal("Nam", member.Gender);
         Assert.Equal("Chưa cập nhật", member.Hometown);
     }
 
@@ -504,6 +504,7 @@ public class ResidentPortalTests
         vm.NewMemberIdentityCard = "012345678999";
         vm.NewMemberPhoneNumber = "0988776655";
         vm.SelectedRelationshipType = RelationshipType.FamilyMember;
+        vm.NewMemberSpecificRelationship = "Em trai";
 
         // Submit
         if (vm.SubmitAddRequestCommand is ApartmentResidenceManagement.Wpf.Commands.AsyncRelayCommand asyncCmd)

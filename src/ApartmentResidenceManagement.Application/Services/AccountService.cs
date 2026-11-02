@@ -57,7 +57,16 @@ public class AccountService
             throw new BusinessRuleException("Tài khoản này đã bị khóa. Vui lòng liên hệ Admin.");
         }
 
-        bool isValid = _passwordHasher.VerifyPassword(password, account.PasswordHash);
+        bool isValid = false;
+        try
+        {
+            isValid = _passwordHasher.VerifyPassword(password, account.PasswordHash);
+        }
+        catch
+        {
+            isValid = false;
+        }
+
         if (!isValid)
         {
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
