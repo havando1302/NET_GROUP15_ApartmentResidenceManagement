@@ -223,6 +223,7 @@ public class ResidentViewModel : ViewModelBase
         FormTitle = "THÊM CƯ DÂN MỚI";
         EditingResident = new Resident 
         { 
+            Gender = ApartmentResidenceManagement.Domain.Enums.GenderType.Male,
             DateOfBirth = DateTime.Now.AddYears(-20) 
         };
         IsFormOpen = true;
@@ -241,9 +242,9 @@ public class ResidentViewModel : ViewModelBase
             FullName = resident.FullName,
             DateOfBirth = resident.DateOfBirth,
             Gender = resident.Gender,
-            HomeTown = resident.HomeTown,
             IdentityCard = resident.IdentityCard,
             PhoneNumber = resident.PhoneNumber,
+            HomeTown = resident.HomeTown,
             Email = resident.Email
         };
         IsFormOpen = true;

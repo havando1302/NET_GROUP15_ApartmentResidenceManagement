@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
+using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Domain.Interfaces;
+using ApartmentResidenceManagement.Application.Validators;
 
 namespace ApartmentResidenceManagement.Application.Services;
 
@@ -19,12 +23,23 @@ public class ResidentService
         return await _unitOfWork.Residents.GetAllAsync();
     }
 
+    public async Task<Resident?> GetResidentByIdAsync(int id)
+    {
+        return await _unitOfWork.Residents.GetByIdAsync(id);
+    }
+
+    public async Task<Resident?> GetResidentByIdentityCardAsync(string identityCard)
+    {
+        if (string.IsNullOrWhiteSpace(identityCard)) return null;
+        return await _unitOfWork.Residents.GetByIdentityCardAsync(identityCard.Trim());
+    }
+
     public async Task<Resident> UpdateContactAsync(int residentId, string? phoneNumber, string? email)
     {
         var resident = await _unitOfWork.Residents.GetByIdAsync(residentId);
         if (resident == null)
         {
-            throw new Domain.Exceptions.BusinessRuleException("Không tìm thấy thông tin cư dân trong hệ thống.");
+            throw new BusinessRuleException("Không tìm thấy thông tin cư dân trong hệ thống.");
         }
 
         // Validate Phone (nếu có nhập)
@@ -33,7 +48,7 @@ public class ResidentService
             phoneNumber = phoneNumber.Trim();
             if (!System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^0\d{9}$"))
             {
-                throw new Domain.Exceptions.BusinessRuleException("Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).");
+                throw new BusinessRuleException("Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).");
             }
             resident.PhoneNumber = phoneNumber;
         }
@@ -48,11 +63,11 @@ public class ResidentService
             email = email.Trim();
             if (email.Length > 100)
             {
-                throw new Domain.Exceptions.BusinessRuleException("Email không được vượt quá 100 ký tự.");
+                throw new BusinessRuleException("Email không được vượt quá 100 ký tự.");
             }
             if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
-                throw new Domain.Exceptions.BusinessRuleException("Địa chỉ email không đúng định dạng hợp lệ.");
+                throw new BusinessRuleException("Địa chỉ email không đúng định dạng hợp lệ.");
             }
             resident.Email = email;
         }
@@ -69,66 +84,157 @@ public class ResidentService
 
     public async Task<Resident> CreateResidentAsync(Resident resident)
     {
+        Normalize(resident);
+
         if (string.IsNullOrWhiteSpace(resident.FullName))
-            throw new Domain.Exceptions.BusinessRuleException("Họ tên cư dân không được để trống.");
+        {
+            throw new BusinessRuleException("Họ và tên cư dân không được để trống.");
+        }
 
-        if (resident.DateOfBirth > System.DateTime.Today)
-            throw new Domain.Exceptions.BusinessRuleException("Ngày sinh không được ở tương lai.");
+        ValidateFieldLengthsAndGender(resident);
 
+        if (!InputValidator.ValidateDateOfBirth(resident.DateOfBirth))
+        {
+            throw new BusinessRuleException("Ngày sinh không hợp lệ (không được ở tương lai hoặc quá 120 tuổi).");
+        }
+
+        // Validate số điện thoại nếu có
+        if (!string.IsNullOrWhiteSpace(resident.PhoneNumber) && !InputValidator.ValidatePhone(resident.PhoneNumber))
+        {
+            throw new BusinessRuleException("Số điện thoại không hợp lệ.");
+        }
+
+        // Validate CCCD nếu có
         if (!string.IsNullOrWhiteSpace(resident.IdentityCard))
         {
-            resident.IdentityCard = resident.IdentityCard.Trim();
-            var existing = await _unitOfWork.Residents.FindAsync(r => r.IdentityCard == resident.IdentityCard);
-            if (System.Linq.Enumerable.Any(existing))
-                throw new Domain.Exceptions.BusinessRuleException($"CCCD '{resident.IdentityCard}' đã tồn tại trong hệ thống.");
+            if (!InputValidator.ValidateIdentityCard(resident.IdentityCard))
+            {
+                throw new BusinessRuleException("Số CCCD/CMND không hợp lệ (bắt buộc phải là 9 hoặc 12 số).");
+            }
+
+            var existing = await _unitOfWork.Residents.GetByIdentityCardAsync(resident.IdentityCard);
+            if (existing != null)
+            {
+                throw new BusinessRuleException($"Cư dân có số CCCD/CMND '{resident.IdentityCard}' đã tồn tại trong hệ thống.");
+            }
         }
 
         await _unitOfWork.Residents.AddAsync(resident);
         await _unitOfWork.CompleteAsync();
+
         return resident;
     }
 
     public async Task<Resident> UpdateResidentAsync(Resident resident)
     {
+        Normalize(resident);
+
         var existing = await _unitOfWork.Residents.GetByIdAsync(resident.Id);
         if (existing == null)
-            throw new Domain.Exceptions.BusinessRuleException("Không tìm thấy cư dân cần cập nhật.");
-
-        if (string.IsNullOrWhiteSpace(resident.FullName))
-            throw new Domain.Exceptions.BusinessRuleException("Họ tên cư dân không được để trống.");
-
-        if (!string.IsNullOrWhiteSpace(resident.IdentityCard))
         {
-            resident.IdentityCard = resident.IdentityCard.Trim();
-            var duplicate = await _unitOfWork.Residents.FindAsync(r => r.IdentityCard == resident.IdentityCard && r.Id != resident.Id);
-            if (System.Linq.Enumerable.Any(duplicate))
-                throw new Domain.Exceptions.BusinessRuleException($"CCCD '{resident.IdentityCard}' đã thuộc về cư dân khác.");
+            throw new BusinessRuleException("Không tìm thấy cư dân cần cập nhật.");
         }
 
-        existing.FullName = resident.FullName.Trim();
+        if (string.IsNullOrWhiteSpace(resident.FullName))
+        {
+            throw new BusinessRuleException("Họ và tên cư dân không được để trống.");
+        }
+
+        ValidateFieldLengthsAndGender(resident);
+
+        if (!InputValidator.ValidateDateOfBirth(resident.DateOfBirth))
+        {
+            throw new BusinessRuleException("Ngày sinh không hợp lệ.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(resident.PhoneNumber) && !InputValidator.ValidatePhone(resident.PhoneNumber))
+        {
+            throw new BusinessRuleException("Số điện thoại không hợp lệ.");
+        }
+
+        // Validate và kiểm tra trùng CCCD
+        if (!string.IsNullOrWhiteSpace(resident.IdentityCard))
+        {
+            if (!InputValidator.ValidateIdentityCard(resident.IdentityCard))
+            {
+                throw new BusinessRuleException("Số CCCD/CMND không hợp lệ.");
+            }
+
+            if (existing.IdentityCard != resident.IdentityCard)
+            {
+                var duplicate = await _unitOfWork.Residents.GetByIdentityCardAsync(resident.IdentityCard);
+                if (duplicate != null && duplicate.Id != existing.Id)
+                {
+                    throw new BusinessRuleException($"Số CCCD/CMND '{resident.IdentityCard}' đã được đăng ký bởi cư dân khác.");
+                }
+            }
+        }
+
+        existing.FullName = resident.FullName;
         existing.DateOfBirth = resident.DateOfBirth;
         existing.Gender = resident.Gender;
-        existing.HomeTown = string.IsNullOrWhiteSpace(resident.HomeTown) ? null : resident.HomeTown.Trim();
-        existing.IdentityCard = string.IsNullOrWhiteSpace(resident.IdentityCard) ? null : resident.IdentityCard.Trim();
-        existing.PhoneNumber = string.IsNullOrWhiteSpace(resident.PhoneNumber) ? null : resident.PhoneNumber.Trim();
-        existing.Email = string.IsNullOrWhiteSpace(resident.Email) ? null : resident.Email.Trim();
+        existing.IdentityCard = resident.IdentityCard;
+        existing.PhoneNumber = resident.PhoneNumber;
+        existing.HomeTown = resident.HomeTown;
+        existing.Email = NormalizeOptional(resident.Email);
 
         _unitOfWork.Residents.Update(existing);
         await _unitOfWork.CompleteAsync();
+
         return existing;
     }
 
-    public async Task DeleteResidentAsync(int residentId)
+    public async Task DeleteResidentAsync(int id)
     {
-        var resident = await _unitOfWork.Residents.GetByIdAsync(residentId);
+        var resident = await _unitOfWork.Residents.GetByIdAsync(id);
         if (resident == null)
-            throw new Domain.Exceptions.BusinessRuleException("Không tìm thấy cư dân cần xóa.");
+        {
+            throw new BusinessRuleException("Không tìm thấy cư dân cần xóa.");
+        }
 
-        var activeResidence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(residentId);
-        if (activeResidence != null)
-            throw new Domain.Exceptions.BusinessRuleException("Không thể xóa cư dân đang có hồ sơ cư trú hoạt động.");
+        if (_unitOfWork.ResidenceHistories != null)
+        {
+            var activeResidence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(id);
+            if (activeResidence != null)
+            {
+                throw new BusinessRuleException("Không thể xóa cư dân đang có hồ sơ cư trú hoạt động.");
+            }
+        }
 
         _unitOfWork.Residents.Delete(resident);
         await _unitOfWork.CompleteAsync();
+    }
+
+    private static void Normalize(Resident resident)
+    {
+        resident.FullName = resident.FullName?.Trim() ?? string.Empty;
+        resident.DateOfBirth = resident.DateOfBirth.Date;
+        resident.IdentityCard = NormalizeOptional(resident.IdentityCard);
+        resident.PhoneNumber = NormalizeOptional(resident.PhoneNumber);
+        resident.HomeTown = NormalizeOptional(resident.HomeTown);
+        resident.Email = NormalizeOptional(resident.Email);
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static void ValidateFieldLengthsAndGender(Resident resident)
+    {
+        if (resident.FullName.Length > 100)
+        {
+            throw new BusinessRuleException("Họ và tên không được vượt quá 100 ký tự.");
+        }
+
+        if (resident.HomeTown?.Length > 200)
+        {
+            throw new BusinessRuleException("Quê quán không được vượt quá 200 ký tự.");
+        }
+
+        if (!Enum.IsDefined(resident.Gender))
+        {
+            throw new BusinessRuleException("Giới tính không hợp lệ.");
+        }
     }
 }

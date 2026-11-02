@@ -3,10 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:ApartmentResidenceManagement.Wpf.Behaviors"
              xmlns:controls="clr-namespace:ApartmentResidenceManagement.Wpf.Controls"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:enums="clr-namespace:ApartmentResidenceManagement.Domain.Enums;assembly=ApartmentResidenceManagement.Domain"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1100"
              Background="{StaticResource PageBgBrush}">
 
@@ -834,7 +834,7 @@
         <!-- ===== CỘT PHẢI: FORM MODAL OVERLAY TRUNG TÂM CHO CƯ TRÚ ===== -->
         <Grid Panel.ZIndex="200"
               Visibility="{Binding IsFormOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-            
+
             <!-- Lớp phủ mờ nền sau -->
             <Border Background="#66000000">
                 <Border.InputBindings>

@@ -16,6 +16,7 @@ public class Resident
     public string? Email { get; set; }
 
     // Navigation properties
+    public virtual UserAccount? UserAccount { get; set; }
     public virtual ICollection<ResidenceHistory> ResidenceHistories { get; set; } = new List<ResidenceHistory>();
+    public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
 }
-

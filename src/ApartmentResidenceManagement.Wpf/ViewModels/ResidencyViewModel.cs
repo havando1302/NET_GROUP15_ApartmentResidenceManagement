@@ -17,7 +17,7 @@ public class ResidencyViewModel : ViewModelBase
     private readonly ApartmentService _apartmentService;
     private readonly ResidentService _residentService;
     private readonly MemberRequestService? _memberRequestService;
-    
+
     private List<ResidenceHistory> _allResidences = new();
     private List<MemberRegistrationRequestItemViewModel> _allRequests = new();
 
@@ -27,19 +27,18 @@ public class ResidencyViewModel : ViewModelBase
     // Lọc & Tìm kiếm cư trú
     private string _searchText = string.Empty;
     private string _selectedStatusFilter = "Tất cả"; // Tất cả, Đang cư trú, Đã chuyển đi
-    
+
     // UI Collections
     private ObservableCollection<ResidenceHistory> _residences = new();
     private ObservableCollection<MemberRegistrationRequestItemViewModel> _requests = new();
     private List<Apartment> _availableApartments = new();
     private List<Resident> _availableResidents = new();
-    
     // Thao tác Form Cư trú
     private ResidenceHistory? _selectedResidence;
     private bool _isFormOpen;
     private string _formTitle = string.Empty;
     private string _actionType = "Register"; // Register, Terminate, Transfer
-    
+
     // Form Inputs
     private Apartment? _selectedApartmentInput;
     private Resident? _selectedResidentInput;
@@ -52,7 +51,6 @@ public class ResidencyViewModel : ViewModelBase
     private MemberRegistrationRequestItemViewModel? _requestToReject;
     private string _rejectReasonInput = string.Empty;
     private string _requestSuccessMessage = string.Empty;
-    
     // Báo lỗi
     private string _errorMessage = string.Empty;
     private bool _hasError;
@@ -530,12 +528,11 @@ public class ResidencyViewModel : ViewModelBase
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            var search = SearchText.Trim().ToLower();
+            string keyword = SearchText.Trim().ToLower();
             filtered = filtered.Where(rh =>
-                (rh.Resident?.FullName != null && rh.Resident.FullName.ToLower().Contains(search)) ||
-                (rh.Resident?.IdentityCard != null && rh.Resident.IdentityCard.ToLower().Contains(search)) ||
-                (rh.Apartment?.ApartmentNumber != null && rh.Apartment.ApartmentNumber.ToLower().Contains(search))
-            );
+                (rh.Resident != null && rh.Resident.FullName.ToLower().Contains(keyword)) ||
+                (rh.Resident != null && rh.Resident.IdentityCard != null && rh.Resident.IdentityCard.ToLower().Contains(keyword)) ||
+                (rh.Apartment != null && rh.Apartment.ApartmentNumber.ToLower().Contains(keyword)));
         }
 
         Residences.Clear();

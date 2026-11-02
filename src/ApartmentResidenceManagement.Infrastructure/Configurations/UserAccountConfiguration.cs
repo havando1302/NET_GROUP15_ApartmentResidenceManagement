@@ -37,7 +37,7 @@ public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccount>
             .IsUnique();
 
         builder.HasOne(u => u.Resident)
-            .WithOne()
+            .WithOne(r => r.UserAccount)
             .HasForeignKey<UserAccount>(u => u.ResidentId)
             .OnDelete(DeleteBehavior.SetNull);
     }

@@ -73,10 +73,10 @@ public class ResidenceServiceTests
         int residentId = 10;
         var apartment = new Apartment { Id = apartmentId, ApartmentNumber = "101" };
         var resident = new Resident { Id = residentId, FullName = "Nguyen Van A" };
-        var existingActive = new ResidenceHistory 
-        { 
-            ApartmentId = 2, 
-            ResidentId = residentId, 
+        var existingActive = new ResidenceHistory
+        {
+            ApartmentId = 2,
+            ResidentId = residentId,
             IsActive = true,
             Apartment = new Apartment { Id = 2, ApartmentNumber = "202" }
         };
@@ -299,13 +299,13 @@ public class ResidenceServiceTests
         int newApartmentId = 2;
         var oldApartment = new Apartment { Id = oldApartmentId, ApartmentNumber = "101", Status = ApartmentStatus.Occupied };
         var newApartment = new Apartment { Id = newApartmentId, ApartmentNumber = "202", Status = ApartmentStatus.Empty };
-        
-        var oldActiveResidence = new ResidenceHistory 
-        { 
+
+        var oldActiveResidence = new ResidenceHistory
+        {
             Id = 5,
-            ApartmentId = oldApartmentId, 
-            ResidentId = residentId, 
-            IsActive = true, 
+            ApartmentId = oldApartmentId,
+            ResidentId = residentId,
+            IsActive = true,
             StartDate = DateTime.Now.AddDays(-10),
             Apartment = oldApartment
         };
