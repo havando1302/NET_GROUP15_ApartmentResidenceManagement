@@ -28,14 +28,20 @@ public static class DatabaseInitializer
         var residentA = new Resident
         {
             FullName = "Nguyễn Văn A",
+            DateOfBirth = new DateTime(1980, 1, 1),
+            Gender = GenderType.Male,
+            IdentityCard = "123456789012",
             PhoneNumber = "0901234567",
-            Email = "nguyenvana@example.com"
+            HomeTown = "Hà Nội"
         };
         var residentB = new Resident
         {
             FullName = "Trần Thị B",
+            DateOfBirth = new DateTime(1985, 2, 2),
+            Gender = GenderType.Female,
+            IdentityCard = "123456789013",
             PhoneNumber = "0901234568",
-            Email = "tranthib@example.com"
+            HomeTown = "Nam Định"
         };
 
         context.Residents.AddRange(residentA, residentB);

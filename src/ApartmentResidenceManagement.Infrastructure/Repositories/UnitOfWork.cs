@@ -14,6 +14,7 @@ public class UnitOfWork : IUnitOfWork
     private IResidentRepository? _residents;
     private IResidenceHistoryRepository? _residenceHistories;
     private IUserAccountRepository? _userAccounts;
+    private IVehicleRepository? _vehicles;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -31,6 +32,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IUserAccountRepository UserAccounts =>
         _userAccounts ??= new UserAccountRepository(_context);
+
+    public IVehicleRepository Vehicles =>
+        _vehicles ??= new VehicleRepository(_context);
 
     public async Task<int> CompleteAsync()
     {

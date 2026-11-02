@@ -16,31 +16,31 @@ public class ResidencyViewModel : ViewModelBase
     private readonly ResidenceService _residenceService;
     private readonly ApartmentService _apartmentService;
     private readonly ResidentService _residentService;
-    
+
     private List<ResidenceHistory> _allResidences = new();
 
     // Lọc & Tìm kiếm
     private string _searchText = string.Empty;
     private string _selectedStatusFilter = "Tất cả"; // Tất cả, Đang cư trú, Đã chuyển đi
-    
+
     // UI Collections
     private ObservableCollection<ResidenceHistory> _residences = new();
     private List<Apartment> _availableApartments = new();
     private List<Resident> _availableResidents = new();
-    
+
     // Thao tác Form
     private ResidenceHistory? _selectedResidence;
     private bool _isFormOpen;
     private string _formTitle = string.Empty;
     private string _actionType = "Register"; // Register, Terminate, Transfer
-    
+
     // Form Inputs
     private Apartment? _selectedApartmentInput;
     private Resident? _selectedResidentInput;
     private RelationshipType _selectedRelationshipType = RelationshipType.FamilyMember;
     private DateTime _startDateInput = DateTime.Today;
     private DateTime _endDateInput = DateTime.Today;
-    
+
     // Báo lỗi
     private string _errorMessage = string.Empty;
     private bool _hasError;
@@ -252,7 +252,7 @@ public class ResidencyViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             string keyword = SearchText.Trim().ToLower();
-            filtered = filtered.Where(rh => 
+            filtered = filtered.Where(rh =>
                 (rh.Resident != null && rh.Resident.FullName.ToLower().Contains(keyword)) ||
                 (rh.Resident != null && rh.Resident.IdentityCard != null && rh.Resident.IdentityCard.Contains(keyword)) ||
                 (rh.Apartment != null && rh.Apartment.ApartmentNumber.ToLower().Contains(keyword)));

@@ -9,6 +9,7 @@ public interface IUnitOfWork : IDisposable
     IResidentRepository Residents { get; }
     IResidenceHistoryRepository ResidenceHistories { get; }
     IUserAccountRepository UserAccounts { get; }
+    IVehicleRepository Vehicles { get; }
     
     Task<int> CompleteAsync();
     Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation);
