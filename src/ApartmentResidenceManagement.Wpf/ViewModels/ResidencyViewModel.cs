@@ -166,6 +166,7 @@ public class ResidencyViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsActiveTab));
                 OnPropertyChanged(nameof(IsHistoryTab));
                 OnPropertyChanged(nameof(IsRequestsTab));
+                OnPropertyChanged(nameof(IsDetailPanelVisible));
                 CurrentPage = 1;
                 ApplyFilters();
             }
@@ -369,8 +370,16 @@ public class ResidencyViewModel : ViewModelBase
     public bool IsDetailPanelOpen
     {
         get => _isDetailPanelOpen;
-        set => SetProperty(ref _isDetailPanelOpen, value);
+        set
+        {
+            if (SetProperty(ref _isDetailPanelOpen, value))
+            {
+                OnPropertyChanged(nameof(IsDetailPanelVisible));
+            }
+        }
     }
+
+    public bool IsDetailPanelVisible => IsDetailPanelOpen && IsResidencesTab;
 
     public ResidenceDisplayItemViewModel? SelectedResidenceItem
     {
@@ -982,10 +991,10 @@ public class ResidencyViewModel : ViewModelBase
 
                 string statusText = req.Status switch
                 {
-                    RequestStatus.Pending => "Chờ duyệt",
+                    RequestStatus.Pending => "Chưa duyệt",
                     RequestStatus.Approved => "Đã duyệt",
                     RequestStatus.Rejected => "Từ chối",
-                    _ => "Không xác định"
+                    _ => "Chưa duyệt"
                 };
 
                 string bg = req.Status switch

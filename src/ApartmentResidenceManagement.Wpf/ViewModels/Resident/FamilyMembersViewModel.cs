@@ -106,6 +106,8 @@ public class MemberRegistrationRequestItemViewModel : ViewModelBase
     public string? RejectReason { get; set; }
     public bool HasRejectReason => !string.IsNullOrWhiteSpace(RejectReason);
     public bool IsPending => Status == RequestStatus.Pending;
+    public bool CanApprove => Status == RequestStatus.Pending;
+    public bool IsProcessed => Status != RequestStatus.Pending;
 }
 
 public class RelationshipOption
@@ -809,10 +811,10 @@ public class FamilyMembersViewModel : ViewModelBase
             {
                 string statusText = req.Status switch
                 {
-                    RequestStatus.Pending => "Chờ duyệt",
+                    RequestStatus.Pending => "Chưa duyệt",
                     RequestStatus.Approved => "Đã duyệt",
                     RequestStatus.Rejected => "Từ chối",
-                    _ => "Không xác định"
+                    _ => "Chưa duyệt"
                 };
 
                 string bg = req.Status switch
