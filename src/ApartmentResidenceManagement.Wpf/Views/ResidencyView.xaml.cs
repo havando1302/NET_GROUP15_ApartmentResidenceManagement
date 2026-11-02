@@ -48,4 +48,14 @@ public partial class ResidencyView : UserControl
             }
         }
     }
+
+    private void OnTimelinePreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (sender is ScrollViewer sv)
+        {
+            // Lăn chuột cuộn Timeline mượt mà không cần hiện thanh cuộn
+            sv.ScrollToVerticalOffset(sv.VerticalOffset - (e.Delta / 2.0));
+            e.Handled = true;
+        }
+    }
 }

@@ -648,6 +648,8 @@
                                       SelectionUnit="FullRow"
                                       FocusVisualStyle="{x:Null}"
                                       PreviewMouseWheel="OnDataGridPreviewMouseWheel"
+                                      ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       GridLinesVisibility="Horizontal"
                                       HorizontalGridLinesBrush="#F1F5F9"
                                       HeadersVisibility="Column"
@@ -848,6 +850,8 @@
                                   AutoGenerateColumns="False"
                                   CanUserAddRows="False"
                                   IsReadOnly="True"
+                                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                   GridLinesVisibility="Horizontal"
                                   HorizontalGridLinesBrush="#F1F5F9"
                                   HeadersVisibility="Column"
@@ -1057,7 +1061,10 @@
                             </StackPanel>
 
                             <!-- Row 4: Quá trình cư trú (Timeline) - Fills remaining space, with ScrollViewer if many items -->
-                            <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ScrollViewer x:Name="TimelineScrollViewer" Grid.Row="4"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          PreviewMouseWheel="OnTimelinePreviewMouseWheel">
                                 <ItemsControl ItemsSource="{Binding SelectedResidentTimeline}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
