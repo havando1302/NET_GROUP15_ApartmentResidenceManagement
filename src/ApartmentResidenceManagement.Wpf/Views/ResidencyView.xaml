@@ -843,135 +843,244 @@
                     </Grid>
 
                     <!-- VIEW B: MEMBER REQUESTS LIST (TAB 2) -->
-                    <Border Grid.Row="1" Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1"
-                            VerticalAlignment="Stretch"
-                            Visibility="{Binding IsRequestsTab, Converter={StaticResource BoolToVis}}">
-                        <DataGrid ItemsSource="{Binding Requests}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                  GridLinesVisibility="Horizontal"
-                                  HorizontalGridLinesBrush="#F1F5F9"
-                                  HeadersVisibility="Column"
-                                  BorderThickness="0"
-                                  Background="White"
-                                  VerticalAlignment="Stretch"
-                                  RowStyle="{StaticResource ModernDataGridRow}"
-                                  ColumnHeaderStyle="{StaticResource ModernDataGridHeader}">
-                            <DataGrid.Columns>
-                                <!-- Căn hộ -->
-                                <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="90">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                            <Setter Property="Foreground" Value="#2563EB"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="10,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                    <Grid Grid.Row="1" VerticalAlignment="Stretch" Visibility="{Binding IsRequestsTab, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <!-- Row 0: Requests DataGrid Table -> Stretches to fill vertical height! -->
+                            <RowDefinition Height="*"/>
+                            <!-- Row 1: Pagination Footer -->
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                                <!-- Người gửi -->
-                                <DataGridTextColumn Header="Người gửi" Binding="{Binding RequesterName}" Width="1.2*">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="FontWeight" Value="SemiBold"/>
-                                            <Setter Property="Foreground" Value="#0F172A"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="10,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                        <!-- Requests DataGrid Container -->
+                        <Border Grid.Row="0" Background="White" CornerRadius="8" BorderBrush="#E2E8F0" BorderThickness="1"
+                                VerticalAlignment="Stretch">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" Opacity="0.03" ShadowDepth="1" Color="#000000"/>
+                            </Border.Effect>
+                            <DataGrid x:Name="RequestsDataGrid"
+                                      ItemsSource="{Binding Requests}"
+                                      SelectedItem="{Binding SelectedRequestItem, Mode=TwoWay}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      CanUserDeleteRows="False"
+                                      CanUserResizeRows="False"
+                                      IsReadOnly="True"
+                                      SelectionMode="Single"
+                                      SelectionUnit="FullRow"
+                                      FocusVisualStyle="{x:Null}"
+                                      PreviewMouseWheel="OnDataGridPreviewMouseWheel"
+                                      ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#F1F5F9"
+                                      HeadersVisibility="Column"
+                                      BorderThickness="0"
+                                      Background="White"
+                                      VerticalAlignment="Stretch"
+                                      CellStyle="{StaticResource ModernDataGridCell}"
+                                      RowStyle="{StaticResource ModernDataGridRow}"
+                                      ColumnHeaderStyle="{StaticResource ModernDataGridHeader}">
+                                <DataGrid.Columns>
+                                    <!-- Căn hộ -->
+                                    <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="90">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="Foreground" Value="#2563EB"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="10,0"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
 
-                                <!-- Người cần thêm -->
-                                <DataGridTextColumn Header="Người cần thêm" Binding="{Binding FullName}" Width="1.3*">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                            <Setter Property="Foreground" Value="#0F172A"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="10,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <!-- Người gửi -->
+                                    <DataGridTextColumn Header="Người gửi" Binding="{Binding RequesterName}" Width="1.2*">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="10,0"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
 
-                                <!-- CCCD/CMND -->
-                                <DataGridTextColumn Header="CCCD/CMND" Binding="{Binding IdentityCardText}" Width="130">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="#475569"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="10,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <!-- Người cần thêm -->
+                                    <DataGridTextColumn Header="Người cần thêm" Binding="{Binding FullName}" Width="1.3*">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="10,0"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
 
-                                <!-- Quan hệ -->
-                                <DataGridTextColumn Header="Quan hệ" Binding="{Binding RelationshipText}" Width="150">
-                                    <DataGridTextColumn.ElementStyle>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="#2563EB"/>
-                                            <Setter Property="FontWeight" Value="Medium"/>
-                                            <Setter Property="VerticalAlignment" Value="Center"/>
-                                            <Setter Property="Margin" Value="10,0"/>
-                                        </Style>
-                                    </DataGridTextColumn.ElementStyle>
-                                </DataGridTextColumn>
+                                    <!-- CCCD/CMND -->
+                                    <DataGridTextColumn Header="CCCD/CMND" Binding="{Binding IdentityCardText}" Width="130">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#475569"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="10,0"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
 
-                                <!-- Trạng thái (Pill Badge: Chưa duyệt / Đã duyệt / Từ chối) -->
-                                <DataGridTemplateColumn Header="Trạng thái" Width="130">
-                                    <DataGridTemplateColumn.CellTemplate>
+                                    <!-- Quan hệ -->
+                                    <DataGridTextColumn Header="Quan hệ" Binding="{Binding RelationshipText}" Width="150">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#2563EB"/>
+                                                <Setter Property="FontWeight" Value="Medium"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Margin" Value="10,0"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Trạng thái (Pill Badge: Chưa duyệt / Đã duyệt / Từ chối) -->
+                                    <DataGridTemplateColumn Header="Trạng thái" Width="130">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding StatusBadgeBg}"
+                                                        BorderBrush="{Binding StatusBadgeBorder}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Padding="10,3"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding StatusText}"
+                                                               Foreground="{Binding StatusBadgeFg}"
+                                                               FontWeight="SemiBold"
+                                                               FontSize="12"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Thao tác: Khi chưa duyệt hiện rõ [Duyệt] & [Từ chối]; khi đã duyệt/từ chối thì ẩn nút -->
+                                    <DataGridTemplateColumn Header="Thao tác" Width="170">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <!-- Khi Chưa duyệt: Hiện 2 nút sáng rõ cho phép duyệt -->
+                                                    <StackPanel Orientation="Horizontal" Visibility="{Binding CanApprove, Converter={StaticResource BoolToVis}}">
+                                                        <Button Content="Duyệt" Style="{StaticResource RoundedSuccessBtn}"
+                                                                Margin="0,0,8,0"
+                                                                Padding="14,6"
+                                                                Command="{Binding DataContext.ApproveRequestCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                CommandParameter="{Binding}"/>
+                                                        <Button Content="Từ chối" Style="{StaticResource RoundedDangerBtn}"
+                                                                Padding="14,6"
+                                                                Command="{Binding DataContext.OpenRejectDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                CommandParameter="{Binding}"/>
+                                                    </StackPanel>
+
+                                                    <!-- Khi Đã duyệt hoặc Từ chối: Ô thao tác ẩn các nút đi -->
+                                                    <TextBlock Text="—"
+                                                               Foreground="#94A3B8"
+                                                               FontWeight="Medium"
+                                                               FontSize="14"
+                                                               HorizontalAlignment="Center"
+                                                               Visibility="{Binding IsProcessed, Converter={StaticResource BoolToVis}}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Border>
+
+                        <!-- PAGINATION FOOTER CHO YÊU CẦU THÀNH VIÊN -->
+                        <Grid Grid.Row="1" Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Summary text -->
+                            <TextBlock Grid.Column="0" Text="{Binding PaginationSummary}"
+                                       FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+
+                            <!-- Page Nav Buttons -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="‹" Command="{Binding PreviousPageCommand}"
+                                        Style="{StaticResource PageNavBtnStyle}" IsEnabled="{Binding CanPreviousPage}"/>
+
+                                <ItemsControl ItemsSource="{Binding PaginationPages}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{Binding StatusBadgeBg}"
-                                                    BorderBrush="{Binding StatusBadgeBorder}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="6"
-                                                    Padding="10,3"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding StatusText}"
-                                                           Foreground="{Binding StatusBadgeFg}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="12"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
+                                            <Grid Margin="1,0">
+                                                <!-- Hiển thị dấu ba chấm nếu là ellipsis -->
+                                                <TextBlock Text="{Binding DisplayText}"
+                                                           FontSize="13" FontWeight="Bold" Foreground="#94A3B8"
+                                                           VerticalAlignment="Center" Margin="5,0"
+                                                           Visibility="{Binding IsEllipsis, Converter={StaticResource BoolToVis}}"/>
 
-                                <!-- Thao tác: Khi chưa duyệt hiện rõ [Duyệt] & [Từ chối]; khi đã duyệt/từ chối thì ẩn nút -->
-                                <DataGridTemplateColumn Header="Thao tác" Width="170">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <!-- Khi Chưa duyệt: Hiện 2 nút sáng rõ cho phép duyệt -->
-                                                <StackPanel Orientation="Horizontal" Visibility="{Binding CanApprove, Converter={StaticResource BoolToVis}}">
-                                                    <Button Content="Duyệt" Style="{StaticResource RoundedSuccessBtn}"
-                                                            Margin="0,0,8,0"
-                                                            Padding="14,6"
-                                                            Command="{Binding DataContext.ApproveRequestCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                            CommandParameter="{Binding}"/>
-                                                    <Button Content="Từ chối" Style="{StaticResource RoundedDangerBtn}"
-                                                            Padding="14,6"
-                                                            Command="{Binding DataContext.OpenRejectDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                            CommandParameter="{Binding}"/>
-                                                </StackPanel>
-
-                                                <!-- Khi Đã duyệt hoặc Từ chối: Ô thao tác ẩn các nút đi -->
-                                                <TextBlock Text="—"
-                                                           Foreground="#94A3B8"
-                                                           FontWeight="Medium"
-                                                           FontSize="14"
-                                                           HorizontalAlignment="Center"
-                                                           Visibility="{Binding IsProcessed, Converter={StaticResource BoolToVis}}"/>
+                                                <!-- Nút bấm chuyển trang -->
+                                                <Button Content="{Binding DisplayText}"
+                                                        Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Width="32" Height="32" Cursor="Hand">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="White"/>
+                                                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                                            <Setter Property="BorderThickness" Value="1"/>
+                                                            <Setter Property="Foreground" Value="#475569"/>
+                                                            <Setter Property="FontSize" Value="12.5"/>
+                                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border x:Name="pBd" CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter TargetName="pBd" Property="Background" Value="#F1F5F9"/>
+                                                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                    <Setter Property="Background" Value="#2563EB"/>
+                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
                                             </Grid>
                                         </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Border>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Button Content="›" Command="{Binding NextPageCommand}"
+                                        Style="{StaticResource PageNavBtnStyle}" IsEnabled="{Binding CanNextPage}"/>
+                            </StackPanel>
+
+                            <!-- Page Size Selector -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Số dòng/trang:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <ComboBox ItemsSource="{Binding PageSizeOptions}"
+                                          SelectedItem="{Binding PageSize}"
+                                          Height="32" Width="68" FontSize="12.5" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
 
                 </Grid>
 

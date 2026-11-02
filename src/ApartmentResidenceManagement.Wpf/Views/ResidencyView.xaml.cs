@@ -30,9 +30,13 @@ public partial class ResidencyView : UserControl
             {
                 // Lăn chuột xuống -> Chuyển xuống dòng dưới, đến cuối trang tự sang trang tiếp theo
                 vm.SelectNextItemOrNextPage();
-                if (vm.SelectedResidenceItem != null)
+                if (vm.IsResidencesTab && vm.SelectedResidenceItem != null)
                 {
                     ResidencesDataGrid.ScrollIntoView(vm.SelectedResidenceItem);
+                }
+                else if (vm.IsRequestsTab && vm.SelectedRequestItem != null)
+                {
+                    RequestsDataGrid.ScrollIntoView(vm.SelectedRequestItem);
                 }
                 e.Handled = true;
             }
@@ -40,9 +44,13 @@ public partial class ResidencyView : UserControl
             {
                 // Lăn chuột lên -> Chuyển lên dòng trên, đến đầu trang tự về trang trước
                 vm.SelectPreviousItemOrPreviousPage();
-                if (vm.SelectedResidenceItem != null)
+                if (vm.IsResidencesTab && vm.SelectedResidenceItem != null)
                 {
                     ResidencesDataGrid.ScrollIntoView(vm.SelectedResidenceItem);
+                }
+                else if (vm.IsRequestsTab && vm.SelectedRequestItem != null)
+                {
+                    RequestsDataGrid.ScrollIntoView(vm.SelectedRequestItem);
                 }
                 e.Handled = true;
             }

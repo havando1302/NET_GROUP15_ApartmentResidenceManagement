@@ -168,7 +168,14 @@ public class ResidencyViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsRequestsTab));
                 OnPropertyChanged(nameof(IsDetailPanelVisible));
                 CurrentPage = 1;
-                ApplyFilters();
+                if (IsResidencesTab)
+                {
+                    ApplyFilters();
+                }
+                else if (IsRequestsTab)
+                {
+                    ApplyPagination();
+                }
             }
         }
     }
@@ -214,6 +221,13 @@ public class ResidencyViewModel : ViewModelBase
     {
         get => _requests;
         set => SetProperty(ref _requests, value);
+    }
+
+    private MemberRegistrationRequestItemViewModel? _selectedRequestItem;
+    public MemberRegistrationRequestItemViewModel? SelectedRequestItem
+    {
+        get => _selectedRequestItem;
+        set => SetProperty(ref _selectedRequestItem, value);
     }
 
     public ObservableCollection<string> ApartmentFilterOptions
@@ -662,50 +676,104 @@ public class ResidencyViewModel : ViewModelBase
     #region Mouse Wheel & Keyboard Paged Navigation
     public void SelectNextItemOrNextPage()
     {
-        if (PagedResidences.Count == 0) return;
+        if (IsResidencesTab)
+        {
+            if (PagedResidences.Count == 0) return;
 
-        if (SelectedResidenceItem == null)
-        {
-            SelectedResidenceItem = PagedResidences.FirstOrDefault();
-            return;
-        }
-
-        int currentIndex = PagedResidences.IndexOf(SelectedResidenceItem);
-        if (currentIndex >= 0 && currentIndex < PagedResidences.Count - 1)
-        {
-            SelectedResidenceItem = PagedResidences[currentIndex + 1];
-        }
-        else if (currentIndex == PagedResidences.Count - 1)
-        {
-            if (CanNextPage)
+            if (SelectedResidenceItem == null)
             {
-                CurrentPage++;
                 SelectedResidenceItem = PagedResidences.FirstOrDefault();
+                return;
+            }
+
+            int currentIndex = PagedResidences.IndexOf(SelectedResidenceItem);
+            if (currentIndex >= 0 && currentIndex < PagedResidences.Count - 1)
+            {
+                SelectedResidenceItem = PagedResidences[currentIndex + 1];
+            }
+            else if (currentIndex == PagedResidences.Count - 1)
+            {
+                if (CanNextPage)
+                {
+                    CurrentPage++;
+                    SelectedResidenceItem = PagedResidences.FirstOrDefault();
+                }
+            }
+        }
+        else if (IsRequestsTab)
+        {
+            if (Requests.Count == 0) return;
+
+            if (SelectedRequestItem == null)
+            {
+                SelectedRequestItem = Requests.FirstOrDefault();
+                return;
+            }
+
+            int currentIndex = Requests.IndexOf(SelectedRequestItem);
+            if (currentIndex >= 0 && currentIndex < Requests.Count - 1)
+            {
+                SelectedRequestItem = Requests[currentIndex + 1];
+            }
+            else if (currentIndex == Requests.Count - 1)
+            {
+                if (CanNextPage)
+                {
+                    CurrentPage++;
+                    SelectedRequestItem = Requests.FirstOrDefault();
+                }
             }
         }
     }
 
     public void SelectPreviousItemOrPreviousPage()
     {
-        if (PagedResidences.Count == 0) return;
+        if (IsResidencesTab)
+        {
+            if (PagedResidences.Count == 0) return;
 
-        if (SelectedResidenceItem == null)
-        {
-            SelectedResidenceItem = PagedResidences.LastOrDefault();
-            return;
-        }
-
-        int currentIndex = PagedResidences.IndexOf(SelectedResidenceItem);
-        if (currentIndex > 0)
-        {
-            SelectedResidenceItem = PagedResidences[currentIndex - 1];
-        }
-        else if (currentIndex == 0)
-        {
-            if (CanPreviousPage)
+            if (SelectedResidenceItem == null)
             {
-                CurrentPage--;
                 SelectedResidenceItem = PagedResidences.LastOrDefault();
+                return;
+            }
+
+            int currentIndex = PagedResidences.IndexOf(SelectedResidenceItem);
+            if (currentIndex > 0)
+            {
+                SelectedResidenceItem = PagedResidences[currentIndex - 1];
+            }
+            else if (currentIndex == 0)
+            {
+                if (CanPreviousPage)
+                {
+                    CurrentPage--;
+                    SelectedResidenceItem = PagedResidences.LastOrDefault();
+                }
+            }
+        }
+        else if (IsRequestsTab)
+        {
+            if (Requests.Count == 0) return;
+
+            if (SelectedRequestItem == null)
+            {
+                SelectedRequestItem = Requests.LastOrDefault();
+                return;
+            }
+
+            int currentIndex = Requests.IndexOf(SelectedRequestItem);
+            if (currentIndex > 0)
+            {
+                SelectedRequestItem = Requests[currentIndex - 1];
+            }
+            else if (currentIndex == 0)
+            {
+                if (CanPreviousPage)
+                {
+                    CurrentPage--;
+                    SelectedRequestItem = Requests.LastOrDefault();
+                }
             }
         }
     }
@@ -834,38 +902,68 @@ public class ResidencyViewModel : ViewModelBase
 
     private void ApplyPagination()
     {
-        int total = _currentFilteredList.Count;
-        int maxPages = Math.Max(1, (int)Math.Ceiling((double)total / PageSize));
-        if (CurrentPage > maxPages) _currentPage = maxPages;
-        if (CurrentPage < 1) _currentPage = 1;
-
-        int skip = (CurrentPage - 1) * PageSize;
-        var pagedItems = _currentFilteredList.Skip(skip).Take(PageSize).ToList();
-
-        PagedResidences.Clear();
-        int stt = skip + 1;
-        foreach (var rh in pagedItems)
+        if (IsResidencesTab)
         {
-            PagedResidences.Add(new ResidenceDisplayItemViewModel(rh, stt++));
-        }
+            int total = _currentFilteredList.Count;
+            TotalFilteredCount = total;
+            int maxPages = Math.Max(1, (int)Math.Ceiling((double)total / PageSize));
+            if (CurrentPage > maxPages) _currentPage = maxPages;
+            if (CurrentPage < 1) _currentPage = 1;
 
-        // Nếu panel chi tiết đang mở mà mục hiện tại không còn trong trang, chọn mục đầu tiên
-        if (IsDetailPanelOpen)
-        {
-            if (SelectedResidenceItem == null || !PagedResidences.Any(p => p.Id == SelectedResidenceItem.Id))
+            int skip = (CurrentPage - 1) * PageSize;
+            var pagedItems = _currentFilteredList.Skip(skip).Take(PageSize).ToList();
+
+            PagedResidences.Clear();
+            int stt = skip + 1;
+            foreach (var rh in pagedItems)
             {
-                SelectedResidenceItem = PagedResidences.FirstOrDefault();
+                PagedResidences.Add(new ResidenceDisplayItemViewModel(rh, stt++));
             }
-        }
 
-        // Cập nhật PageNumbers (số nguyên)
+            if (IsDetailPanelOpen)
+            {
+                if (SelectedResidenceItem == null || !PagedResidences.Any(p => p.Id == SelectedResidenceItem.Id))
+                {
+                    SelectedResidenceItem = PagedResidences.FirstOrDefault();
+                }
+            }
+
+            UpdatePaginationPages(maxPages);
+        }
+        else if (IsRequestsTab)
+        {
+            int total = _allRequests.Count;
+            TotalFilteredCount = total;
+            int maxPages = Math.Max(1, (int)Math.Ceiling((double)total / PageSize));
+            if (CurrentPage > maxPages) _currentPage = maxPages;
+            if (CurrentPage < 1) _currentPage = 1;
+
+            int skip = (CurrentPage - 1) * PageSize;
+            var pagedItems = _allRequests.Skip(skip).Take(PageSize).ToList();
+
+            Requests.Clear();
+            foreach (var req in pagedItems)
+            {
+                Requests.Add(req);
+            }
+
+            if (SelectedRequestItem == null || !Requests.Any(r => r.Id == SelectedRequestItem.Id))
+            {
+                SelectedRequestItem = Requests.FirstOrDefault();
+            }
+
+            UpdatePaginationPages(maxPages);
+        }
+    }
+
+    private void UpdatePaginationPages(int maxPages)
+    {
         PageNumbers.Clear();
         for (int i = 1; i <= maxPages; i++)
         {
             PageNumbers.Add(i);
         }
 
-        // Cập nhật PaginationPages (dạng thông minh cho UI)
         PaginationPages.Clear();
         if (maxPages <= 7)
         {
@@ -882,7 +980,6 @@ public class ResidencyViewModel : ViewModelBase
         }
         else
         {
-            // Trang đầu
             PaginationPages.Add(new PaginationPageItem
             {
                 PageNumber = 1,
@@ -926,7 +1023,6 @@ public class ResidencyViewModel : ViewModelBase
                 PaginationPages.Add(new PaginationPageItem { DisplayText = "...", IsEllipsis = true });
             }
 
-            // Trang cuối
             PaginationPages.Add(new PaginationPageItem
             {
                 PageNumber = maxPages,
@@ -973,7 +1069,6 @@ public class ResidencyViewModel : ViewModelBase
     public async Task LoadRequestsAsync()
     {
         _allRequests.Clear();
-        Requests.Clear();
 
         if (_memberRequestService != null)
         {
@@ -1046,7 +1141,19 @@ public class ResidencyViewModel : ViewModelBase
                 };
 
                 _allRequests.Add(item);
-                Requests.Add(item);
+            }
+        }
+
+        if (IsRequestsTab)
+        {
+            ApplyPagination();
+        }
+        else
+        {
+            Requests.Clear();
+            foreach (var req in _allRequests)
+            {
+                Requests.Add(req);
             }
         }
 
