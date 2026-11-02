@@ -100,12 +100,16 @@ public class VehicleService
 
         if (status == VehicleRegistrationStatus.Approved)
         {
-            // Kiểm tra cư trú hoạt động sẽ kích hoạt khi tích hợp module ResidenceHistories (của Đô)
             var owner = await _unitOfWork.Residents.GetByIdAsync(vehicle.OwnerId);
             if (owner == null)
             {
                 throw new BusinessRuleException("Không thể duyệt xe vì không tìm thấy cư dân sở hữu.");
             }
+        }
+
+        if (status == VehicleRegistrationStatus.Approved)
+        {
+            await EnsureActiveResidenceAsync(vehicle.OwnerId);
         }
 
         vehicle.RegistrationStatus = status;
@@ -190,6 +194,14 @@ public class VehicleService
             throw new BusinessRuleException("Không tìm thấy cư dân sở hữu phương tiện.");
         }
 
-        // Kiểm tra cư trú hoạt động sẽ kích hoạt khi tích hợp module ResidenceHistories (của Đô)
+        await EnsureActiveResidenceAsync(vehicle.OwnerId);
+    }
+    private async Task EnsureActiveResidenceAsync(int ownerId)
+    {
+        var residence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(ownerId);
+        if (residence == null)
+        {
+            throw new BusinessRuleException("Cư dân phải có cư trú đang hoạt động để đăng ký hoặc duyệt phương tiện.");
+        }
     }
 }

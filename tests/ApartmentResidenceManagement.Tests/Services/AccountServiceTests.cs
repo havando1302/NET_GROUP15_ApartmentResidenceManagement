@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Domain.Interfaces;
@@ -158,5 +158,18 @@ public class AccountServiceTests
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ToggleAccountStatusAsync(accountId));
         Assert.Contains("Không được phép vô hiệu hóa tài khoản quản trị", ex.Message);
+    }
+
+    [Fact]
+    public async Task Login_AccountDeactivated_ThrowsBusinessRuleException_Regression()
+    {
+        // Regression test for QA: Tai khoan bi vo hieu hoa phai chan dang nhap va bao loi
+        string username = "deactivated_user";
+        var account = new UserAccount { Username = username, PasswordHash = "hashed_pass", IsActive = false };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "anyPassword"));
+        Assert.Contains("đã bị khóa", ex.Message);
     }
 }

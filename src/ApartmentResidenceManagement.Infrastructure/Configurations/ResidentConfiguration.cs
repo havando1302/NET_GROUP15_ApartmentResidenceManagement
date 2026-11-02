@@ -32,6 +32,8 @@ public class ResidentConfiguration : IEntityTypeConfiguration<Resident>
         builder.Property(r => r.PhoneNumber)
             .HasMaxLength(15);
 
+        builder.Property(r => r.Email).HasMaxLength(100);
+
         builder.Property(r => r.HomeTown)
             .HasMaxLength(200);
     }

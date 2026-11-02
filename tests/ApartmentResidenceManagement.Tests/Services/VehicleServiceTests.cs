@@ -15,6 +15,7 @@ public class VehicleServiceTests
     private readonly Mock<IVehicleRepository> _mockVehicleRepo;
     private readonly Mock<IResidentRepository> _mockResidentRepo;
     private readonly VehicleService _service;
+    private readonly Mock<IResidenceHistoryRepository> _mockResidenceRepo;
 
     public VehicleServiceTests()
     {
@@ -25,6 +26,10 @@ public class VehicleServiceTests
         _mockUow.Setup(u => u.Vehicles).Returns(_mockVehicleRepo.Object);
         _mockUow.Setup(u => u.Residents).Returns(_mockResidentRepo.Object);
 
+        _mockResidenceRepo = new Mock<IResidenceHistoryRepository>();
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(_mockResidenceRepo.Object);
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(It.IsAny<int>()))
+            .ReturnsAsync((int id) => new ResidenceHistory { ResidentId = id, IsActive = true });
         _service = new VehicleService(_mockUow.Object);
     }
 
@@ -81,7 +86,7 @@ public class VehicleServiceTests
     }
 
     [Fact]
-    public async Task ReviewVehicle_ApproveInactiveOwner_ShouldRejectOperation()
+    public async Task ReviewVehicle_ApproveMissingOwner_ShouldRejectOperation()
     {
         var vehicle = new Vehicle { Id = 5, OwnerId = 10, RegistrationStatus = VehicleRegistrationStatus.Pending };
         _mockVehicleRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(vehicle);
@@ -117,5 +122,38 @@ public class VehicleServiceTests
             _service.UpdateVehicleRegistrationAsync(11, update));
 
         _mockVehicleRepo.Verify(r => r.Update(It.IsAny<Vehicle>()), Times.Never);
+    }
+    [Fact]
+    public async Task SubmitVehicleRegistration_InactiveOwner_ShouldNotSave()
+    {
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(
+            new Vehicle { OwnerId = 10, LicensePlate = "29A1-12345", VehicleType = VehicleType.Moto }));
+        _mockVehicleRepo.Verify(r => r.AddAsync(It.IsAny<Vehicle>()), Times.Never);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReviewVehicle_ApproveInactiveResidence_ShouldNotChangeStatus()
+    {
+        var vehicle = new Vehicle { Id = 5, OwnerId = 10, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(vehicle);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ReviewVehicleAsync(5, VehicleRegistrationStatus.Approved));
+        Assert.Equal(VehicleRegistrationStatus.Pending, vehicle.RegistrationStatus);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReviewVehicle_ApproveActiveResidence_ShouldSaveApprovedStatus()
+    {
+        var vehicle = new Vehicle { Id = 5, OwnerId = 10, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(vehicle);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        await _service.ReviewVehicleAsync(5, VehicleRegistrationStatus.Approved);
+        Assert.Equal(VehicleRegistrationStatus.Approved, vehicle.RegistrationStatus);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
 }
