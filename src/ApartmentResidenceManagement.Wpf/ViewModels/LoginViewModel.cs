@@ -19,6 +19,10 @@ public class LoginViewModel : ViewModelBase
     private string _selectedRole = "Admin"; // "Admin" hoặc "Resident"
     private bool _rememberMe;
 
+    // Cơ chế chống tấn công Brute-force (Rate Limiting / Lockout)
+    private int _failedAttempts = 0;
+    private DateTime? _lockoutEndTime = null;
+
     public event EventHandler? OnLoginSuccess;
     public UserAccount? LoggedInAccount { get; private set; }
 
@@ -123,6 +127,14 @@ public class LoginViewModel : ViewModelBase
     {
         ErrorMessage = string.Empty;
 
+        // Kiểm tra khóa tạm thời do nhập sai quá 5 lần
+        if (_lockoutEndTime.HasValue && DateTime.Now < _lockoutEndTime.Value)
+        {
+            var remaining = Math.Ceiling((_lockoutEndTime.Value - DateTime.Now).TotalSeconds);
+            ErrorMessage = $"Tài khoản tạm thời bị khóa do nhập sai nhiều lần. Vui lòng đợi {remaining} giây trước khi thử lại.";
+            return;
+        }
+
         if (parameter is not PasswordBox passwordBox)
         {
             ErrorMessage = "Không thể đọc thông tin mật khẩu.";
@@ -137,13 +149,27 @@ public class LoginViewModel : ViewModelBase
             var account = await _accountService.LoginAsync(Username, password);
             if (account != null)
             {
+                // Reset số lần đăng nhập sai khi thành công
+                _failedAttempts = 0;
+                _lockoutEndTime = null;
+
                 LoggedInAccount = account;
                 OnLoginSuccess?.Invoke(this, EventArgs.Empty);
             }
         }
         catch (BusinessRuleException ex)
         {
-            ErrorMessage = ex.Message;
+            _failedAttempts++;
+            if (_failedAttempts >= 5)
+            {
+                _lockoutEndTime = DateTime.Now.AddSeconds(60);
+                _failedAttempts = 0;
+                ErrorMessage = "Bạn đã nhập sai thông tin 5 lần liên tiếp. Để đảm bảo an toàn, tính năng đăng nhập tạm khóa trong 60 giây.";
+            }
+            else
+            {
+                ErrorMessage = ex.Message;
+            }
         }
         catch (Exception)
         {

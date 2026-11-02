@@ -11,6 +11,68 @@ using ApartmentResidenceManagement.Wpf.Commands;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
+#region Display Item Models
+public class ResidenceDisplayItemViewModel : ViewModelBase
+{
+    public ResidenceHistory History { get; }
+    public int Stt { get; set; }
+    public int Id => History.Id;
+    public int ResidentId => History.ResidentId;
+    public string ResidentCode => $"CD{History.ResidentId:D3}";
+    public string ResidentName => History.Resident?.FullName ?? "Chưa rõ";
+    public string ApartmentNumber => History.Apartment?.ApartmentNumber ?? "Chưa rõ";
+    public int ApartmentId => History.ApartmentId;
+    public DateTime StartDate => History.StartDate;
+    public DateTime? EndDate => History.EndDate;
+    public bool IsActive => History.IsActive;
+    public RelationshipType RelationshipType => History.RelationshipType;
+
+    public string RelationshipText => History.RelationshipType switch
+    {
+        RelationshipType.Owner => "Chủ hộ",
+        RelationshipType.FamilyMember => "Thành viên gia đình",
+        RelationshipType.Tenant => "Người thuê",
+        RelationshipType.Temporary => "Tạm trú",
+        _ => "Cư dân"
+    };
+
+    public string FormattedStartDate => History.StartDate.ToString("dd/MM/yyyy");
+    public string FormattedEndDate => History.EndDate?.ToString("dd/MM/yyyy") ?? "Hiện tại";
+
+    public string ResidenceDuration
+    {
+        get
+        {
+            var end = History.EndDate ?? DateTime.Today;
+            var diff = (end.Date - History.StartDate.Date).Days;
+            if (diff < 0) diff = 0;
+            return $"{diff} ngày";
+        }
+    }
+
+    public string IdentityCard => History.Resident?.IdentityCard ?? "Chưa cập nhật";
+    public string PhoneNumber => History.Resident?.PhoneNumber ?? "Chưa cập nhật";
+    public string HomeTown => History.Resident?.HomeTown ?? "Chưa cập nhật";
+    public string Email => History.Resident?.Email ?? "Chưa cập nhật";
+
+    public ResidenceDisplayItemViewModel(ResidenceHistory history, int stt = 1)
+    {
+        History = history;
+        Stt = stt;
+    }
+}
+
+public class ResidenceTimelineItem
+{
+    public string ApartmentNumber { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public string StatusText => IsActive ? "Đang cư trú" : "Đã kết thúc";
+    public string DateRangeText { get; set; } = string.Empty;
+    public bool IsLast { get; set; }
+    public bool ShowLine => !IsLast;
+}
+#endregion
+
 public class ResidencyViewModel : ViewModelBase
 {
     private readonly ResidenceService _residenceService;
@@ -21,42 +83,68 @@ public class ResidencyViewModel : ViewModelBase
     private List<ResidenceHistory> _allResidences = new();
     private List<MemberRegistrationRequestItemViewModel> _allRequests = new();
 
-    // Tab chuyển đổi: 0 = "Danh sách cư trú", 1 = "Yêu cầu thêm thành viên"
+    // Tab: 0 = "Đang cư trú", 1 = "Lịch sử cư trú", 2 = "Yêu cầu thêm thành viên"
     private int _selectedTabIndex = 0;
 
-    // Lọc & Tìm kiếm cư trú
+    // Filters
     private string _searchText = string.Empty;
-    private string _selectedStatusFilter = "Tất cả"; // Tất cả, Đang cư trú, Đã chuyển đi
+    private string _selectedApartmentFilter = "Tất cả";
+    private string _selectedSortOrder = "Ngày bắt đầu (mới nhất)";
 
-    // UI Collections
-    private ObservableCollection<ResidenceHistory> _residences = new();
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 8;
+    private int _totalFilteredCount = 0;
+
+    // Collections
+    private ObservableCollection<ResidenceDisplayItemViewModel> _pagedResidences = new();
+    private ObservableCollection<string> _apartmentFilterOptions = new() { "Tất cả" };
+    private ObservableCollection<int> _pageNumbers = new();
     private ObservableCollection<MemberRegistrationRequestItemViewModel> _requests = new();
     private List<Apartment> _availableApartments = new();
     private List<Resident> _availableResidents = new();
-    // Thao tác Form Cư trú
-    private ResidenceHistory? _selectedResidence;
+    private List<ResidenceHistory> _activeResidencesForSelection = new();
+
+    // Detail Panel
+    private ResidenceDisplayItemViewModel? _selectedResidenceItem;
+    private ObservableCollection<ResidenceTimelineItem> _selectedResidentTimeline = new();
+
+    // Form modal state
     private bool _isFormOpen;
     private string _formTitle = string.Empty;
     private string _actionType = "Register"; // Register, Terminate, Transfer
-
-    // Form Inputs
+    private ResidenceHistory? _selectedResidence;
     private Apartment? _selectedApartmentInput;
     private Resident? _selectedResidentInput;
     private RelationshipType _selectedRelationshipType = RelationshipType.FamilyMember;
     private DateTime _startDateInput = DateTime.Today;
     private DateTime _endDateInput = DateTime.Today;
 
-    // Thao tác Từ chối Yêu cầu
+    // Reject Dialog (for member requests)
     private bool _isRejectDialogOpen;
     private MemberRegistrationRequestItemViewModel? _requestToReject;
     private string _rejectReasonInput = string.Empty;
     private string _requestSuccessMessage = string.Empty;
-    // Báo lỗi
+
+    // Status / Loading
     private string _errorMessage = string.Empty;
     private bool _hasError;
     private bool _isLoading;
 
-    #region Properties
+    #region Stats KPI Properties
+    public int ActiveResidentsCount => _allResidences.Count(r => r.IsActive);
+    public int EndedCount => _allResidences.Count(r => !r.IsActive);
+    public int TransferCount
+    {
+        get
+        {
+            // Lượt chuyển căn hộ: tổng các hồ sơ đã kết thúc của những cư dân sau đó tiếp tục có căn hộ mới
+            return _allResidences.GroupBy(r => r.ResidentId).Count(g => g.Count() > 1);
+        }
+    }
+    #endregion
+
+    #region Tab Properties
     public int SelectedTabIndex
     {
         get => _selectedTabIndex;
@@ -65,24 +153,57 @@ public class ResidencyViewModel : ViewModelBase
             if (SetProperty(ref _selectedTabIndex, value))
             {
                 OnPropertyChanged(nameof(IsResidencesTab));
+                OnPropertyChanged(nameof(IsActiveTab));
+                OnPropertyChanged(nameof(IsHistoryTab));
                 OnPropertyChanged(nameof(IsRequestsTab));
+                CurrentPage = 1;
+                ApplyFilters();
             }
         }
     }
 
-    public bool IsResidencesTab => SelectedTabIndex == 0;
-    public bool IsRequestsTab => SelectedTabIndex == 1;
+    public bool IsResidencesTab => SelectedTabIndex == 0 || SelectedTabIndex == 1;
+    public bool IsActiveTab => SelectedTabIndex == 0;
+    public bool IsHistoryTab => SelectedTabIndex == 1;
+    public bool IsRequestsTab => SelectedTabIndex == 2;
+    #endregion
 
-    public ObservableCollection<ResidenceHistory> Residences
+    #region Collection Properties
+    public ObservableCollection<ResidenceDisplayItemViewModel> PagedResidences
     {
-        get => _residences;
-        set => SetProperty(ref _residences, value);
+        get => _pagedResidences;
+        set => SetProperty(ref _pagedResidences, value);
     }
+
+    // Tương thích ngược cho các view cũ
+    public ObservableCollection<ResidenceHistory> Residences { get; } = new();
 
     public ObservableCollection<MemberRegistrationRequestItemViewModel> Requests
     {
         get => _requests;
         set => SetProperty(ref _requests, value);
+    }
+
+    public ObservableCollection<string> ApartmentFilterOptions
+    {
+        get => _apartmentFilterOptions;
+        set => SetProperty(ref _apartmentFilterOptions, value);
+    }
+
+    public List<string> SortOrderOptions { get; } = new()
+    {
+        "Ngày bắt đầu (mới nhất)",
+        "Ngày bắt đầu (cũ nhất)",
+        "Họ tên (A-Z)",
+        "Căn hộ (A-Z)"
+    };
+
+    public List<int> PageSizeOptions { get; } = new() { 8, 10, 20, 50 };
+
+    public ObservableCollection<int> PageNumbers
+    {
+        get => _pageNumbers;
+        set => SetProperty(ref _pageNumbers, value);
     }
 
     public int PendingRequestsCount => _allRequests.Count(r => r.Status == RequestStatus.Pending);
@@ -101,6 +222,14 @@ public class ResidencyViewModel : ViewModelBase
         set => SetProperty(ref _availableResidents, value);
     }
 
+    public List<ResidenceHistory> ActiveResidencesForSelection
+    {
+        get => _activeResidencesForSelection;
+        set => SetProperty(ref _activeResidencesForSelection, value);
+    }
+    #endregion
+
+    #region Filter & Pagination Properties
     public string SearchText
     {
         get => _searchText;
@@ -108,31 +237,123 @@ public class ResidencyViewModel : ViewModelBase
         {
             if (SetProperty(ref _searchText, value))
             {
+                CurrentPage = 1;
                 ApplyFilters();
             }
         }
     }
 
-    public string SelectedStatusFilter
+    public string SelectedApartmentFilter
     {
-        get => _selectedStatusFilter;
+        get => _selectedApartmentFilter;
         set
         {
-            if (SetProperty(ref _selectedStatusFilter, value))
+            if (SetProperty(ref _selectedApartmentFilter, value))
             {
+                CurrentPage = 1;
                 ApplyFilters();
             }
         }
     }
 
-    public List<string> StatusFilterOptions { get; } = new()
+    public string SelectedSortOrder
     {
-        "Tất cả",
-        "Đang cư trú",
-        "Đã chuyển đi"
-    };
+        get => _selectedSortOrder;
+        set
+        {
+            if (SetProperty(ref _selectedSortOrder, value))
+            {
+                CurrentPage = 1;
+                ApplyFilters();
+            }
+        }
+    }
 
-    // Form Properties
+    public int CurrentPage
+    {
+        get => _currentPage;
+        set
+        {
+            if (SetProperty(ref _currentPage, value))
+            {
+                OnPropertyChanged(nameof(CanPreviousPage));
+                OnPropertyChanged(nameof(CanNextPage));
+                ApplyPagination();
+            }
+        }
+    }
+
+    public int PageSize
+    {
+        get => _pageSize;
+        set
+        {
+            if (SetProperty(ref _pageSize, value))
+            {
+                CurrentPage = 1;
+                ApplyFilters();
+            }
+        }
+    }
+
+    public int TotalFilteredCount
+    {
+        get => _totalFilteredCount;
+        set
+        {
+            if (SetProperty(ref _totalFilteredCount, value))
+            {
+                OnPropertyChanged(nameof(TotalPages));
+                OnPropertyChanged(nameof(PaginationSummary));
+                OnPropertyChanged(nameof(CanPreviousPage));
+                OnPropertyChanged(nameof(CanNextPage));
+            }
+        }
+    }
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalFilteredCount / PageSize));
+
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+
+    public string PaginationSummary
+    {
+        get
+        {
+            if (TotalFilteredCount == 0) return "Hiển thị 0 / 0 bản ghi";
+            int start = (CurrentPage - 1) * PageSize + 1;
+            int end = Math.Min(CurrentPage * PageSize, TotalFilteredCount);
+            return $"Hiển thị {end - start + 1} / {TotalFilteredCount} bản ghi";
+        }
+    }
+    #endregion
+
+    #region Detail Panel Properties
+    public ResidenceDisplayItemViewModel? SelectedResidenceItem
+    {
+        get => _selectedResidenceItem;
+        set
+        {
+            if (SetProperty(ref _selectedResidenceItem, value))
+            {
+                OnPropertyChanged(nameof(HasSelectedResidence));
+                OnPropertyChanged(nameof(HasNoSelectedResidence));
+                LoadTimelineForSelectedResident();
+            }
+        }
+    }
+
+    public bool HasSelectedResidence => SelectedResidenceItem != null;
+    public bool HasNoSelectedResidence => SelectedResidenceItem == null;
+
+    public ObservableCollection<ResidenceTimelineItem> SelectedResidentTimeline
+    {
+        get => _selectedResidentTimeline;
+        set => SetProperty(ref _selectedResidentTimeline, value);
+    }
+    #endregion
+
+    #region Form Modal Properties
     public bool IsFormOpen
     {
         get => _isFormOpen;
@@ -166,7 +387,21 @@ public class ResidencyViewModel : ViewModelBase
     public ResidenceHistory? SelectedResidence
     {
         get => _selectedResidence;
-        set => SetProperty(ref _selectedResidence, value);
+        set
+        {
+            if (SetProperty(ref _selectedResidence, value))
+            {
+                if (value != null)
+                {
+                    SelectedResidentInput = value.Resident;
+                    if (IsTransferAction)
+                    {
+                        // Giữ nguyên quan hệ hiện tại
+                        SelectedRelationshipType = value.RelationshipType;
+                    }
+                }
+            }
+        }
     }
 
     public Apartment? SelectedApartmentInput
@@ -187,7 +422,8 @@ public class ResidencyViewModel : ViewModelBase
         set => SetProperty(ref _selectedRelationshipType, value);
     }
 
-    public List<RelationshipType> RelationshipTypes { get; } = Enum.GetValues(typeof(RelationshipType)).Cast<RelationshipType>().ToList();
+    public List<RelationshipType> RelationshipTypes { get; } =
+        Enum.GetValues(typeof(RelationshipType)).Cast<RelationshipType>().ToList();
 
     public DateTime StartDateInput
     {
@@ -220,7 +456,6 @@ public class ResidencyViewModel : ViewModelBase
         set => SetProperty(ref _requestSuccessMessage, value);
     }
 
-    // Báo lỗi
     public string ErrorMessage
     {
         get => _errorMessage;
@@ -248,13 +483,19 @@ public class ResidencyViewModel : ViewModelBase
 
     #region Commands
     public ICommand LoadResidencesCommand { get; }
+    public ICommand RefreshCommand { get; }
     public ICommand OpenRegisterFormCommand { get; }
     public ICommand OpenTerminateFormCommand { get; }
     public ICommand OpenTransferFormCommand { get; }
     public ICommand SaveResidencyCommand { get; }
     public ICommand CancelFormCommand { get; }
+    public ICommand SelectResidenceCommand { get; }
 
     public ICommand SwitchTabCommand { get; }
+    public ICommand NextPageCommand { get; }
+    public ICommand PreviousPageCommand { get; }
+    public ICommand GoToPageCommand { get; }
+
     public ICommand ApproveRequestCommand { get; }
     public ICommand OpenRejectDialogCommand { get; }
     public ICommand ConfirmRejectRequestCommand { get; }
@@ -273,11 +514,20 @@ public class ResidencyViewModel : ViewModelBase
         _memberRequestService = memberRequestService;
 
         LoadResidencesCommand = new AsyncRelayCommand(_ => LoadDataAsync());
+        RefreshCommand = new AsyncRelayCommand(_ => LoadDataAsync());
         OpenRegisterFormCommand = new RelayCommand(_ => OpenRegisterForm());
         OpenTerminateFormCommand = new RelayCommand(r => OpenTerminateForm(r));
         OpenTransferFormCommand = new RelayCommand(r => OpenTransferForm(r));
         SaveResidencyCommand = new AsyncRelayCommand(_ => SaveResidencyAsync());
         CancelFormCommand = new RelayCommand(_ => CloseForm());
+
+        SelectResidenceCommand = new RelayCommand(item =>
+        {
+            if (item is ResidenceDisplayItemViewModel displayItem)
+            {
+                SelectedResidenceItem = displayItem;
+            }
+        });
 
         SwitchTabCommand = new RelayCommand(tab =>
         {
@@ -288,6 +538,24 @@ public class ResidencyViewModel : ViewModelBase
             else if (tab is int i)
             {
                 SelectedTabIndex = i;
+            }
+        });
+
+        NextPageCommand = new RelayCommand(_ =>
+        {
+            if (CanNextPage) CurrentPage++;
+        });
+
+        PreviousPageCommand = new RelayCommand(_ =>
+        {
+            if (CanPreviousPage) CurrentPage--;
+        });
+
+        GoToPageCommand = new RelayCommand(p =>
+        {
+            if (p is int pageNum && pageNum >= 1 && pageNum <= TotalPages)
+            {
+                CurrentPage = pageNum;
             }
         });
 
@@ -339,15 +607,41 @@ public class ResidencyViewModel : ViewModelBase
                 .OrderBy(a => a.ApartmentNumber)
                 .ToList();
 
+            // Cập nhật ApartmentFilterOptions
+            var distinctApartments = _allResidences
+                .Select(r => r.Apartment?.ApartmentNumber)
+                .Where(num => !string.IsNullOrEmpty(num))
+                .Distinct()
+                .OrderBy(num => num)
+                .ToList();
+
+            ApartmentFilterOptions.Clear();
+            ApartmentFilterOptions.Add("Tất cả");
+            foreach (var num in distinctApartments)
+            {
+                ApartmentFilterOptions.Add(num!);
+            }
+
             var residents = await _residentService.GetAllResidentsAsync();
             var activeResidentIds = _allResidences
                 .Where(rh => rh.IsActive)
                 .Select(rh => rh.ResidentId)
                 .ToHashSet();
+
             AvailableResidents = residents
                 .Where(r => !activeResidentIds.Contains(r.Id))
                 .OrderBy(r => r.FullName)
                 .ToList();
+
+            ActiveResidencesForSelection = _allResidences
+                .Where(rh => rh.IsActive)
+                .OrderBy(rh => rh.Resident?.FullName)
+                .ToList();
+
+            // Cập nhật stats
+            OnPropertyChanged(nameof(ActiveResidentsCount));
+            OnPropertyChanged(nameof(EndedCount));
+            OnPropertyChanged(nameof(TransferCount));
 
             ApplyFilters();
 
@@ -361,6 +655,125 @@ public class ResidencyViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private List<ResidenceHistory> _currentFilteredList = new();
+
+    private void ApplyFilters()
+    {
+        var query = _allResidences.AsEnumerable();
+
+        // Lọc theo Tab: 0 = Đang cư trú, 1 = Lịch sử cư trú
+        if (SelectedTabIndex == 0)
+        {
+            query = query.Where(rh => rh.IsActive);
+        }
+        else if (SelectedTabIndex == 1)
+        {
+            query = query.Where(rh => !rh.IsActive);
+        }
+
+        // Lọc theo Căn hộ
+        if (!string.IsNullOrWhiteSpace(SelectedApartmentFilter) && SelectedApartmentFilter != "Tất cả")
+        {
+            query = query.Where(rh => rh.Apartment?.ApartmentNumber == SelectedApartmentFilter);
+        }
+
+        // Tìm kiếm theo từ khóa
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            string keyword = SearchText.Trim().ToLower();
+            query = query.Where(rh =>
+                $"cd{rh.ResidentId:D3}".Contains(keyword) ||
+                (rh.Resident != null && rh.Resident.FullName.ToLower().Contains(keyword)) ||
+                (rh.Resident != null && rh.Resident.IdentityCard != null && rh.Resident.IdentityCard.ToLower().Contains(keyword)) ||
+                (rh.Apartment != null && rh.Apartment.ApartmentNumber.ToLower().Contains(keyword)));
+        }
+
+        // Sắp xếp
+        query = SelectedSortOrder switch
+        {
+            "Ngày bắt đầu (cũ nhất)" => query.OrderBy(rh => rh.StartDate),
+            "Họ tên (A-Z)" => query.OrderBy(rh => rh.Resident?.FullName),
+            "Căn hộ (A-Z)" => query.OrderBy(rh => rh.Apartment?.ApartmentNumber),
+            _ => query.OrderByDescending(rh => rh.StartDate)
+        };
+
+        _currentFilteredList = query.ToList();
+        TotalFilteredCount = _currentFilteredList.Count;
+
+        // Cập nhật danh sách cũ để tương thích ngược
+        Residences.Clear();
+        foreach (var item in _currentFilteredList)
+        {
+            Residences.Add(item);
+        }
+
+        ApplyPagination();
+    }
+
+    private void ApplyPagination()
+    {
+        int total = _currentFilteredList.Count;
+        int maxPages = Math.Max(1, (int)Math.Ceiling((double)total / PageSize));
+        if (CurrentPage > maxPages) _currentPage = maxPages;
+        if (CurrentPage < 1) _currentPage = 1;
+
+        int skip = (CurrentPage - 1) * PageSize;
+        var pagedItems = _currentFilteredList.Skip(skip).Take(PageSize).ToList();
+
+        PagedResidences.Clear();
+        int stt = skip + 1;
+        foreach (var rh in pagedItems)
+        {
+            PagedResidences.Add(new ResidenceDisplayItemViewModel(rh, stt++));
+        }
+
+        // Tự động chọn bản ghi đầu tiên nếu chưa có mục nào được chọn
+        if (SelectedResidenceItem == null || !PagedResidences.Any(p => p.Id == SelectedResidenceItem.Id))
+        {
+            SelectedResidenceItem = PagedResidences.FirstOrDefault();
+        }
+
+        // Cập nhật PageNumbers
+        PageNumbers.Clear();
+        for (int i = 1; i <= maxPages; i++)
+        {
+            PageNumbers.Add(i);
+        }
+
+        OnPropertyChanged(nameof(PaginationSummary));
+        OnPropertyChanged(nameof(CanPreviousPage));
+        OnPropertyChanged(nameof(CanNextPage));
+    }
+
+    private void LoadTimelineForSelectedResident()
+    {
+        SelectedResidentTimeline.Clear();
+        if (SelectedResidenceItem == null) return;
+
+        int resId = SelectedResidenceItem.ResidentId;
+        var residentHistories = _allResidences
+            .Where(r => r.ResidentId == resId)
+            .OrderByDescending(r => r.StartDate)
+            .ToList();
+
+        for (int i = 0; i < residentHistories.Count; i++)
+        {
+            var rh = residentHistories[i];
+            string aptNo = rh.Apartment?.ApartmentNumber ?? $"Căn {rh.ApartmentId}";
+            string range = rh.IsActive
+                ? $"Từ {rh.StartDate:dd/MM/yyyy} – Hiện tại"
+                : $"{rh.StartDate:dd/MM/yyyy} – {rh.EndDate:dd/MM/yyyy}";
+
+            SelectedResidentTimeline.Add(new ResidenceTimelineItem
+            {
+                ApartmentNumber = aptNo,
+                IsActive = rh.IsActive,
+                DateRangeText = range,
+                IsLast = (i == residentHistories.Count - 1)
+            });
         }
     }
 
@@ -513,35 +926,6 @@ public class ResidencyViewModel : ViewModelBase
         }
     }
 
-    private void ApplyFilters()
-    {
-        var filtered = _allResidences.AsEnumerable();
-
-        if (SelectedStatusFilter == "Đang cư trú")
-        {
-            filtered = filtered.Where(rh => rh.IsActive);
-        }
-        else if (SelectedStatusFilter == "Đã chuyển đi")
-        {
-            filtered = filtered.Where(rh => !rh.IsActive);
-        }
-
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            string keyword = SearchText.Trim().ToLower();
-            filtered = filtered.Where(rh =>
-                (rh.Resident != null && rh.Resident.FullName.ToLower().Contains(keyword)) ||
-                (rh.Resident != null && rh.Resident.IdentityCard != null && rh.Resident.IdentityCard.ToLower().Contains(keyword)) ||
-                (rh.Apartment != null && rh.Apartment.ApartmentNumber.ToLower().Contains(keyword)));
-        }
-
-        Residences.Clear();
-        foreach (var item in filtered)
-        {
-            Residences.Add(item);
-        }
-    }
-
     private void OpenRegisterForm()
     {
         ErrorMessage = string.Empty;
@@ -557,35 +941,71 @@ public class ResidencyViewModel : ViewModelBase
 
     private void OpenTerminateForm(object? param)
     {
-        if (param is ResidenceHistory rh)
+        ErrorMessage = string.Empty;
+        ResidenceHistory? rh = null;
+
+        if (param is ResidenceDisplayItemViewModel displayItem)
         {
-            ErrorMessage = string.Empty;
-            SelectedResidence = rh;
-            SelectedApartmentInput = rh.Apartment;
-            SelectedResidentInput = rh.Resident;
-            SelectedRelationshipType = rh.RelationshipType;
-            StartDateInput = rh.StartDate;
-            EndDateInput = DateTime.Today;
-            ActionType = "Terminate";
-            FormTitle = $"KẾT THÚC CƯ TRÚ: {rh.Resident?.FullName} ({rh.Apartment?.ApartmentNumber})";
-            IsFormOpen = true;
+            rh = displayItem.History;
         }
+        else if (param is ResidenceHistory history)
+        {
+            rh = history;
+        }
+        else if (SelectedResidenceItem != null && SelectedResidenceItem.IsActive)
+        {
+            rh = SelectedResidenceItem.History;
+        }
+        else
+        {
+            rh = ActiveResidencesForSelection.FirstOrDefault();
+        }
+
+        SelectedResidence = rh;
+        SelectedApartmentInput = rh?.Apartment;
+        SelectedResidentInput = rh?.Resident;
+        SelectedRelationshipType = rh?.RelationshipType ?? RelationshipType.FamilyMember;
+        StartDateInput = rh?.StartDate ?? DateTime.Today;
+        EndDateInput = DateTime.Today;
+        ActionType = "Terminate";
+        FormTitle = rh != null
+            ? $"KẾT THÚC CƯ TRÚ: {rh.Resident?.FullName} ({rh.Apartment?.ApartmentNumber})"
+            : "KẾT THÚC CƯ TRÚ";
+        IsFormOpen = true;
     }
 
     private void OpenTransferForm(object? param)
     {
-        if (param is ResidenceHistory rh)
+        ErrorMessage = string.Empty;
+        ResidenceHistory? rh = null;
+
+        if (param is ResidenceDisplayItemViewModel displayItem)
         {
-            ErrorMessage = string.Empty;
-            SelectedResidence = rh;
-            SelectedResidentInput = rh.Resident;
-            SelectedApartmentInput = null;
-            SelectedRelationshipType = rh.RelationshipType;
-            StartDateInput = DateTime.Today;
-            ActionType = "Transfer";
-            FormTitle = $"CHUYỂN HỘ CHO: {rh.Resident?.FullName} (Hiện tại: {rh.Apartment?.ApartmentNumber})";
-            IsFormOpen = true;
+            rh = displayItem.History;
         }
+        else if (param is ResidenceHistory history)
+        {
+            rh = history;
+        }
+        else if (SelectedResidenceItem != null && SelectedResidenceItem.IsActive)
+        {
+            rh = SelectedResidenceItem.History;
+        }
+        else
+        {
+            rh = ActiveResidencesForSelection.FirstOrDefault();
+        }
+
+        SelectedResidence = rh;
+        SelectedResidentInput = rh?.Resident;
+        SelectedApartmentInput = null;
+        SelectedRelationshipType = rh?.RelationshipType ?? RelationshipType.FamilyMember;
+        StartDateInput = DateTime.Today;
+        ActionType = "Transfer";
+        FormTitle = rh != null
+            ? $"CHUYỂN CĂN HỘ: {rh.Resident?.FullName} (Hiện tại: {rh.Apartment?.ApartmentNumber})"
+            : "CHUYỂN CĂN HỘ";
+        IsFormOpen = true;
     }
 
     private void CloseForm()
