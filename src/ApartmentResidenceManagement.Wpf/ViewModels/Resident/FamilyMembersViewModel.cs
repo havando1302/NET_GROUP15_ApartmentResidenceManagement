@@ -87,7 +87,9 @@ public class MemberRegistrationRequestItemViewModel : ViewModelBase
     public string? PhoneNumber { get; set; }
     public string PhoneNumberText => !string.IsNullOrWhiteSpace(PhoneNumber) ? PhoneNumber : "---";
     public string? Email { get; set; }
+    public string EmailText => !string.IsNullOrWhiteSpace(Email) ? Email : "Chưa cập nhật";
     public RelationshipType RelationshipType { get; set; }
+    public string? SpecificRelationship { get; set; }
     public string RelationshipText { get; set; } = string.Empty;
 
     public RequestStatus Status { get; set; }
@@ -99,6 +101,8 @@ public class MemberRegistrationRequestItemViewModel : ViewModelBase
     public DateTime CreatedAt { get; set; }
     public string CreatedAtText => CreatedAt.ToString("dd/MM/yyyy");
     public DateTime? ProcessedAt { get; set; }
+    public string ProcessedAtText => ProcessedAt.HasValue ? ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm") : "---";
+    public string RequestCode => $"#YC-{Id:D4}";
     public string? RejectReason { get; set; }
     public bool HasRejectReason => !string.IsNullOrWhiteSpace(RejectReason);
     public bool IsPending => Status == RequestStatus.Pending;
@@ -141,6 +145,7 @@ public class FamilyMembersViewModel : ViewModelBase
     private string _newMemberPhoneNumber = string.Empty;
     private string _newMemberEmail = string.Empty;
     private RelationshipType _selectedRelationshipType = RelationshipType.FamilyMember;
+    private string _newMemberSpecificRelationship = string.Empty;
     private string _addRequestErrorMessage = string.Empty;
     private string _addRequestSuccessMessage = string.Empty;
     private bool _isSubmittingRequest;
@@ -151,6 +156,11 @@ public class FamilyMembersViewModel : ViewModelBase
     private string _identityCardError = string.Empty;
     private string _phoneNumberError = string.Empty;
     private string _emailError = string.Empty;
+    private string _specificRelationshipError = string.Empty;
+
+    // Modal xem chi tiết yêu cầu
+    private bool _isRequestDetailModalOpen;
+    private MemberRegistrationRequestItemViewModel? _selectedRequestDetail;
 
     // Tab lọc yêu cầu bên cột phải
     private string _selectedRequestFilter = "Tất cả"; // Tất cả, Chờ duyệt, Đã duyệt, Từ chối
@@ -342,7 +352,53 @@ public class FamilyMembersViewModel : ViewModelBase
     public RelationshipType SelectedRelationshipType
     {
         get => _selectedRelationshipType;
-        set => SetProperty(ref _selectedRelationshipType, value);
+        set
+        {
+            if (SetProperty(ref _selectedRelationshipType, value))
+            {
+                OnPropertyChanged(nameof(IsFamilyMemberSelected));
+                if (!IsFamilyMemberSelected)
+                {
+                    SpecificRelationshipError = string.Empty;
+                }
+                else if (!string.IsNullOrEmpty(SpecificRelationshipError))
+                {
+                    ValidateInputs();
+                }
+            }
+        }
+    }
+
+    public bool IsFamilyMemberSelected => SelectedRelationshipType == RelationshipType.FamilyMember;
+
+    public string NewMemberSpecificRelationship
+    {
+        get => _newMemberSpecificRelationship;
+        set
+        {
+            if (SetProperty(ref _newMemberSpecificRelationship, value))
+            {
+                if (!string.IsNullOrEmpty(SpecificRelationshipError)) ValidateInputs();
+            }
+        }
+    }
+
+    public string SpecificRelationshipError
+    {
+        get => _specificRelationshipError;
+        set => SetProperty(ref _specificRelationshipError, value);
+    }
+
+    public bool IsRequestDetailModalOpen
+    {
+        get => _isRequestDetailModalOpen;
+        set => SetProperty(ref _isRequestDetailModalOpen, value);
+    }
+
+    public MemberRegistrationRequestItemViewModel? SelectedRequestDetail
+    {
+        get => _selectedRequestDetail;
+        set => SetProperty(ref _selectedRequestDetail, value);
     }
 
     public string AddRequestErrorMessage
@@ -429,6 +485,8 @@ public class FamilyMembersViewModel : ViewModelBase
     public ICommand CloseAddRequestModalCommand { get; }
     public ICommand SubmitAddRequestCommand { get; }
     public ICommand SelectRequestFilterCommand { get; }
+    public ICommand OpenRequestDetailModalCommand { get; }
+    public ICommand CloseRequestDetailModalCommand { get; }
     #endregion
 
     public FamilyMembersViewModel() : this(null, null)
@@ -494,12 +552,14 @@ public class FamilyMembersViewModel : ViewModelBase
             NewMemberPhoneNumber = string.Empty;
             NewMemberEmail = string.Empty;
             SelectedRelationshipType = RelationshipType.FamilyMember;
+            NewMemberSpecificRelationship = string.Empty;
             
             FullNameError = string.Empty;
             BirthDateError = string.Empty;
             IdentityCardError = string.Empty;
             PhoneNumberError = string.Empty;
             EmailError = string.Empty;
+            SpecificRelationshipError = string.Empty;
             AddRequestErrorMessage = string.Empty;
             
             IsAddRequestModalOpen = true;
@@ -514,6 +574,7 @@ public class FamilyMembersViewModel : ViewModelBase
             IdentityCardError = string.Empty;
             PhoneNumberError = string.Empty;
             EmailError = string.Empty;
+            SpecificRelationshipError = string.Empty;
         });
 
         SubmitAddRequestCommand = new AsyncRelayCommand(_ => SubmitAddRequestAsync());
@@ -524,6 +585,21 @@ public class FamilyMembersViewModel : ViewModelBase
             {
                 SelectedRequestFilter = filter;
             }
+        });
+
+        OpenRequestDetailModalCommand = new RelayCommand(p =>
+        {
+            if (p is MemberRegistrationRequestItemViewModel req)
+            {
+                SelectedRequestDetail = req;
+                IsRequestDetailModalOpen = true;
+            }
+        });
+
+        CloseRequestDetailModalCommand = new RelayCommand(_ =>
+        {
+            IsRequestDetailModalOpen = false;
+            SelectedRequestDetail = null;
         });
     }
 
@@ -613,6 +689,24 @@ public class FamilyMembersViewModel : ViewModelBase
             EmailError = string.Empty;
         }
 
+        // Quan hệ cụ thể với chủ hộ nếu là thành viên gia đình
+        if (IsFamilyMemberSelected)
+        {
+            if (string.IsNullOrWhiteSpace(NewMemberSpecificRelationship))
+            {
+                SpecificRelationshipError = "Vui lòng nhập quan hệ với chủ hộ (ví dụ: Vợ, Chồng, Con, Bố, Mẹ...).";
+                isValid = false;
+            }
+            else
+            {
+                SpecificRelationshipError = string.Empty;
+            }
+        }
+        else
+        {
+            SpecificRelationshipError = string.Empty;
+        }
+
         return isValid;
     }
 
@@ -672,6 +766,15 @@ public class FamilyMembersViewModel : ViewModelBase
 
                     string avatarPath = isOwner ? "/Assets/resident_avatar.png" : "/Assets/avatar_young_man.png";
 
+                    string genderStr = res == null ? "Chưa cập nhật" : res.Gender switch
+                    {
+                        GenderType.Male => "Nam",
+                        GenderType.Female => "Nữ",
+                        GenderType.Other => "Khác",
+                        _ => "Chưa cập nhật"
+                    };
+                    string hometownStr = !string.IsNullOrWhiteSpace(res?.HomeTown) ? res.HomeTown : "Chưa cập nhật";
+
                     _allMembers.Add(new AccordionFamilyMemberItem
                     {
                         AvatarIcon = isOwner ? "👨" : "👤",
@@ -680,10 +783,10 @@ public class FamilyMembersViewModel : ViewModelBase
                         Relationship = relText,
                         IsOwner = isOwner,
                         BirthDate = res != null ? res.DateOfBirth.ToString("dd/MM/yyyy") : "Chưa cập nhật",
-                        Gender = "Chưa cập nhật",
+                        Gender = genderStr,
                         IdentityCard = !string.IsNullOrWhiteSpace(res?.IdentityCard) ? res.IdentityCard : "Chưa cập nhật",
                         PhoneNumber = !string.IsNullOrWhiteSpace(res?.PhoneNumber) ? res.PhoneNumber : "Chưa cập nhật",
-                        Hometown = "Chưa cập nhật",
+                        Hometown = hometownStr,
                         Status = "Đang cư trú",
                         IsExpanded = false
                     });
@@ -736,14 +839,16 @@ public class FamilyMembersViewModel : ViewModelBase
                     _ => "#E2E8F0"
                 };
 
-                string relText = req.RelationshipType switch
-                {
-                    RelationshipType.Owner => "Chủ hộ",
-                    RelationshipType.FamilyMember => "Con",
-                    RelationshipType.Tenant => "Người thuê",
-                    RelationshipType.Temporary => "Tạm trú",
-                    _ => "Thành viên"
-                };
+                string relText = !string.IsNullOrWhiteSpace(req.SpecificRelationship)
+                    ? req.SpecificRelationship
+                    : (req.RelationshipType switch
+                    {
+                        RelationshipType.Owner => "Chủ hộ",
+                        RelationshipType.FamilyMember => "Thành viên gia đình",
+                        RelationshipType.Tenant => "Người thuê",
+                        RelationshipType.Temporary => "Tạm trú",
+                        _ => "Thành viên"
+                    });
 
                 _allRequests.Add(new MemberRegistrationRequestItemViewModel
                 {
@@ -759,6 +864,7 @@ public class FamilyMembersViewModel : ViewModelBase
                     PhoneNumber = req.PhoneNumber,
                     Email = req.Email,
                     RelationshipType = req.RelationshipType,
+                    SpecificRelationship = req.SpecificRelationship,
                     RelationshipText = relText,
                     Status = req.Status,
                     StatusText = statusText,
@@ -812,7 +918,8 @@ public class FamilyMembersViewModel : ViewModelBase
                 NewMemberIdentityCard,
                 NewMemberPhoneNumber,
                 NewMemberEmail,
-                SelectedRelationshipType);
+                SelectedRelationshipType,
+                IsFamilyMemberSelected ? NewMemberSpecificRelationship?.Trim() : null);
 
             if (result.IsSuccess)
             {

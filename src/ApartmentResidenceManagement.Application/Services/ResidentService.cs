@@ -107,6 +107,8 @@ public class ResidentService
 
         existing.FullName = resident.FullName.Trim();
         existing.DateOfBirth = resident.DateOfBirth;
+        existing.Gender = resident.Gender;
+        existing.HomeTown = string.IsNullOrWhiteSpace(resident.HomeTown) ? null : resident.HomeTown.Trim();
         existing.IdentityCard = string.IsNullOrWhiteSpace(resident.IdentityCard) ? null : resident.IdentityCard.Trim();
         existing.PhoneNumber = string.IsNullOrWhiteSpace(resident.PhoneNumber) ? null : resident.PhoneNumber.Trim();
         existing.Email = string.IsNullOrWhiteSpace(resident.Email) ? null : resident.Email.Trim();

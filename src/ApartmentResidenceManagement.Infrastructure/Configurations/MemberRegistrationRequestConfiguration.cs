@@ -32,6 +32,9 @@ public class MemberRegistrationRequestConfiguration : IEntityTypeConfiguration<M
             .IsRequired()
             .HasConversion<int>();
 
+        builder.Property(r => r.SpecificRelationship)
+            .HasMaxLength(100);
+
         builder.Property(r => r.Status)
             .IsRequired()
             .HasConversion<int>();

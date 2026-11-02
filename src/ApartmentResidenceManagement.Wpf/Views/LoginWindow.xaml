@@ -9,6 +9,7 @@
         Height="680" Width="1060"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
+        ResizeMode="CanMinimize"
         AllowsTransparency="True"
         FontFamily="Segoe UI"
         MouseDown="Window_MouseDown"
@@ -114,7 +115,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Logo ResidenceManager -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,150,0,428" Grid.RowSpan="5">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
                     <Border Background="#2563EB" CornerRadius="8" Padding="6,5" Margin="0,0,10,0">
                         <TextBlock Text="🏢" FontSize="18" Foreground="White" VerticalAlignment="Center"/>
                     </Border>
@@ -122,7 +123,7 @@
                 </StackPanel>
 
                 <!-- Pill Badge: Hệ thống quản lý -->
-                <Border Grid.Row="4" Background="#E0EEFF" CornerRadius="12" Padding="12,5" HorizontalAlignment="Left" Margin="0,189,0,383">
+                <Border Grid.Row="1" Background="#E0EEFF" CornerRadius="12" Padding="12,5" HorizontalAlignment="Left" Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🏠 " FontSize="12"/>
                         <TextBlock Text="Hệ thống quản lý" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB"/>
@@ -130,7 +131,7 @@
                 </Border>
 
                 <!-- Tiêu đề lớn -->
-                <StackPanel Grid.Row="2" Margin="0,233,0,273" Grid.RowSpan="3">
+                <StackPanel Grid.Row="2" Margin="0,0,0,14">
                     <TextBlock Text="Thông tin cư trú" FontSize="36" FontWeight="Bold" Foreground="#0F172A" LineHeight="44"/>
                     <TextBlock Text="tại chung cư" FontSize="36" FontWeight="Bold" Foreground="#0F172A" LineHeight="44"/>
                 </StackPanel>
@@ -138,7 +139,7 @@
                 <!-- Đoạn mô tả -->
                 <TextBlock Grid.Row="3" 
                            Text="Quản lý cư dân, căn hộ, hồ sơ cư trú và các dịch vụ nội khu một cách hiệu quả, minh bạch và an toàn."
-                           FontSize="14" Foreground="#475569" TextWrapping="Wrap" LineHeight="22" Margin="0,344,40,214" Grid.RowSpan="2"/>
+                           FontSize="14" Foreground="#475569" TextWrapping="Wrap" LineHeight="22" Margin="0,0,40,0"/>
             </Grid>
 
             <!-- ══════════════════════════════════════════════════════════

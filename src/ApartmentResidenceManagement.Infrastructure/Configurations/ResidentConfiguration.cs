@@ -19,11 +19,19 @@ public class ResidentConfiguration : IEntityTypeConfiguration<Resident>
         builder.Property(r => r.DateOfBirth)
             .IsRequired();
 
+        builder.Property(r => r.Gender)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(ApartmentResidenceManagement.Domain.Enums.GenderType.Male);
+
         builder.Property(r => r.IdentityCard)
             .HasMaxLength(20);
 
         builder.Property(r => r.PhoneNumber)
             .HasMaxLength(15);
+
+        builder.Property(r => r.HomeTown)
+            .HasMaxLength(200);
 
         builder.Property(r => r.Email)
             .HasMaxLength(100);

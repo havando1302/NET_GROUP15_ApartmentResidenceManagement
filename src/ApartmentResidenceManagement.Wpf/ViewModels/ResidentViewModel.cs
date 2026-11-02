@@ -240,6 +240,8 @@ public class ResidentViewModel : ViewModelBase
             Id = resident.Id,
             FullName = resident.FullName,
             DateOfBirth = resident.DateOfBirth,
+            Gender = resident.Gender,
+            HomeTown = resident.HomeTown,
             IdentityCard = resident.IdentityCard,
             PhoneNumber = resident.PhoneNumber,
             Email = resident.Email

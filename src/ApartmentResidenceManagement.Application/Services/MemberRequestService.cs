@@ -14,10 +14,11 @@ public class MemberRequestService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ResidenceService _residenceService;
 
-    public MemberRequestService(IUnitOfWork unitOfWork, ResidenceService residenceService)
+    public MemberRequestService(IUnitOfWork unitOfWork, ResidenceService? residenceService = null)
     {
         _unitOfWork = unitOfWork;
-        _residenceService = residenceService;
+        // Luôn gắn ResidenceService với chính UnitOfWork này để đảm bảo cùng DbContext và Transaction
+        _residenceService = new ResidenceService(_unitOfWork);
     }
 
     public async Task<OperationResult<MemberRegistrationRequest>> CreateRequestAsync(
@@ -28,7 +29,8 @@ public class MemberRequestService
         string? identityCard,
         string? phoneNumber,
         string? email,
-        RelationshipType relationshipType)
+        RelationshipType relationshipType,
+        string? specificRelationship = null)
     {
         if (string.IsNullOrWhiteSpace(fullName) || fullName.Trim().Length < 2 || fullName.Trim().Length > 100)
             return OperationResult<MemberRegistrationRequest>.Failure("Họ và tên bắt buộc từ 2 đến 100 ký tự và không chỉ chứa khoảng trắng.");
@@ -122,6 +124,7 @@ public class MemberRequestService
             PhoneNumber = phoneNumber,
             Email = email,
             RelationshipType = relationshipType,
+            SpecificRelationship = string.IsNullOrWhiteSpace(specificRelationship) ? null : specificRelationship.Trim(),
             Status = RequestStatus.Pending,
             CreatedAt = DateTime.Now
         };
@@ -184,6 +187,7 @@ public class MemberRequestService
                     {
                         FullName = request.FullName,
                         DateOfBirth = request.DateOfBirth,
+                        Gender = GenderType.Male,
                         IdentityCard = request.IdentityCard,
                         PhoneNumber = request.PhoneNumber,
                         Email = request.Email

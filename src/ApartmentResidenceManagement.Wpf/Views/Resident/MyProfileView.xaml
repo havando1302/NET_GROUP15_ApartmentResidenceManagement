@@ -75,7 +75,8 @@
             ══════════════════════════════════════════════════════════ -->
             <StackPanel Grid.Row="1" Margin="0,0,0,14">
                 <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
-                <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"/>
+                <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"
+                                            Visibility="{Binding IsBackgroundErrorVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </StackPanel>
 
             <!-- ══════════════════════════════════════════════════════════
@@ -412,29 +413,25 @@
 
                 <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,18"/>
 
-                <!-- Thông báo lỗi (nếu có) -->
+                <!-- Thông báo lỗi (nếu có) hiển thị trực tiếp trong Modal -->
                 <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
-                        Padding="12,8" Margin="0,0,0,14">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ErrorMessage}" Value="">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding ErrorMessage}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#DC2626" FontSize="12.5" FontWeight="SemiBold"/>
+                        Padding="12,10" Margin="0,0,0,16"
+                        Visibility="{Binding HasModalError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ModalErrorMessage}" Foreground="#DC2626" FontSize="12.5" FontWeight="SemiBold"
+                                   TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    </Grid>
                 </Border>
 
                 <!-- Trường 1: Số điện thoại -->
                 <StackPanel Margin="0,0,0,14">
                     <TextBlock Text="Số điện thoại liên hệ *" Style="{StaticResource FieldLabel}"/>
-                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
+                    <Border Background="#F8FAFC" BorderBrush="{Binding PhoneBorderBrush}" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="26"/>
@@ -446,12 +443,14 @@
                                      VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
+                    <TextBlock Text="{Binding EditPhoneError}" Foreground="#EF4444" FontSize="11.5" FontWeight="SemiBold" Margin="4,4,0,0"
+                               Visibility="{Binding HasPhoneError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 </StackPanel>
 
                 <!-- Trường 2: Email -->
                 <StackPanel Margin="0,0,0,22">
                     <TextBlock Text="Email liên hệ *" Style="{StaticResource FieldLabel}"/>
-                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
+                    <Border Background="#F8FAFC" BorderBrush="{Binding EmailBorderBrush}" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="26"/>
@@ -463,6 +462,8 @@
                                      VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
+                    <TextBlock Text="{Binding EditEmailError}" Foreground="#EF4444" FontSize="11.5" FontWeight="SemiBold" Margin="4,4,0,0"
+                               Visibility="{Binding HasEmailError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 </StackPanel>
 
                 <!-- Nút thao tác dưới cùng -->

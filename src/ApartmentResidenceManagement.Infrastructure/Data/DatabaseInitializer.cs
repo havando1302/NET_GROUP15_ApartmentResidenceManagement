@@ -28,12 +28,16 @@ public static class DatabaseInitializer
         var residentA = new Resident
         {
             FullName = "Nguyễn Văn A",
+            DateOfBirth = new DateTime(1990, 1, 1),
+            Gender = GenderType.Male,
             PhoneNumber = "0901234567",
             Email = "nguyenvana@example.com"
         };
         var residentB = new Resident
         {
             FullName = "Trần Thị B",
+            DateOfBirth = new DateTime(1992, 5, 10),
+            Gender = GenderType.Female,
             PhoneNumber = "0901234568",
             Email = "tranthib@example.com"
         };

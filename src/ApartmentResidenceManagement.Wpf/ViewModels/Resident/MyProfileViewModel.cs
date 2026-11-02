@@ -82,16 +82,16 @@ public class MyProfileViewModel : ViewModelBase
         set => SetProperty(ref _email, value);
     }
 
-    public string EditEmail
-    {
-        get => _editEmail;
-        set => SetProperty(ref _editEmail, value);
-    }
-
     public bool IsEditModalOpen
     {
         get => _isEditModalOpen;
-        set => SetProperty(ref _isEditModalOpen, value);
+        set
+        {
+            if (SetProperty(ref _isEditModalOpen, value))
+            {
+                OnPropertyChanged(nameof(IsBackgroundErrorVisible));
+            }
+        }
     }
 
     public string Gender
@@ -139,13 +139,87 @@ public class MyProfileViewModel : ViewModelBase
     public string EditPhoneNumber
     {
         get => _editPhoneNumber;
-        set => SetProperty(ref _editPhoneNumber, value);
+        set
+        {
+            if (SetProperty(ref _editPhoneNumber, value))
+            {
+                if (HasPhoneError)
+                {
+                    EditPhoneError = string.Empty;
+                    ModalErrorMessage = string.Empty;
+                }
+            }
+        }
     }
+
+    public string EditEmail
+    {
+        get => _editEmail;
+        set
+        {
+            if (SetProperty(ref _editEmail, value))
+            {
+                if (HasEmailError)
+                {
+                    EditEmailError = string.Empty;
+                    ModalErrorMessage = string.Empty;
+                }
+            }
+        }
+    }
+
+    private string _modalErrorMessage = string.Empty;
+    public string ModalErrorMessage
+    {
+        get => _modalErrorMessage;
+        set
+        {
+            if (SetProperty(ref _modalErrorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasModalError));
+            }
+        }
+    }
+
+    private string _editPhoneError = string.Empty;
+    public string EditPhoneError
+    {
+        get => _editPhoneError;
+        set
+        {
+            if (SetProperty(ref _editPhoneError, value))
+            {
+                OnPropertyChanged(nameof(HasPhoneError));
+                OnPropertyChanged(nameof(PhoneBorderBrush));
+            }
+        }
+    }
+
+    private string _editEmailError = string.Empty;
+    public string EditEmailError
+    {
+        get => _editEmailError;
+        set
+        {
+            if (SetProperty(ref _editEmailError, value))
+            {
+                OnPropertyChanged(nameof(HasEmailError));
+                OnPropertyChanged(nameof(EmailBorderBrush));
+            }
+        }
+    }
+
+    public bool HasModalError => !string.IsNullOrWhiteSpace(ModalErrorMessage);
+    public bool HasPhoneError => !string.IsNullOrWhiteSpace(EditPhoneError);
+    public bool HasEmailError => !string.IsNullOrWhiteSpace(EditEmailError);
+    public string PhoneBorderBrush => HasPhoneError ? "#EF4444" : "#CBD5E1";
+    public string EmailBorderBrush => HasEmailError ? "#EF4444" : "#CBD5E1";
+    public bool IsBackgroundErrorVisible => !IsEditModalOpen && !string.IsNullOrWhiteSpace(ErrorMessage);
 
     public string ContactAddress
     {
         get => _contactAddress;
-        set => SetProperty(ref _editContactAddress, value);
+        set => SetProperty(ref _contactAddress, value);
     }
 
     public string EditContactAddress
@@ -163,7 +237,13 @@ public class MyProfileViewModel : ViewModelBase
     public string ErrorMessage
     {
         get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
+        set
+        {
+            if (SetProperty(ref _errorMessage, value))
+            {
+                OnPropertyChanged(nameof(IsBackgroundErrorVisible));
+            }
+        }
     }
 
     private string _avatarPath = "/Assets/resident_avatar.png";
@@ -230,6 +310,9 @@ public class MyProfileViewModel : ViewModelBase
             EditEmail = Email == "Chưa cập nhật" ? string.Empty : Email;
             EditContactAddress = Hometown;
             ErrorMessage = string.Empty;
+            ModalErrorMessage = string.Empty;
+            EditPhoneError = string.Empty;
+            EditEmailError = string.Empty;
             IsEditModalOpen = true;
         });
 
@@ -237,6 +320,9 @@ public class MyProfileViewModel : ViewModelBase
         {
             IsEditModalOpen = false;
             ErrorMessage = string.Empty;
+            ModalErrorMessage = string.Empty;
+            EditPhoneError = string.Empty;
+            EditEmailError = string.Empty;
         });
 
         SaveProfileCommand = new AsyncRelayCommand(_ => SaveProfileAsync());
@@ -286,6 +372,15 @@ public class MyProfileViewModel : ViewModelBase
             ResidentId = $"CD-{r.Id:D4}";
             FullName = r.FullName;
             DobText = r.DateOfBirth.ToString("dd/MM/yyyy");
+            Gender = r.Gender switch
+            {
+                ApartmentResidenceManagement.Domain.Enums.GenderType.Male => "Nam",
+                ApartmentResidenceManagement.Domain.Enums.GenderType.Female => "Nữ",
+                ApartmentResidenceManagement.Domain.Enums.GenderType.Other => "Khác",
+                _ => "Chưa cập nhật"
+            };
+            Hometown = !string.IsNullOrWhiteSpace(r.HomeTown) ? r.HomeTown : "Chưa cập nhật";
+            PermanentAddress = !string.IsNullOrWhiteSpace(r.HomeTown) ? r.HomeTown : "Chưa cập nhật";
             IdentityCard = !string.IsNullOrWhiteSpace(r.IdentityCard) ? r.IdentityCard : "Chưa cập nhật";
             PhoneNumber = !string.IsNullOrWhiteSpace(r.PhoneNumber) ? r.PhoneNumber : "Chưa cập nhật";
             EditPhoneNumber = PhoneNumber == "Chưa cập nhật" ? string.Empty : PhoneNumber;
@@ -296,6 +391,9 @@ public class MyProfileViewModel : ViewModelBase
         {
             ResidentId = $"CD-{_account.Id:D4}";
             FullName = _account.Username;
+            Gender = "Chưa cập nhật";
+            Hometown = "Chưa cập nhật";
+            PermanentAddress = "Chưa cập nhật";
             PhoneNumber = "Chưa cập nhật";
             EditPhoneNumber = string.Empty;
             Email = "Chưa cập nhật";
@@ -350,31 +448,42 @@ public class MyProfileViewModel : ViewModelBase
     {
         SuccessMessage = string.Empty;
         ErrorMessage = string.Empty;
+        ModalErrorMessage = string.Empty;
+        EditPhoneError = string.Empty;
+        EditEmailError = string.Empty;
 
         var phoneToSave = EditPhoneNumber?.Trim();
         var emailToSave = EditEmail?.Trim();
 
         if (string.IsNullOrWhiteSpace(phoneToSave))
         {
-            ErrorMessage = "Số điện thoại liên hệ không được để trống.";
+            EditPhoneError = "Số điện thoại liên hệ không được để trống.";
+            ModalErrorMessage = EditPhoneError;
+            ErrorMessage = ModalErrorMessage;
             return;
         }
 
         if (!System.Text.RegularExpressions.Regex.IsMatch(phoneToSave, @"^0\d{9}$"))
         {
-            ErrorMessage = "Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).";
+            EditPhoneError = "Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).";
+            ModalErrorMessage = EditPhoneError;
+            ErrorMessage = ModalErrorMessage;
             return;
         }
 
         if (string.IsNullOrWhiteSpace(emailToSave))
         {
-            ErrorMessage = "Email liên hệ không được để trống.";
+            EditEmailError = "Email liên hệ không được để trống.";
+            ModalErrorMessage = EditEmailError;
+            ErrorMessage = ModalErrorMessage;
             return;
         }
 
         if (!System.Text.RegularExpressions.Regex.IsMatch(emailToSave, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
-            ErrorMessage = "Định dạng email không hợp lệ (ví dụ: cu_dan@apartment.vn).";
+            EditEmailError = "Định dạng email không hợp lệ (ví dụ: cu_dan@apartment.vn).";
+            ModalErrorMessage = EditEmailError;
+            ErrorMessage = ModalErrorMessage;
             return;
         }
 
@@ -392,7 +501,8 @@ public class MyProfileViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Lỗi khi lưu dữ liệu xuống database: {ex.Message}";
+                ModalErrorMessage = $"Lỗi khi lưu dữ liệu xuống database: {ex.Message}";
+                ErrorMessage = ModalErrorMessage;
                 return;
             }
         }

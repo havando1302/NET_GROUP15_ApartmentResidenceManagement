@@ -15,6 +15,7 @@ public class MemberRegistrationRequest
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
     public RelationshipType RelationshipType { get; set; }
+    public string? SpecificRelationship { get; set; }
 
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
