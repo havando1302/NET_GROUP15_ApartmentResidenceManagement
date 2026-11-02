@@ -201,20 +201,60 @@
             </Setter>
         </Style>
 
-        <!-- DataGrid Style -->
+        <!-- Override System Highlight to prevent harsh dark blue & black selection borders -->
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#E0F2FE"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#0F172A"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#E0F2FE"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#0F172A"/>
+
+        <!-- DataGrid Cell Style (Loại bỏ hoàn toàn viền đen xung quanh mỗi ô) -->
+        <Style x:Key="ModernDataGridCell" TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#0F172A"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                </Trigger>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- DataGrid Row Style (Màu nền xanh dịu mắt, chữ đậm nét, không bị che khuất) -->
         <Style x:Key="ModernDataGridRow" TargetType="DataGridRow">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Setter Property="BorderBrush" Value="#F1F5F9"/>
-            <Setter Property="MinHeight" Value="44"/>
+            <Setter Property="MinHeight" Value="46"/>
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F8FAFC"/>
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#EFF6FF"/>
+                    <!-- Màu xanh ngọc nhạt #E0F2FE: chữ #0F172A tương phản rất rõ, thông tin sáng sủa không bị chìm -->
+                    <Setter Property="Background" Value="#E0F2FE"/>
                     <Setter Property="Foreground" Value="#0F172A"/>
                 </Trigger>
             </Style.Triggers>
@@ -570,18 +610,24 @@
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="8" Opacity="0.03" ShadowDepth="1" Color="#000000"/>
                                 </Border.Effect>
-                                <DataGrid ItemsSource="{Binding PagedResidences}"
+                                <DataGrid x:Name="ResidencesDataGrid"
+                                          ItemsSource="{Binding PagedResidences}"
                                           SelectedItem="{Binding SelectedResidenceItem, Mode=TwoWay}"
                                           AutoGenerateColumns="False"
                                           CanUserAddRows="False"
                                           CanUserDeleteRows="False"
                                           CanUserResizeRows="False"
                                           IsReadOnly="True"
+                                          SelectionMode="Single"
+                                          SelectionUnit="FullRow"
+                                          FocusVisualStyle="{x:Null}"
+                                          PreviewMouseWheel="OnDataGridPreviewMouseWheel"
                                           GridLinesVisibility="Horizontal"
                                           HorizontalGridLinesBrush="#F1F5F9"
                                           HeadersVisibility="Column"
                                           BorderThickness="0"
                                           Background="White"
+                                          CellStyle="{StaticResource ModernDataGridCell}"
                                           RowStyle="{StaticResource ModernDataGridRow}"
                                           ColumnHeaderStyle="{StaticResource ModernDataGridHeader}">
 

@@ -650,6 +650,58 @@ public class ResidencyViewModel : ViewModelBase
         });
     }
 
+    #region Mouse Wheel & Keyboard Paged Navigation
+    public void SelectNextItemOrNextPage()
+    {
+        if (PagedResidences.Count == 0) return;
+
+        if (SelectedResidenceItem == null)
+        {
+            SelectedResidenceItem = PagedResidences.FirstOrDefault();
+            return;
+        }
+
+        int currentIndex = PagedResidences.IndexOf(SelectedResidenceItem);
+        if (currentIndex >= 0 && currentIndex < PagedResidences.Count - 1)
+        {
+            SelectedResidenceItem = PagedResidences[currentIndex + 1];
+        }
+        else if (currentIndex == PagedResidences.Count - 1)
+        {
+            if (CanNextPage)
+            {
+                CurrentPage++;
+                SelectedResidenceItem = PagedResidences.FirstOrDefault();
+            }
+        }
+    }
+
+    public void SelectPreviousItemOrPreviousPage()
+    {
+        if (PagedResidences.Count == 0) return;
+
+        if (SelectedResidenceItem == null)
+        {
+            SelectedResidenceItem = PagedResidences.LastOrDefault();
+            return;
+        }
+
+        int currentIndex = PagedResidences.IndexOf(SelectedResidenceItem);
+        if (currentIndex > 0)
+        {
+            SelectedResidenceItem = PagedResidences[currentIndex - 1];
+        }
+        else if (currentIndex == 0)
+        {
+            if (CanPreviousPage)
+            {
+                CurrentPage--;
+                SelectedResidenceItem = PagedResidences.LastOrDefault();
+            }
+        }
+    }
+    #endregion
+
     public async Task LoadDataAsync()
     {
         ErrorMessage = string.Empty;
