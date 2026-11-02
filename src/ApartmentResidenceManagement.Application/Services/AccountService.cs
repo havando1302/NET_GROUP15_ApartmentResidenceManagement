@@ -33,7 +33,20 @@ public class AccountService
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
 
-        var account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        UserAccount? account;
+        try
+        {
+            account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        }
+        catch (BusinessRuleException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new BusinessRuleException("Không thể kết nối cơ sở dữ liệu. Vui lòng thử lại sau.", ex);
+        }
+
         if (account == null)
         {
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
@@ -44,7 +57,16 @@ public class AccountService
             throw new BusinessRuleException("Tài khoản này đã bị khóa. Vui lòng liên hệ Admin.");
         }
 
-        bool isValid = _passwordHasher.VerifyPassword(password, account.PasswordHash);
+        bool isValid = false;
+        try
+        {
+            isValid = _passwordHasher.VerifyPassword(password, account.PasswordHash);
+        }
+        catch
+        {
+            isValid = false;
+        }
+
         if (!isValid)
         {
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");

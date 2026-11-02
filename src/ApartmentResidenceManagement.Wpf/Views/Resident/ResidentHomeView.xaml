@@ -1,0 +1,393 @@
+<UserControl x:Class="ApartmentResidenceManagement.Wpf.Views.ResidentHomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:ApartmentResidenceManagement.Wpf.Controls"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="780" d:DesignWidth="1100"
+             FontFamily="Segoe UI"
+             Background="#F8FAFC">
+
+    <UserControl.Resources>
+        <!-- Modern Card Style -->
+        <Style x:Key="ModernCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="22"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="16" Direction="270" ShadowDepth="3" Color="#0F172A" Opacity="0.04"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stat Card Style -->
+        <Style x:Key="StatCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="18,16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" Direction="270" ShadowDepth="2" Color="#0F172A" Opacity="0.04"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="32,24,32,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- 0. Greeting Header -->
+                <RowDefinition Height="Auto"/> <!-- 1. Hero Banner -->
+                <RowDefinition Height="18"/>   <!-- 2. Spacer -->
+                <RowDefinition Height="Auto"/> <!-- 3. 4 Stat Cards -->
+                <RowDefinition Height="18"/>   <!-- 4. Spacer -->
+                <RowDefinition Height="Auto"/> <!-- 5. Bottom 2 Cards (Căn hộ & Lịch sử) -->
+            </Grid.RowDefinitions>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 0. LỜI CHÀO ĐẦU TRANG
+            ══════════════════════════════════════════════════════════ -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Xin chào, " FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="{Binding ResidentName}" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="! 👋" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                </StackPanel>
+                <TextBlock Text="Chào mừng bạn đến với Cổng thông tin cư dân ResidenceManager."
+                           FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 1. BANNER HERO XANH PASTEL VỚI ẢNH PHÒNG KHÁCH CĂN HỘ
+            ══════════════════════════════════════════════════════════ -->
+            <Border Grid.Row="1" CornerRadius="18" ClipToBounds="True" Height="200"
+                    BorderBrush="#DBEAFE" BorderThickness="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#EFF6FF" Offset="0.0"/>
+                        <GradientStop Color="#DBEAFE" Offset="0.45"/>
+                        <GradientStop Color="#F8FAFC" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.15*"/>
+                        <ColumnDefinition Width="1.45*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Text bên trái Banner -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="32,0,16,0">
+                        <TextBlock Text="Không gian sống" FontSize="22" FontWeight="Bold" Foreground="#1E3A8A"/>
+                        <TextBlock Text="an toàn – tiện nghi – gắn kết" FontSize="22" FontWeight="Bold" Foreground="#1E3A8A" Margin="0,2,0,0"/>
+                        <TextBlock Text="Quản lý thông tin cư trú, tra cứu căn hộ&#x0a;và sử dụng các dịch vụ dành cho cư dân."
+                                   FontSize="13.5" Foreground="#475569" Margin="0,14,0,0" LineHeight="20"/>
+                    </StackPanel>
+
+                    <!-- Ảnh phòng khách bên phải bo góc cong và fade nhẹ -->
+                    <Border Grid.Column="1" ClipToBounds="True" CornerRadius="0,18,18,0">
+                        <Grid>
+                            <Image Source="/Assets/apartment_interior_1.png" Stretch="UniformToFill"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border>
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0.25,0">
+                                        <GradientStop Color="#DBEAFE" Offset="0"/>
+                                        <GradientStop Color="Transparent" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 3. HÀNG 4 THẺ THỐNG KÊ (STAT CARDS)
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Card 1: Thành viên cùng căn hộ (Xanh dương) -->
+                <Border Grid.Column="0" Style="{StaticResource StatCardBorder}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="48"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#EFF6FF"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding FamilyCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Thành viên cùng căn hộ" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Card 2: Lần thay đổi cư trú (Xanh lá) -->
+                <Border Grid.Column="2" Style="{StaticResource StatCardBorder}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="48"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#ECFDF5"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="📅" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ResidencyChangesCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Lần thay đổi cư trú" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Card 3: Yêu cầu đang xử lý (Tím) -->
+                <Border Grid.Column="4" Style="{StaticResource StatCardBorder}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="48"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#F5F3FF"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="📄" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding PendingRequestsCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Yêu cầu đang xử lý" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Card 4: Thông báo mới (Cam) -->
+                <Border Grid.Column="6" Style="{StaticResource StatCardBorder}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="48"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#FFFBEB"
+                                VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="🔔" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding NewAnnouncementsCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Thông báo mới" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 5. HÀNG DƯỚI: 2 CARDS (CĂN HỘ CỦA TÔI & LỊCH SỬ CƯ TRÚ GẦN ĐÂY)
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ──────────────────────────────────────────────────────────
+                     CARD TRÁI: CĂN HỘ CỦA TÔI
+                ────────────────────────────────────────────────────────── -->
+                <Border Grid.Column="0" Style="{StaticResource ModernCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Header + Xem chi tiết -->
+                            <RowDefinition Height="Auto"/> <!-- Nội dung ảnh + Thông số -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Header Card Căn hộ -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🏠" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Căn hộ của tôi" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Nút Xem chi tiết chuyển sang tab Căn hộ của tôi -->
+                            <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Command="{Binding ViewApartmentDetailCommand}"
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Xem chi tiết" FontSize="13" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" ➔" FontSize="13" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Thân card Căn hộ: Ảnh & Thông số -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="170"/>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Ảnh căn hộ bo góc -->
+                            <Border Grid.Column="0" CornerRadius="12" ClipToBounds="True" Height="115" VerticalAlignment="Center">
+                                <Image Source="/Assets/apartment_interior_2.png" Stretch="UniformToFill"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <!-- Thông số chi tiết -->
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <!-- Badge Đang cư trú -->
+                                <Border HorizontalAlignment="Left" Background="#DCFCE7" CornerRadius="10" Padding="8,3" Margin="0,0,0,6">
+                                    <TextBlock Text="✓  Đang cư trú" FontSize="11" FontWeight="Bold" Foreground="#16A34A"/>
+                                </Border>
+
+                                <!-- Tên căn hộ -->
+                                <TextBlock Text="{Binding ApartmentNumber, StringFormat='Căn hộ {0}'}"
+                                           FontSize="19" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,10"/>
+
+                                <!-- Dòng 1: Tòa & Tầng -->
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <TextBlock Text="🏢" Margin="0,0,6,0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Tòa: " FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BuildingBlock}" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="📶" Margin="0,0,6,0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Tầng: " FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FloorNumber}" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Dòng 2: Diện tích & Số nhân khẩu -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <TextBlock Text="📐" Margin="0,0,6,0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Diện tích: " FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ApartmentArea}" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="👥" Margin="0,0,6,0" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Số nhân khẩu: " FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FamilyCount}" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ──────────────────────────────────────────────────────────
+                     CARD PHẢI: LỊCH SỬ CƯ TRÚ GẦN ĐÂY
+                ────────────────────────────────────────────────────────── -->
+                <Border Grid.Column="2" Style="{StaticResource ModernCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Header + Xem tất cả -->
+                            <RowDefinition Height="Auto"/> <!-- Timeline sự kiện -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Header Card Lịch sử -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🕒" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Lịch sử cư trú gần đây" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Nút Xem tất cả chuyển sang tab Lịch sử cư trú -->
+                            <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Command="{Binding ViewAllHistoryCommand}"
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Xem tất cả" FontSize="13" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" ➔" FontSize="13" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Timeline 2 mốc cư trú -->
+                        <StackPanel Grid.Row="1" Margin="4,4,0,0">
+                            <!-- Mốc 1: Đang cư trú -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Chấm xanh lá & đường kẻ dọc -->
+                                <Grid Grid.Column="0" HorizontalAlignment="Center">
+                                    <Rectangle Width="2" Fill="#E2E8F0" Height="50" VerticalAlignment="Bottom" Margin="0,12,0,0"/>
+                                    <Border Width="14" Height="14" CornerRadius="7" Background="#16A34A"
+                                            BorderBrush="White" BorderThickness="2" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                </Grid>
+
+                                <!-- Nội dung mốc 1 -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="4,0,8,0">
+                                    <TextBlock Text="10/01/2026 – Hiện tại" FontSize="11.5" Foreground="#64748B"/>
+                                    <TextBlock Text="Cư trú tại căn hộ A-1203" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,3,0,0"/>
+                                </StackPanel>
+
+                                <!-- Badge trạng thái -->
+                                <Border Grid.Column="2" Background="#DCFCE7" CornerRadius="10" Padding="8,3" VerticalAlignment="Top">
+                                    <TextBlock Text="Đang cư trú" FontSize="11" FontWeight="Bold" Foreground="#16A34A"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- Mốc 2: Đã kết thúc -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Chấm xám -->
+                                <Grid Grid.Column="0" HorizontalAlignment="Center">
+                                    <Border Width="14" Height="14" CornerRadius="7" Background="#94A3B8"
+                                            BorderBrush="White" BorderThickness="2" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                </Grid>
+
+                                <!-- Nội dung mốc 2 -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="4,0,8,0">
+                                    <TextBlock Text="01/07/2024 – 09/01/2026" FontSize="11.5" Foreground="#64748B"/>
+                                    <TextBlock Text="Cư trú tại căn hộ A-1008" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,3,0,0"/>
+                                </StackPanel>
+
+                                <!-- Badge trạng thái -->
+                                <Border Grid.Column="2" Background="#F1F5F9" CornerRadius="10" Padding="8,3" VerticalAlignment="Top">
+                                    <TextBlock Text="Đã kết thúc" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -26,6 +26,9 @@ public partial class App : System.Windows.Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         
+        // Tải biến môi trường từ .env (cấu hình kết nối Aiven Cloud MySQL)
+        DotNetEnv.Env.NoClobber().TraversePath().Load();
+
         _host = Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((context, builder) =>
             {
@@ -38,13 +41,21 @@ public partial class App : System.Windows.Application
             })
             .ConfigureServices((context, services) =>
             {
-                // 1. Đăng ký Cơ sở dữ liệu AppDbContext sử dụng Connection String từ appsettings.json
-                string connectionString = context.Configuration.GetConnectionString("DefaultConnection") 
+                // 1. Đăng ký Cơ sở dữ liệu AppDbContext sử dụng Connection String từ .env hoặc appsettings.json
+                string connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                    ?? context.Configuration.GetConnectionString("DefaultConnection") 
                     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 
                 var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseMySql(connectionString, serverVersion, mySqlOptions => mySqlOptions.EnableRetryOnFailure()),
+                    options.UseMySql(connectionString, serverVersion, mySqlOptions => 
+                    {
+                        mySqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 2,
+                            maxRetryDelay: TimeSpan.FromSeconds(1),
+                            errorNumbersToAdd: null);
+                        mySqlOptions.CommandTimeout(5);
+                    }),
                     ServiceLifetime.Transient,
                     ServiceLifetime.Singleton);
 
@@ -60,6 +71,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<ResidenceService>();
                 services.AddTransient<VehicleService>();
                 services.AddTransient<AccountService>();
+                services.AddTransient<MemberRequestService>();
 
                 // 5. Đăng ký Views và ViewModels (Presentation UI)
                 services.AddTransient<LoginViewModel>();
@@ -78,6 +90,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<FamilyMembersViewModel>();
                 services.AddTransient<MyVehiclesViewModel>();
                 services.AddTransient<ResidencyHistoryViewModel>();
+                services.AddTransient<UnderDevelopmentViewModel>();
             })
             .Build();
     }
@@ -152,6 +165,7 @@ public partial class App : System.Windows.Application
                 services.GetRequiredService<FamilyMembersViewModel>(),
                 services.GetRequiredService<MyVehiclesViewModel>(),
                 services.GetRequiredService<ResidencyHistoryViewModel>(),
+                services.GetRequiredService<UnderDevelopmentViewModel>(),
                 onLogout: () =>
                 {
                     mainWindow.DialogResult = false;
