@@ -338,17 +338,21 @@ public class ApartmentViewModel : ViewModelBase
             var list = await _apartmentService.GetAllApartmentsAsync();
             _allApartments = list.ToList();
 
-            // Load active residences map nếu có ResidenceService
+            // Load active residences map từ Aiven trong 1 truy vấn duy nhất
             Dictionary<int, List<ResidentMemberItem>> residentMap = new();
+            Dictionary<int, DateTime> lastUpdatedMap = new();
             if (_residenceService != null)
             {
-                foreach (var apt in _allApartments)
+                try
                 {
-                    try
+                    var allHistories = await _residenceService.GetAllResidencesAsync();
+                    var activeResidences = allHistories.Where(r => r.EndDate == null);
+
+                    foreach (var group in activeResidences.GroupBy(r => r.ApartmentId))
                     {
-                        var activeResidences = await _residenceService.GetActiveResidencesByApartmentIdAsync(apt.Id);
-                        var members = activeResidences
+                        var members = group
                             .Where(r => r.Resident != null)
+                            .OrderBy(r => r.RelationshipType) // Chủ hộ (Owner=0) luôn ưu tiên lên đầu
                             .Select(r => new ResidentMemberItem
                             {
                                 Id = r.ResidentId,
@@ -356,12 +360,16 @@ public class ApartmentViewModel : ViewModelBase
                                 PhoneNumber = r.Resident?.PhoneNumber ?? "",
                                 Relationship = FormatRelationship(r.RelationshipType)
                             }).ToList();
-                        residentMap[apt.Id] = members;
+
+                        residentMap[group.Key] = members;
+
+                        var latestStart = group.Max(r => r.StartDate);
+                        lastUpdatedMap[group.Key] = latestStart;
                     }
-                    catch
-                    {
-                        residentMap[apt.Id] = new List<ResidentMemberItem>();
-                    }
+                }
+                catch
+                {
+                    // Fallback an toàn nếu có gián đoạn mạng
                 }
             }
 
@@ -370,24 +378,29 @@ public class ApartmentViewModel : ViewModelBase
             {
                 residentMap.TryGetValue(a.Id, out var residents);
                 var resList = residents ?? new List<ResidentMemberItem>();
+                lastUpdatedMap.TryGetValue(a.Id, out var lastUpdated);
+
+                // Đồng bộ trạng thái: nếu căn hộ có cư dân thực tế thì hiển thị Đang ở
+                var actualStatus = resList.Count > 0 ? ApartmentStatus.Occupied : a.Status;
+
                 return new ApartmentDisplayItem
                 {
                     Id = a.Id,
                     ApartmentNumber = a.ApartmentNumber,
                     Floor = a.Floor,
                     Area = a.Area,
-                    Status = a.Status,
+                    Status = actualStatus,
                     ResidentCount = resList.Count,
                     Residents = resList,
-                    LastUpdated = DateTime.Today,
+                    LastUpdated = lastUpdated != default ? lastUpdated : DateTime.Today,
                     RawApartment = a
                 };
             }).ToList();
 
-            // Cập nhật thống kê KPI
+            // Cập nhật thống kê KPI đồng bộ với dữ liệu thực tế
             TotalApartmentsCount = _allApartments.Count;
-            OccupiedApartmentsCount = _allApartments.Count(a => a.Status == ApartmentStatus.Occupied);
-            EmptyApartmentsCount = _allApartments.Count(a => a.Status == ApartmentStatus.Empty);
+            OccupiedApartmentsCount = _allDisplayItems.Count(a => a.Status == ApartmentStatus.Occupied);
+            EmptyApartmentsCount = _allDisplayItems.Count(a => a.Status == ApartmentStatus.Empty);
             TotalFloorsCount = _allApartments.Select(a => a.Floor).Distinct().Count();
 
             // Cập nhật danh sách Tầng khả dụng để lọc
@@ -591,6 +604,17 @@ public class ApartmentViewModel : ViewModelBase
 
         if (parameter is ApartmentDisplayItem displayItem)
         {
+            if (displayItem.ResidentCount > 0)
+            {
+                NotificationService.Show(
+                    $"Không thể xóa căn hộ {displayItem.ApartmentNumber} (Tầng {displayItem.Floor}) vì hiện có {displayItem.ResidentCount} cư dân đang cư trú.\nVui lòng kết thúc cư trú của cư dân trước khi xóa căn hộ.",
+                    "Không thể xóa căn hộ",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning
+                );
+                return;
+            }
+
             aptId = displayItem.Id;
             aptNumber = displayItem.ApartmentNumber;
             floor = displayItem.Floor;
