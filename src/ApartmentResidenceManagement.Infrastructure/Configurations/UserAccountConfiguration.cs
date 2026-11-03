@@ -27,8 +27,7 @@ public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccount>
             .HasConversion<int>();
 
         builder.Property(u => u.IsActive)
-            .IsRequired()
-            .HasDefaultValue(true);
+            .IsRequired();
 
         builder.Property(u => u.CreatedAt)
             .IsRequired();
