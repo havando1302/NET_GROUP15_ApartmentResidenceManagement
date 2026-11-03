@@ -168,6 +168,10 @@ public class ResidencyViewModel : ViewModelBase
     private string _rejectReasonInput = string.Empty;
     private string _requestSuccessMessage = string.Empty;
 
+    // Member Request Detail Modal
+    private bool _isRequestDetailModalOpen;
+    private MemberRegistrationRequestItemViewModel? _selectedRequestDetail;
+
     // Status / Loading
     private string _errorMessage = string.Empty;
     private bool _hasError;
@@ -259,7 +263,25 @@ public class ResidencyViewModel : ViewModelBase
     public MemberRegistrationRequestItemViewModel? SelectedRequestItem
     {
         get => _selectedRequestItem;
-        set => SetProperty(ref _selectedRequestItem, value);
+        set
+        {
+            if (SetProperty(ref _selectedRequestItem, value) && value != null)
+            {
+                SelectedRequestDetail = value;
+            }
+        }
+    }
+
+    public bool IsRequestDetailModalOpen
+    {
+        get => _isRequestDetailModalOpen;
+        set => SetProperty(ref _isRequestDetailModalOpen, value);
+    }
+
+    public MemberRegistrationRequestItemViewModel? SelectedRequestDetail
+    {
+        get => _selectedRequestDetail;
+        set => SetProperty(ref _selectedRequestDetail, value);
     }
 
     public ObservableCollection<string> ApartmentFilterOptions
@@ -599,6 +621,8 @@ public class ResidencyViewModel : ViewModelBase
     public ICommand OpenRejectDialogCommand { get; }
     public ICommand ConfirmRejectRequestCommand { get; }
     public ICommand CloseRejectDialogCommand { get; }
+    public ICommand OpenRequestDetailCommand { get; }
+    public ICommand CloseRequestDetailModalCommand { get; }
     #endregion
 
     public ResidencyViewModel(
@@ -674,7 +698,8 @@ public class ResidencyViewModel : ViewModelBase
 
         ApproveRequestCommand = new AsyncRelayCommand(async p =>
         {
-            if (p is MemberRegistrationRequestItemViewModel req && _memberRequestService != null)
+            var req = p as MemberRegistrationRequestItemViewModel ?? SelectedRequestDetail ?? SelectedRequestItem;
+            if (req != null && _memberRequestService != null)
             {
                 await ApproveRequestAsync(req);
             }
@@ -682,7 +707,8 @@ public class ResidencyViewModel : ViewModelBase
 
         OpenRejectDialogCommand = new RelayCommand(p =>
         {
-            if (p is MemberRegistrationRequestItemViewModel req)
+            var req = p as MemberRegistrationRequestItemViewModel ?? SelectedRequestDetail ?? SelectedRequestItem;
+            if (req != null)
             {
                 _requestToReject = req;
                 RejectReasonInput = string.Empty;
@@ -702,6 +728,25 @@ public class ResidencyViewModel : ViewModelBase
             {
                 await RejectRequestAsync(_requestToReject, RejectReasonInput);
             }
+        });
+
+        OpenRequestDetailCommand = new RelayCommand(p =>
+        {
+            if (p is MemberRegistrationRequestItemViewModel req)
+            {
+                SelectedRequestDetail = req;
+                IsRequestDetailModalOpen = true;
+            }
+            else if (SelectedRequestItem != null)
+            {
+                SelectedRequestDetail = SelectedRequestItem;
+                IsRequestDetailModalOpen = true;
+            }
+        });
+
+        CloseRequestDetailModalCommand = new RelayCommand(_ =>
+        {
+            IsRequestDetailModalOpen = false;
         });
     }
 
@@ -1161,6 +1206,7 @@ public class ResidencyViewModel : ViewModelBase
                     PhoneNumber = req.PhoneNumber,
                     Email = req.Email,
                     RelationshipType = req.RelationshipType,
+                    SpecificRelationship = req.SpecificRelationship,
                     RelationshipText = relText,
                     Status = req.Status,
                     StatusText = statusText,
@@ -1207,8 +1253,15 @@ public class ResidencyViewModel : ViewModelBase
             var res = await _memberRequestService.ApproveRequestAsync(req.Id);
             if (res.IsSuccess)
             {
+                req.Status = RequestStatus.Approved;
+                req.ProcessedAt = DateTime.Now;
+                req.UpdateStatusAppearance();
                 RequestSuccessMessage = $"Đã phê duyệt và thêm thành viên '{req.FullName}' vào căn hộ {req.ApartmentNumber} thành công!";
                 await LoadDataAsync();
+                if (SelectedRequestDetail != null && SelectedRequestDetail.Id == req.Id)
+                {
+                    SelectedRequestDetail = _allRequests.FirstOrDefault(r => r.Id == req.Id) ?? req;
+                }
             }
             else
             {
@@ -1238,10 +1291,18 @@ public class ResidencyViewModel : ViewModelBase
             var res = await _memberRequestService.RejectRequestAsync(req.Id, reason);
             if (res.IsSuccess)
             {
+                req.Status = RequestStatus.Rejected;
+                req.ProcessedAt = DateTime.Now;
+                req.RejectReason = reason;
+                req.UpdateStatusAppearance();
                 IsRejectDialogOpen = false;
                 _requestToReject = null;
                 RequestSuccessMessage = $"Đã từ chối yêu cầu của '{req.FullName}'.";
-                await LoadRequestsAsync();
+                await LoadDataAsync();
+                if (SelectedRequestDetail != null && SelectedRequestDetail.Id == req.Id)
+                {
+                    SelectedRequestDetail = _allRequests.FirstOrDefault(r => r.Id == req.Id) ?? req;
+                }
             }
             else
             {

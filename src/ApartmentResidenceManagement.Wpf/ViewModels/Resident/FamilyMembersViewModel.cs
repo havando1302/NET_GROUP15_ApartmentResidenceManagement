@@ -90,24 +90,125 @@ public class MemberRegistrationRequestItemViewModel : ViewModelBase
     public string EmailText => !string.IsNullOrWhiteSpace(Email) ? Email : "Chưa cập nhật";
     public RelationshipType RelationshipType { get; set; }
     public string? SpecificRelationship { get; set; }
+    public string SpecificRelationshipText => !string.IsNullOrWhiteSpace(SpecificRelationship) ? SpecificRelationship : "---";
     public string RelationshipText { get; set; } = string.Empty;
 
-    public RequestStatus Status { get; set; }
-    public string StatusText { get; set; } = string.Empty;
-    public string StatusBadgeBg { get; set; } = "#FEF3C7";
-    public string StatusBadgeFg { get; set; } = "#D97706";
-    public string StatusBadgeBorder { get; set; } = "#FDE68A";
+    private RequestStatus _status;
+    public RequestStatus Status
+    {
+        get => _status;
+        set
+        {
+            if (SetProperty(ref _status, value))
+            {
+                UpdateStatusAppearance();
+                OnPropertyChanged(nameof(IsPending));
+                OnPropertyChanged(nameof(CanApprove));
+                OnPropertyChanged(nameof(IsProcessed));
+            }
+        }
+    }
+
+    private string _statusText = string.Empty;
+    public string StatusText
+    {
+        get => _statusText;
+        set => SetProperty(ref _statusText, value);
+    }
+
+    private string _statusBadgeBg = "#FEF3C7";
+    public string StatusBadgeBg
+    {
+        get => _statusBadgeBg;
+        set => SetProperty(ref _statusBadgeBg, value);
+    }
+
+    private string _statusBadgeFg = "#D97706";
+    public string StatusBadgeFg
+    {
+        get => _statusBadgeFg;
+        set => SetProperty(ref _statusBadgeFg, value);
+    }
+
+    private string _statusBadgeBorder = "#FDE68A";
+    public string StatusBadgeBorder
+    {
+        get => _statusBadgeBorder;
+        set => SetProperty(ref _statusBadgeBorder, value);
+    }
 
     public DateTime CreatedAt { get; set; }
     public string CreatedAtText => CreatedAt.ToString("dd/MM/yyyy");
-    public DateTime? ProcessedAt { get; set; }
+    public string CreatedAtFormatted => CreatedAt.ToString("dd/MM/yyyy HH:mm");
+
+    private DateTime? _processedAt;
+    public DateTime? ProcessedAt
+    {
+        get => _processedAt;
+        set
+        {
+            if (SetProperty(ref _processedAt, value))
+            {
+                OnPropertyChanged(nameof(ProcessedAtText));
+            }
+        }
+    }
     public string ProcessedAtText => ProcessedAt.HasValue ? ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm") : "---";
+
     public string RequestCode => $"#YC-{Id:D4}";
-    public string? RejectReason { get; set; }
+
+    private string? _rejectReason;
+    public string? RejectReason
+    {
+        get => _rejectReason;
+        set
+        {
+            if (SetProperty(ref _rejectReason, value))
+            {
+                OnPropertyChanged(nameof(HasRejectReason));
+            }
+        }
+    }
     public bool HasRejectReason => !string.IsNullOrWhiteSpace(RejectReason);
+
     public bool IsPending => Status == RequestStatus.Pending;
     public bool CanApprove => Status == RequestStatus.Pending;
     public bool IsProcessed => Status != RequestStatus.Pending;
+
+    public void UpdateStatusAppearance()
+    {
+        StatusText = Status switch
+        {
+            RequestStatus.Pending => "Chưa duyệt",
+            RequestStatus.Approved => "Đã duyệt",
+            RequestStatus.Rejected => "Từ chối",
+            _ => Status.ToString()
+        };
+
+        StatusBadgeBg = Status switch
+        {
+            RequestStatus.Pending => "#FEF3C7",
+            RequestStatus.Approved => "#DCFCE7",
+            RequestStatus.Rejected => "#FEE2E2",
+            _ => "#F1F5F9"
+        };
+
+        StatusBadgeFg = Status switch
+        {
+            RequestStatus.Pending => "#D97706",
+            RequestStatus.Approved => "#15803D",
+            RequestStatus.Rejected => "#B91C1C",
+            _ => "#475569"
+        };
+
+        StatusBadgeBorder = Status switch
+        {
+            RequestStatus.Pending => "#FDE68A",
+            RequestStatus.Approved => "#BBF7D0",
+            RequestStatus.Rejected => "#FECACA",
+            _ => "#CBD5E1"
+        };
+    }
 }
 
 public class RelationshipOption
