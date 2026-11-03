@@ -930,7 +930,7 @@
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Số tầng" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,6"/>
                             <TextBox Style="{StaticResource ModernTextBox}" Height="40"
-                                     Text="{Binding EditingApartment.Floor, UpdateSourceTrigger=PropertyChanged}"
+                                     Text="{Binding FloorText, UpdateSourceTrigger=PropertyChanged}"
                                      Tag="Nhập số tầng (vd: 12)"/>
                         </StackPanel>
 
@@ -938,8 +938,8 @@
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Diện tích (m²)" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,6"/>
                             <TextBox Style="{StaticResource ModernTextBox}" Height="40"
-                                     Text="{Binding EditingApartment.Area, UpdateSourceTrigger=PropertyChanged}"
-                                     Tag="Nhập diện tích (vd: 76.5)"/>
+                                     Text="{Binding AreaText, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Nhập diện tích (vd: 54.5 hoặc 76,2)"/>
                         </StackPanel>
 
                         <!-- Trạng thái căn hộ -->

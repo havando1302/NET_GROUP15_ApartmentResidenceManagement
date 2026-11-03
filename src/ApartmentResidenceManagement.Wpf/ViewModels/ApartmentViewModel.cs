@@ -74,6 +74,8 @@ public class ApartmentViewModel : ViewModelBase
     private ObservableCollection<ApartmentDisplayItem> _pagedApartments = new();
     private ApartmentDisplayItem? _selectedApartmentItem;
     private Apartment _editingApartment = new();
+    private string _floorText = "1";
+    private string _areaText = string.Empty;
     private bool _isFormOpen;
     private string _formTitle = "THÊM CĂN HỘ MỚI";
     private string _errorMessage = string.Empty;
@@ -155,6 +157,18 @@ public class ApartmentViewModel : ViewModelBase
     {
         get => _editingApartment;
         set => SetProperty(ref _editingApartment, value);
+    }
+
+    public string FloorText
+    {
+        get => _floorText;
+        set => SetProperty(ref _floorText, value);
+    }
+
+    public string AreaText
+    {
+        get => _areaText;
+        set => SetProperty(ref _areaText, value);
     }
 
     public string SearchText
@@ -547,6 +561,8 @@ public class ApartmentViewModel : ViewModelBase
             Status = ApartmentStatus.Empty,
             Floor = 1
         };
+        FloorText = "1";
+        AreaText = string.Empty;
         IsFormOpen = true;
     }
 
@@ -563,6 +579,8 @@ public class ApartmentViewModel : ViewModelBase
             Area = item.Area,
             Status = item.Status
         };
+        FloorText = item.Floor.ToString();
+        AreaText = item.Area.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
         IsFormOpen = true;
     }
 
@@ -579,6 +597,8 @@ public class ApartmentViewModel : ViewModelBase
             Area = apartment.Area,
             Status = apartment.Status
         };
+        FloorText = apartment.Floor.ToString();
+        AreaText = apartment.Area.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
         IsFormOpen = true;
     }
 
@@ -598,17 +618,20 @@ public class ApartmentViewModel : ViewModelBase
             return;
         }
 
-        if (EditingApartment.Floor <= 0)
+        if (!int.TryParse(FloorText?.Trim(), out int floor) || floor <= 0)
         {
-            ErrorMessage = "Số tầng phải lớn hơn 0.";
+            ErrorMessage = "Số tầng phải là số nguyên dương lớn hơn 0.";
             return;
         }
+        EditingApartment.Floor = floor;
 
-        if (EditingApartment.Area <= 0)
+        string normalizedArea = AreaText?.Replace(',', '.').Trim() ?? string.Empty;
+        if (!double.TryParse(normalizedArea, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double area) || area <= 0)
         {
-            ErrorMessage = "Diện tích phải lớn hơn 0.";
+            ErrorMessage = "Diện tích phải là số lớn hơn 0 (ví dụ: 54.5 hoặc 76,2).";
             return;
         }
+        EditingApartment.Area = area;
 
         try
         {
