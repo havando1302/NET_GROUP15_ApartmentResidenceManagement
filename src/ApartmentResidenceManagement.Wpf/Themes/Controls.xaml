@@ -406,6 +406,9 @@
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Height" Value="8"/>
                 <Setter Property="Template" Value="{StaticResource ModernHorizontalScrollBarTemplate}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 
     <!-- Application-wide DataGridCell default style (Loại bỏ triệt để viền đen focus ở tất cả các ô trong toàn bộ ứng dụng) -->
     <Style TargetType="DataGridCell">
