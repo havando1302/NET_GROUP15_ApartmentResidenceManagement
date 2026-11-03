@@ -1,0 +1,24 @@
+<UserControl x:Class="ApartmentResidenceManagement.Wpf.Controls.DonutChart"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="200"
+             SizeChanged="OnSizeChanged">
+    
+    <Grid x:Name="RootGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- Canvas chứa các cung quạt PathGeometry -->
+        <Canvas x:Name="ChartCanvas" Width="180" Height="180" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        <!-- Text ở trung tâm biểu đồ hình vành khuyên -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+            <TextBlock x:Name="TxtCenterValue" FontSize="22" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="TxtCenterLabel" FontSize="12" FontWeight="Medium" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <!-- Trạng thái không có dữ liệu (UI06) -->
+        <TextBlock x:Name="TxtEmpty" Text="Không có dữ liệu" FontSize="12" Foreground="#94A3B8"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+    </Grid>
+</UserControl>

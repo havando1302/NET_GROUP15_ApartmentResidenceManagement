@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ApartmentResidenceManagement.Wpf.Services;
@@ -179,6 +179,29 @@ public class MainViewModel : ViewModelBase
             CurrentViewModel = AccountManagementVm;
             _ = SafeExecuteAsync(() => AccountManagementVm.LoadDataAsync());
         });
+
+        // Kết nối điều hướng từ Dashboard đến các trang nghiệp vụ
+        DashboardVm.OnNavigateRequested = dest =>
+        {
+            switch (dest?.ToLowerInvariant())
+            {
+                case "vehicle":
+                    ShowVehicleCommand.Execute(null);
+                    break;
+                case "residency":
+                    ShowResidencyCommand.Execute(null);
+                    break;
+                case "apartment":
+                    ShowApartmentCommand.Execute(null);
+                    break;
+                case "resident":
+                    ShowResidentCommand.Execute(null);
+                    break;
+                case "statistics":
+                    ShowStatisticsCommand.Execute(null);
+                    break;
+            }
+        };
 
         // Khởi tạo các command điều hướng Resident
         ShowResidentHomeCommand = new RelayCommand(_ => {

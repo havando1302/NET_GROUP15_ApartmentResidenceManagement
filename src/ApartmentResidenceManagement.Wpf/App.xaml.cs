@@ -72,6 +72,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<VehicleService>();
                 services.AddTransient<AccountService>();
                 services.AddTransient<MemberRequestService>();
+                services.AddTransient<StatisticsService>();
 
                 // 5. Đăng ký Views và ViewModels (Presentation UI)
                 services.AddTransient<LoginViewModel>();
