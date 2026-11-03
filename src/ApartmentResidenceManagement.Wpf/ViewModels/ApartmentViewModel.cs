@@ -27,8 +27,17 @@ public class PageItem
     public bool IsActive { get; set; }
 }
 
+public class FilterOptionItem<T>
+{
+    public string DisplayText { get; set; } = string.Empty;
+    public T? Value { get; set; }
+
+    public override string ToString() => DisplayText;
+}
+
 public class ApartmentDisplayItem
 {
+    public int DisplayIndex { get; set; }
     public int Id { get; set; }
     public string ApartmentNumber { get; set; } = string.Empty;
     public int Floor { get; set; }
@@ -56,9 +65,10 @@ public class ApartmentViewModel : ViewModelBase
 
     // Search và Filter properties
     private string _searchText = string.Empty;
-    private ApartmentStatus? _selectedStatusFilter;
-    private int? _selectedFloorFilter;
-    private ObservableCollection<int?> _availableFloors = new();
+    private FilterOptionItem<ApartmentStatus?>? _selectedStatusFilterItem;
+    private FilterOptionItem<int?>? _selectedFloorFilterItem;
+    public ObservableCollection<FilterOptionItem<int?>> FloorFilterItems { get; } = new();
+    public ObservableCollection<FilterOptionItem<ApartmentStatus?>> StatusFilterItems { get; } = new();
 
     // DataGrid & Details properties
     private ObservableCollection<ApartmentDisplayItem> _pagedApartments = new();
@@ -111,11 +121,8 @@ public class ApartmentViewModel : ViewModelBase
     // Giữ thuộc tính Apartments để tương thích nếu cần
     public ObservableCollection<ApartmentDisplayItem> Apartments => PagedApartments;
 
-    public ObservableCollection<int?> AvailableFloors
-    {
-        get => _availableFloors;
-        set => SetProperty(ref _availableFloors, value);
-    }
+    public ObservableCollection<int?> AvailableFloors => 
+        new ObservableCollection<int?>(FloorFilterItems.Select(f => f.Value));
 
     public ApartmentDisplayItem? SelectedApartmentItem
     {
@@ -163,30 +170,44 @@ public class ApartmentViewModel : ViewModelBase
         }
     }
 
-    public ApartmentStatus? SelectedStatusFilter
+    public FilterOptionItem<ApartmentStatus?>? SelectedStatusFilterItem
     {
-        get => _selectedStatusFilter;
+        get => _selectedStatusFilterItem;
         set
         {
-            if (SetProperty(ref _selectedStatusFilter, value))
+            if (SetProperty(ref _selectedStatusFilterItem, value))
             {
                 CurrentPage = 1;
                 ApplyFilters();
+                OnPropertyChanged(nameof(SelectedStatusFilter));
             }
         }
     }
 
-    public int? SelectedFloorFilter
+    public FilterOptionItem<int?>? SelectedFloorFilterItem
     {
-        get => _selectedFloorFilter;
+        get => _selectedFloorFilterItem;
         set
         {
-            if (SetProperty(ref _selectedFloorFilter, value))
+            if (SetProperty(ref _selectedFloorFilterItem, value))
             {
                 CurrentPage = 1;
                 ApplyFilters();
+                OnPropertyChanged(nameof(SelectedFloorFilter));
             }
         }
+    }
+
+    public ApartmentStatus? SelectedStatusFilter
+    {
+        get => _selectedStatusFilterItem?.Value;
+        set => SelectedStatusFilterItem = StatusFilterItems.FirstOrDefault(s => s.Value == value) ?? StatusFilterItems.FirstOrDefault();
+    }
+
+    public int? SelectedFloorFilter
+    {
+        get => _selectedFloorFilterItem?.Value;
+        set => SelectedFloorFilterItem = FloorFilterItems.FirstOrDefault(f => f.Value == value) ?? FloorFilterItems.FirstOrDefault();
     }
 
     public int CurrentPage
@@ -325,8 +346,18 @@ public class ApartmentViewModel : ViewModelBase
                 CurrentPage = page;
         });
 
-        _selectedStatusFilter = null;
-        _selectedFloorFilter = null;
+        // Khởi tạo các lựa chọn bộ lọc trạng thái
+        StatusFilterItems.Clear();
+        StatusFilterItems.Add(new FilterOptionItem<ApartmentStatus?> { DisplayText = "Tất cả", Value = null });
+        StatusFilterItems.Add(new FilterOptionItem<ApartmentStatus?> { DisplayText = "Đang ở", Value = ApartmentStatus.Occupied });
+        StatusFilterItems.Add(new FilterOptionItem<ApartmentStatus?> { DisplayText = "Trống", Value = ApartmentStatus.Empty });
+        StatusFilterItems.Add(new FilterOptionItem<ApartmentStatus?> { DisplayText = "Bảo trì", Value = ApartmentStatus.UnderMaintenance });
+        _selectedStatusFilterItem = StatusFilterItems[0];
+
+        // Khởi tạo bộ lọc tầng ban đầu
+        FloorFilterItems.Clear();
+        FloorFilterItems.Add(new FilterOptionItem<int?> { DisplayText = "Tất cả", Value = null });
+        _selectedFloorFilterItem = FloorFilterItems[0];
     }
 
     public async Task LoadDataAsync()
@@ -405,12 +436,17 @@ public class ApartmentViewModel : ViewModelBase
 
             // Cập nhật danh sách Tầng khả dụng để lọc
             var floors = _allApartments.Select(a => a.Floor).Distinct().OrderBy(f => f).ToList();
-            AvailableFloors.Clear();
-            AvailableFloors.Add(null); // Tất cả các tầng
+            var prevSelectedFloor = SelectedFloorFilterItem?.Value;
+
+            FloorFilterItems.Clear();
+            FloorFilterItems.Add(new FilterOptionItem<int?> { DisplayText = "Tất cả", Value = null });
             foreach (var floor in floors)
             {
-                AvailableFloors.Add(floor);
+                FloorFilterItems.Add(new FilterOptionItem<int?> { DisplayText = $"Tầng {floor}", Value = floor });
             }
+
+            _selectedFloorFilterItem = FloorFilterItems.FirstOrDefault(f => f.Value == prevSelectedFloor) ?? FloorFilterItems[0];
+            OnPropertyChanged(nameof(SelectedFloorFilterItem));
 
             ApplyFilters();
         }
@@ -450,15 +486,15 @@ public class ApartmentViewModel : ViewModelBase
         }
 
         // 2. Lọc theo trạng thái
-        if (SelectedStatusFilter.HasValue)
+        if (SelectedStatusFilterItem?.Value != null)
         {
-            filtered = filtered.Where(a => a.Status == SelectedStatusFilter.Value);
+            filtered = filtered.Where(a => a.Status == SelectedStatusFilterItem.Value.Value);
         }
 
         // 3. Lọc theo tầng
-        if (SelectedFloorFilter.HasValue)
+        if (SelectedFloorFilterItem?.Value != null)
         {
-            filtered = filtered.Where(a => a.Floor == SelectedFloorFilter.Value);
+            filtered = filtered.Where(a => a.Floor == SelectedFloorFilterItem.Value.Value);
         }
 
         _filteredDisplayItems = filtered.OrderBy(a => a.ApartmentNumber).ToList();
@@ -479,9 +515,11 @@ public class ApartmentViewModel : ViewModelBase
             .Take(PageSize)
             .ToList();
 
-        foreach (var item in pagedList)
+        int startIndex = (CurrentPage - 1) * PageSize;
+        for (int i = 0; i < pagedList.Count; i++)
         {
-            PagedApartments.Add(item);
+            pagedList[i].DisplayIndex = startIndex + i + 1;
+            PagedApartments.Add(pagedList[i]);
         }
 
         // Cập nhật danh sách số trang PageItems
