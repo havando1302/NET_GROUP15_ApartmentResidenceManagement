@@ -43,12 +43,9 @@ public class StatisticsService
         // BR05: Phương tiện chờ duyệt
         int pendingVehicles = vehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending);
 
-        // DB04: Cư trú sắp hết hạn trong 7 ngày tới (EndDate trong khoảng [now, now + 7 ngày])
-        var sevenDaysLater = now.AddDays(7);
-        int expiringResidencesCount = histories.Count(h =>
-            h.EndDate.HasValue &&
-            h.EndDate.Value.Date >= now &&
-            h.EndDate.Value.Date <= sevenDaysLater);
+        // DB04: Yêu cầu thêm thành viên chờ duyệt từ bảng MemberRegistrationRequests
+        var pendingRequests = await _unitOfWork.MemberRegistrationRequests.GetPendingRequestsAsync();
+        int pendingMemberRequests = pendingRequests?.Count() ?? 0;
 
         // DB03: Danh sách 5 hoạt động cư trú gần nhất từ dữ liệu thực tế
         var recentActivities = BuildRecentActivities(histories, 5);
@@ -64,7 +61,7 @@ public class StatisticsService
             CurrentResidents = currentResidents,
             OccupancyRate = occupancyRate,
             PendingVehicles = pendingVehicles,
-            ExpiringResidencesCount = expiringResidencesCount,
+            PendingMemberRequestsCount = pendingMemberRequests,
             RecentActivities = recentActivities,
             MonthlyTrends = monthlyTrends
         };

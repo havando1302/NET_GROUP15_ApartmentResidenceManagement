@@ -17,6 +17,7 @@ public class StatisticsServiceTests
     private readonly Mock<IApartmentRepository> _mockApartmentRepo;
     private readonly Mock<IResidenceHistoryRepository> _mockResidenceHistoryRepo;
     private readonly Mock<IVehicleRepository> _mockVehicleRepo;
+    private readonly Mock<IMemberRegistrationRequestRepository> _mockMemberRepo;
     private readonly StatisticsService _service;
 
     public StatisticsServiceTests()
@@ -25,10 +26,12 @@ public class StatisticsServiceTests
         _mockApartmentRepo = new Mock<IApartmentRepository>();
         _mockResidenceHistoryRepo = new Mock<IResidenceHistoryRepository>();
         _mockVehicleRepo = new Mock<IVehicleRepository>();
+        _mockMemberRepo = new Mock<IMemberRegistrationRequestRepository>();
 
         _mockUow.Setup(u => u.Apartments).Returns(_mockApartmentRepo.Object);
         _mockUow.Setup(u => u.ResidenceHistories).Returns(_mockResidenceHistoryRepo.Object);
         _mockUow.Setup(u => u.Vehicles).Returns(_mockVehicleRepo.Object);
+        _mockUow.Setup(u => u.MemberRegistrationRequests).Returns(_mockMemberRepo.Object);
 
         _service = new StatisticsService(_mockUow.Object);
     }

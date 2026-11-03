@@ -23,7 +23,7 @@ public class DashboardViewModel : ViewModelBase
     private int _currentResidents;
     private double _occupancyRate;
     private int _pendingVehicles;
-    private int _expiringResidencesCount;
+    private int _pendingMemberRequestsCount;
 
     // Biểu đồ tròn và cột 2D (DB02, UI01, UI02)
     private ObservableCollection<DonutSliceItem> _apartmentDonutSlices = new();
@@ -87,10 +87,10 @@ public class DashboardViewModel : ViewModelBase
         set => SetProperty(ref _pendingVehicles, value);
     }
 
-    public int ExpiringResidencesCount
+    public int PendingMemberRequestsCount
     {
-        get => _expiringResidencesCount;
-        set => SetProperty(ref _expiringResidencesCount, value);
+        get => _pendingMemberRequestsCount;
+        set => SetProperty(ref _pendingMemberRequestsCount, value);
     }
 
     public ObservableCollection<DonutSliceItem> ApartmentDonutSlices
@@ -176,7 +176,7 @@ public class DashboardViewModel : ViewModelBase
             CurrentResidents = summary.CurrentResidents;
             OccupancyRate = summary.OccupancyRate;
             PendingVehicles = summary.PendingVehicles;
-            ExpiringResidencesCount = summary.ExpiringResidencesCount;
+            PendingMemberRequestsCount = summary.PendingMemberRequestsCount;
 
             // 2. Cập nhật Biểu đồ Donut Tình trạng sử dụng căn hộ (DB02, UI01, UI03)
             var slices = new ObservableCollection<DonutSliceItem>

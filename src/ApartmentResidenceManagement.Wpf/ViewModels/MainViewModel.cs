@@ -189,6 +189,11 @@ public class MainViewModel : ViewModelBase
                     ShowVehicleCommand.Execute(null);
                     break;
                 case "residency":
+                    ResidencyVm.SelectedTabIndex = 0;
+                    ShowResidencyCommand.Execute(null);
+                    break;
+                case "residency_requests":
+                    ResidencyVm.SelectedTabIndex = 2; // Chuyển thẳng sang Tab Yêu cầu đăng ký thành viên
                     ShowResidencyCommand.Execute(null);
                     break;
                 case "apartment":

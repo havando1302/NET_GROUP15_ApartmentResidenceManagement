@@ -104,22 +104,21 @@ public partial class DonutChart : UserControl
 
         double center = size / 2.0;
         double outerRadius = center - 6;
-        double innerRadius = outerRadius * Math.Clamp(HoleRatio, 0.2, 0.9);
+        double innerRadius = outerRadius * Math.Clamp(HoleRatio, 0.0, 0.9);
 
         var sliceList = Slices?.Where(s => s.Value > 0).ToList();
         double total = sliceList?.Sum(s => s.Value) ?? 0;
 
-        // UI06: Khi tổng dữ liệu bằng 0, hiển thị "Không có dữ liệu" và vòng xám nhạt
+        // UI06: Khi tổng dữ liệu bằng 0, hiển thị "Không có dữ liệu"
         if (sliceList == null || sliceList.Count == 0 || total <= 0)
         {
             TxtEmpty.Visibility = Visibility.Visible;
             TxtCenterValue.Visibility = Visibility.Collapsed;
             TxtCenterLabel.Visibility = Visibility.Collapsed;
 
-            // Vẽ vòng xám nhạt
             var emptyRing = new Path
             {
-                Data = CreateDonutSliceGeometry(center, center, innerRadius, outerRadius, 0, 359.99),
+                Data = CreatePieOrDonutGeometry(center, center, innerRadius, outerRadius, 0, 359.99),
                 Fill = new SolidColorBrush(Color.FromArgb(30, 148, 163, 184)),
                 IsHitTestVisible = false
             };
@@ -128,27 +127,38 @@ public partial class DonutChart : UserControl
         }
 
         TxtEmpty.Visibility = Visibility.Collapsed;
-        TxtCenterValue.Visibility = Visibility.Visible;
-        TxtCenterLabel.Visibility = Visibility.Visible;
-        TxtCenterValue.Text = CenterText;
-        TxtCenterLabel.Text = CenterSubText;
+
+        // Nếu là biểu đồ tròn đặc (HoleRatio <= 0.05), ẩn text ở giữa tâm
+        if (HoleRatio <= 0.05)
+        {
+            TxtCenterValue.Visibility = Visibility.Collapsed;
+            TxtCenterLabel.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            TxtCenterValue.Visibility = Visibility.Visible;
+            TxtCenterLabel.Visibility = Visibility.Visible;
+            TxtCenterValue.Text = CenterText;
+            TxtCenterLabel.Text = CenterSubText;
+        }
 
         // UI01: Vẽ các hình quạt bằng PathGeometry và ArcSegment
-        double currentAngle = -90.0; // Bắt đầu từ vị trí 12 giờ trên đồng hồ
+        double currentAngle = -90.0; // Bắt đầu từ 12 giờ
 
         foreach (var slice in sliceList)
         {
             double sweepAngle = (slice.Value / total) * 360.0;
             if (sweepAngle <= 0) continue;
 
-            // Xử lý góc tối đa 359.99 để ArcSegment không bị khép kín thành 0
             if (sweepAngle >= 360.0) sweepAngle = 359.99;
 
-            var geom = CreateDonutSliceGeometry(center, center, innerRadius, outerRadius, currentAngle, sweepAngle);
+            var geom = CreatePieOrDonutGeometry(center, center, innerRadius, outerRadius, currentAngle, sweepAngle);
             var path = new Path
             {
                 Data = geom,
                 Fill = slice.Brush,
+                Stroke = Brushes.White,
+                StrokeThickness = 2,
                 Cursor = System.Windows.Input.Cursors.Hand
             };
 
@@ -169,31 +179,39 @@ public partial class DonutChart : UserControl
         ChartCanvas.BeginAnimation(UIElement.OpacityProperty, anim);
     }
 
-    private static Geometry CreateDonutSliceGeometry(
+    private static Geometry CreatePieOrDonutGeometry(
         double centerX, double centerY, double innerRadius, double outerRadius, double startAngleDeg, double sweepAngleDeg)
     {
         double endAngleDeg = startAngleDeg + sweepAngleDeg;
 
         Point p1 = DegreesToPoint(centerX, centerY, outerRadius, startAngleDeg);
         Point p2 = DegreesToPoint(centerX, centerY, outerRadius, endAngleDeg);
-        Point p3 = DegreesToPoint(centerX, centerY, innerRadius, endAngleDeg);
-        Point p4 = DegreesToPoint(centerX, centerY, innerRadius, startAngleDeg);
 
         bool isLargeArc = sweepAngleDeg > 180.0;
 
         var figure = new PathFigure
         {
-            StartPoint = p1,
             IsClosed = true,
             IsFilled = true
         };
 
-        // Outer arc
-        figure.Segments.Add(new ArcSegment(p2, new Size(outerRadius, outerRadius), 0, isLargeArc, SweepDirection.Clockwise, true));
-        // Line to inner circle
-        figure.Segments.Add(new LineSegment(p3, true));
-        // Inner arc (counter-clockwise)
-        figure.Segments.Add(new ArcSegment(p4, new Size(innerRadius, innerRadius), 0, isLargeArc, SweepDirection.Counterclockwise, true));
+        if (innerRadius <= 0.05)
+        {
+            // Biểu đồ tròn đặc (Pie Chart): Tâm -> p1 -> Cung ngoài -> Khép lại tâm
+            figure.StartPoint = new Point(centerX, centerY);
+            figure.Segments.Add(new LineSegment(p1, true));
+            figure.Segments.Add(new ArcSegment(p2, new Size(outerRadius, outerRadius), 0, isLargeArc, SweepDirection.Clockwise, true));
+        }
+        else
+        {
+            Point p3 = DegreesToPoint(centerX, centerY, innerRadius, endAngleDeg);
+            Point p4 = DegreesToPoint(centerX, centerY, innerRadius, startAngleDeg);
+
+            figure.StartPoint = p1;
+            figure.Segments.Add(new ArcSegment(p2, new Size(outerRadius, outerRadius), 0, isLargeArc, SweepDirection.Clockwise, true));
+            figure.Segments.Add(new LineSegment(p3, true));
+            figure.Segments.Add(new ArcSegment(p4, new Size(innerRadius, innerRadius), 0, isLargeArc, SweepDirection.Counterclockwise, true));
+        }
 
         var geometry = new PathGeometry();
         geometry.Figures.Add(figure);

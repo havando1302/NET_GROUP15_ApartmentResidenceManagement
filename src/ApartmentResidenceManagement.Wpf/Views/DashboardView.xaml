@@ -204,11 +204,9 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Donut Chart 2D Component -->
+                            <!-- Biểu đồ hình tròn (Pie Chart) 2D Component -->
                             <controls:DonutChart Grid.Column="0" Slices="{Binding ApartmentDonutSlices}"
-                                                 CenterText="{Binding OccupancyRateDisplay}"
-                                                 CenterSubText="Đang sử dụng"
-                                                 HoleRatio="0.68" Width="165" Height="165"
+                                                 HoleRatio="0" Width="165" Height="165"
                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                             <!-- Chú giải tỷ lệ và số căn hộ -->
@@ -241,8 +239,7 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Minh họa tòa nhà ở góc phải -->
-                                <Image Source="/Assets/sidebar_buildings.png" Height="50" HorizontalAlignment="Right" Opacity="0.8" Stretch="Uniform" Margin="0,6,0,0"/>
+                                <!-- Đã bỏ hình ảnh tòa nhà theo yêu cầu -->
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -329,10 +326,10 @@
                             </Grid>
                         </Border>
 
-                        <!-- Action Item 2: Cư trú sắp hết hạn -->
+                        <!-- Action Item 2: Yêu cầu thêm thành viên chờ duyệt -->
                         <Border Background="#F8FAFC" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="14,12" Cursor="Hand">
                             <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="residency"/>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="residency_requests"/>
                             </Border.InputBindings>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -343,19 +340,19 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Center">
-                                    <iconPacks:PackIconMaterial Kind="AccountClockOutline" Width="20" Height="20" Foreground="#2563EB"
+                                    <iconPacks:PackIconMaterial Kind="AccountPlusOutline" Width="20" Height="20" Foreground="#2563EB"
                                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="Cư trú sắp hết hạn" FontSize="13.5" FontWeight="SemiBold" Foreground="#0F172A"/>
-                                    <TextBlock Text="{Binding ExpiringResidencesCount, StringFormat='{}Có {0} hồ sơ cư trú đến hạn trong 7 ngày tới.'}"
+                                    <TextBlock Text="Yêu cầu thêm thành viên" FontSize="13.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    <TextBlock Text="{Binding PendingMemberRequestsCount, StringFormat='{}Có {0} yêu cầu đăng ký thành viên mới chờ duyệt.'}"
                                                FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <!-- Badge số lượng -->
-                                <Border Grid.Column="2" Background="#FEE2E2" CornerRadius="12" Padding="8,2" VerticalAlignment="Center" Margin="0,0,8,0">
-                                    <TextBlock Text="{Binding ExpiringResidencesCount}" FontSize="12" FontWeight="Bold" Foreground="#DC2626"/>
+                                <Border Grid.Column="2" Background="#FEF3C7" CornerRadius="12" Padding="8,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding PendingMemberRequestsCount}" FontSize="12" FontWeight="Bold" Foreground="#D97706"/>
                                 </Border>
 
                                 <iconPacks:PackIconMaterial Grid.Column="3" Kind="ChevronRight" Width="14" Height="14" Foreground="#94A3B8" VerticalAlignment="Center"/>

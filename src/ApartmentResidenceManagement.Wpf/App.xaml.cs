@@ -51,10 +51,10 @@ public partial class App : System.Windows.Application
                     options.UseMySql(connectionString, serverVersion, mySqlOptions => 
                     {
                         mySqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 2,
-                            maxRetryDelay: TimeSpan.FromSeconds(1),
+                            maxRetryCount: 3,
+                            maxRetryDelay: TimeSpan.FromSeconds(2),
                             errorNumbersToAdd: null);
-                        mySqlOptions.CommandTimeout(5);
+                        mySqlOptions.CommandTimeout(30);
                     }),
                     ServiceLifetime.Transient,
                     ServiceLifetime.Singleton);

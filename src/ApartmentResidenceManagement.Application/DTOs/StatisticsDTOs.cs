@@ -16,7 +16,7 @@ public class DashboardSummaryDto
     public double OccupancyRate { get; set; }
 
     public int PendingVehicles { get; set; }
-    public int ExpiringResidencesCount { get; set; }
+    public int PendingMemberRequestsCount { get; set; }
 
     public List<ResidenceActivityItemDto> RecentActivities { get; set; } = new();
     public List<MonthlyResidenceTrendDto> MonthlyTrends { get; set; } = new();
