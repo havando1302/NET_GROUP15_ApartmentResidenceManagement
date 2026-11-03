@@ -314,6 +314,105 @@ public class ResidentPortalTests
         Assert.False(vm.IsAvatarPickerOpen);
         Assert.Contains("thành công", vm.SuccessMessage);
     }
+        [Fact]
+    public void MyProfileViewModel_Initialize_WithAdminAccount_SetsIsAdminTrueAndAdminMetadata()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        var adminAccount = new UserAccount
+        {
+            Id = 1,
+            Username = "admin",
+            Role = ApartmentResidenceManagement.Domain.Enums.UserRole.Admin,
+            IsActive = true,
+            CreatedAt = new DateTime(2026, 1, 10, 8, 0, 0)
+        };
+
+        // Act
+        vm.Initialize(adminAccount);
+
+        // Assert
+        Assert.True(vm.IsAdmin);
+        Assert.False(vm.IsResident);
+        Assert.Equal("TK-0001", vm.AdminCode);
+        Assert.Equal("admin", vm.AdminUsername);
+        Assert.Equal("Ban Quản lý Tòa nhà", vm.AdminDisplayName);
+        Assert.Equal("Quản trị viên Cấp cao", vm.AdminRoleName);
+        Assert.Equal("Đang hoạt động", vm.AdminStatusText);
+    }
+
+    [Fact]
+    public void MyProfileViewModel_ChangePassword_WithEmptyOldPassword_SetsError()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        vm.OldPassword = "";
+        vm.NewPassword = "newpassword123";
+        vm.ConfirmNewPassword = "newpassword123";
+
+        // Act
+        vm.ConfirmChangePasswordCommand.Execute(null);
+
+        // Assert
+        Assert.Equal("Vui lòng nhập mật khẩu hiện tại.", vm.ChangePasswordError);
+        Assert.True(vm.HasChangePasswordError);
+    }
+
+    [Fact]
+    public void MyProfileViewModel_ChangePassword_WithShortNewPassword_SetsError()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        vm.OldPassword = "oldpassword";
+        vm.NewPassword = "123";
+        vm.ConfirmNewPassword = "123";
+
+        // Act
+        vm.ConfirmChangePasswordCommand.Execute(null);
+
+        // Assert
+        Assert.Equal("Mật khẩu mới phải có ít nhất 6 ký tự.", vm.ChangePasswordError);
+        Assert.True(vm.HasChangePasswordError);
+    }
+
+    [Fact]
+    public void MyProfileViewModel_ChangePassword_WithMismatchedConfirmPassword_SetsError()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        vm.OldPassword = "oldpassword";
+        vm.NewPassword = "newpassword123";
+        vm.ConfirmNewPassword = "differentpassword";
+
+        // Act
+        vm.ConfirmChangePasswordCommand.Execute(null);
+
+        // Assert
+        Assert.Equal("Xác nhận mật khẩu mới không trùng khớp.", vm.ChangePasswordError);
+        Assert.True(vm.HasChangePasswordError);
+    }
+
+    [Fact]
+    public void MyProfileViewModel_SaveBqlContactCommand_UpdatesBqlContactInfo()
+    {
+        // Arrange
+        var vm = new MyProfileViewModel();
+        vm.EditBqlHotline = "1900 9999";
+        vm.EditBqlEmail = "support@bql.vn";
+        vm.EditBqlOffice = "Tòa B - Tầng 2";
+        vm.EditBqlWorkingHours = "08:00 - 17:00";
+
+        // Act
+        vm.SaveBqlContactCommand.Execute(null);
+
+        // Assert
+        Assert.Equal("1900 9999", vm.BqlHotline);
+        Assert.Equal("support@bql.vn", vm.BqlEmail);
+        Assert.Equal("Tòa B - Tầng 2", vm.BqlOffice);
+        Assert.Equal("08:00 - 17:00", vm.BqlWorkingHours);
+        Assert.False(vm.IsEditBqlModalOpen);
+        Assert.Contains("thành công", vm.SuccessMessage);
+    }
     #endregion
 
     #region MyApartmentViewModel Tests
