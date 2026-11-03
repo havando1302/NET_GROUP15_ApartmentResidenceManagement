@@ -46,22 +46,60 @@ public class ResidentListItemViewModel : ViewModelBase
     public int Stt { get; set; }
 
     public int Id => Resident.Id;
-    public string ResidentCode => $"CD{Resident.Id:D3}";
-    public string FullName => Resident.FullName;
-    public DateTime DateOfBirth => Resident.DateOfBirth;
-    public string DateOfBirthFormatted => Resident.DateOfBirth.ToString("dd/MM/yyyy");
-    public GenderType Gender => Resident.Gender;
-    public string GenderText => Resident.Gender switch
+    public string ResidentCode
     {
-        GenderType.Male => "Nam",
-        GenderType.Female => "Nữ",
-        _ => "Khác"
-    };
+        get => $"CD{Resident.Id:D3}";
+        set { }
+    }
 
-    public string IdentityCard => string.IsNullOrWhiteSpace(Resident.IdentityCard) ? "-" : Resident.IdentityCard;
-    public string PhoneNumber => string.IsNullOrWhiteSpace(Resident.PhoneNumber) ? "-" : Resident.PhoneNumber;
-    public string Email => string.IsNullOrWhiteSpace(Resident.Email) ? "-" : Resident.Email;
-    public string HomeTown => string.IsNullOrWhiteSpace(Resident.HomeTown) ? "Chưa cập nhật" : Resident.HomeTown;
+    public string FullName
+    {
+        get => Resident.FullName;
+        set { }
+    }
+
+    public DateTime DateOfBirth => Resident.DateOfBirth;
+    public string DateOfBirthFormatted
+    {
+        get => Resident.DateOfBirth.ToString("dd/MM/yyyy");
+        set { }
+    }
+
+    public GenderType Gender => Resident.Gender;
+    public string GenderText
+    {
+        get => Resident.Gender switch
+        {
+            GenderType.Male => "Nam",
+            GenderType.Female => "Nữ",
+            _ => "Khác"
+        };
+        set { }
+    }
+
+    public string IdentityCard
+    {
+        get => string.IsNullOrWhiteSpace(Resident.IdentityCard) ? "-" : Resident.IdentityCard;
+        set { }
+    }
+
+    public string PhoneNumber
+    {
+        get => string.IsNullOrWhiteSpace(Resident.PhoneNumber) ? "-" : Resident.PhoneNumber;
+        set { }
+    }
+
+    public string Email
+    {
+        get => string.IsNullOrWhiteSpace(Resident.Email) ? "-" : Resident.Email;
+        set { }
+    }
+
+    public string HomeTown
+    {
+        get => string.IsNullOrWhiteSpace(Resident.HomeTown) ? "Chưa cập nhật" : Resident.HomeTown;
+        set { }
+    }
 
     // Cư trú hiện tại
     private string _apartmentNumber = "-";
@@ -91,9 +129,13 @@ public class ResidentListItemViewModel : ViewModelBase
         }
     }
 
-    public string ResidencyStartDateFormatted => ResidencyStartDate.HasValue
-        ? ResidencyStartDate.Value.ToString("dd/MM/yyyy")
-        : "Chưa có thông tin";
+    public string ResidencyStartDateFormatted
+    {
+        get => ResidencyStartDate.HasValue
+            ? ResidencyStartDate.Value.ToString("dd/MM/yyyy")
+            : "Chưa có thông tin";
+        set { }
+    }
 
     // Trạng thái cư trú: "Đang cư trú", "Đã chuyển đi", "Chưa đăng ký"
     private string _statusText = "Chưa đăng ký";

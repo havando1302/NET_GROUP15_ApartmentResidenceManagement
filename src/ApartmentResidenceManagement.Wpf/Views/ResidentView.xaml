@@ -804,18 +804,16 @@
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="🏠" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <TextBlock FontSize="13.5" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center">
-                                                    <Run Text="Căn hộ: "/>
-                                                    <Run Text="{Binding SelectedResidentItem.ApartmentNumber, FallbackValue='-'}"/>
-                                                </TextBlock>
+                                                <TextBlock Text="Căn hộ: " FontSize="13.5" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SelectedResidentItem.ApartmentNumber, Mode=OneWay, FallbackValue='-'}"
+                                                           FontSize="13.5" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center"/>
                                             </StackPanel>
 
                                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
                                                 <TextBlock Text="📅" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <TextBlock FontSize="12.5" Foreground="#475569" VerticalAlignment="Center">
-                                                    <Run Text="Bắt đầu cư trú: "/>
-                                                    <Run Text="{Binding SelectedResidentItem.ResidencyStartDateFormatted, FallbackValue='-'}"/>
-                                                </TextBlock>
+                                                <TextBlock Text="Bắt đầu cư trú: " FontSize="12.5" Foreground="#475569" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SelectedResidentItem.ResidencyStartDateFormatted, Mode=OneWay, FallbackValue='-'}"
+                                                           FontSize="12.5" Foreground="#475569" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -1078,10 +1076,8 @@
                     <StackPanel Grid.Row="0" Margin="0,0,0,18">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="🕒" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center">
-                                <Run Text="Lịch sử cư trú: "/>
-                                <Run Text="{Binding SelectedResidentItem.FullName}" Foreground="#1D4ED8"/>
-                            </TextBlock>
+                            <TextBlock Text="Lịch sử cư trú: " FontSize="18" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SelectedResidentItem.FullName, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1D4ED8" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Danh sách các thời kỳ cư trú tại các căn hộ của cư dân này."
                                    FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
@@ -1167,10 +1163,10 @@
 
                     <StackPanel Grid.Row="0" Margin="0,0,0,20">
                         <TextBlock Text="Tài khoản đăng nhập" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
-                        <TextBlock FontSize="13" Foreground="#64748B" Margin="0,4,0,0">
-                            <Run Text="Cư dân: "/>
-                            <Run Text="{Binding SelectedResident.FullName}" FontWeight="SemiBold" Foreground="#1D4ED8"/>
-                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <TextBlock Text="Cư dân: " FontSize="13" Foreground="#64748B"/>
+                            <TextBlock Text="{Binding SelectedResident.FullName, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="#1D4ED8"/>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1">
