@@ -59,6 +59,11 @@ public class ResidenceDisplayItemViewModel : ViewModelBase
     {
         get
         {
+            if (!string.IsNullOrWhiteSpace(History.Resident?.AvatarPath))
+            {
+                return History.Resident.AvatarPath;
+            }
+
             var resident = History.Resident;
             if (resident == null) return "/Assets/resident_avatar.png";
 

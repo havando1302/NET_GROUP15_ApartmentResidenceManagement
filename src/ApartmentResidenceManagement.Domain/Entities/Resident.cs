@@ -14,6 +14,7 @@ public class Resident
     public string? PhoneNumber { get; set; }
     public string? HomeTown { get; set; }
     public string? Email { get; set; }
+    public string? AvatarPath { get; set; }
 
     // Navigation properties
     public virtual UserAccount? UserAccount { get; set; }

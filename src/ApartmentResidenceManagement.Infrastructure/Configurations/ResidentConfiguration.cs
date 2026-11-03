@@ -39,5 +39,9 @@ public class ResidentConfiguration : IEntityTypeConfiguration<Resident>
 
         builder.Property(r => r.HomeTown)
             .HasMaxLength(200);
+
+        builder.Property(r => r.AvatarPath)
+            .HasMaxLength(255)
+            .IsRequired(false);
     }
 }

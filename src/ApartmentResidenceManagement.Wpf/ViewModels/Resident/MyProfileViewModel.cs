@@ -329,20 +329,42 @@ public class MyProfileViewModel : ViewModelBase
         RefreshCommand = new AsyncRelayCommand(_ => LoadProfileAsync());
         ResetCommand = new RelayCommand(_ => ResetEditForm());
         ToggleAvatarPickerCommand = new RelayCommand(_ => IsAvatarPickerOpen = !IsAvatarPickerOpen);
-        SelectAvatarCommand = new RelayCommand(p =>
+        SelectAvatarCommand = new AsyncRelayCommand(async p =>
         {
+            string? newPath = null;
+            string? roleDesc = null;
             if (p is string path && !string.IsNullOrEmpty(path))
             {
-                AvatarPath = path;
-                IsAvatarPickerOpen = false;
-                SuccessMessage = "Đã cập nhật ảnh đại diện thành công!";
-                ErrorMessage = string.Empty;
+                newPath = path;
             }
             else if (p is AvatarPresetItem item)
             {
-                AvatarPath = item.ImagePath;
+                newPath = item.ImagePath;
+                roleDesc = $"{item.Name} ({item.Role})";
+            }
+
+            if (!string.IsNullOrEmpty(newPath))
+            {
+                AvatarPath = newPath;
                 IsAvatarPickerOpen = false;
-                SuccessMessage = $"Đã đổi ảnh đại diện sang {item.Name} ({item.Role}) thành công!";
+
+                if (_account?.Resident != null && _residentService != null)
+                {
+                    try
+                    {
+                        await _residentService.UpdateAvatarAsync(_account.Resident.Id, newPath);
+                        _account.Resident.AvatarPath = newPath;
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMessage = $"Lỗi khi lưu ảnh vào cơ sở dữ liệu: {ex.Message}";
+                        return;
+                    }
+                }
+
+                SuccessMessage = roleDesc != null
+                    ? $"Đã đổi ảnh đại diện sang {roleDesc} và lưu vào cơ sở dữ liệu thành công!"
+                    : "Đã cập nhật ảnh đại diện vào cơ sở dữ liệu thành công!";
                 ErrorMessage = string.Empty;
             }
         });
@@ -386,6 +408,11 @@ public class MyProfileViewModel : ViewModelBase
             EditPhoneNumber = PhoneNumber == "Chưa cập nhật" ? string.Empty : PhoneNumber;
             Email = !string.IsNullOrWhiteSpace(r.Email) ? r.Email : "Chưa cập nhật";
             EditEmail = Email == "Chưa cập nhật" ? string.Empty : Email;
+
+            if (!string.IsNullOrWhiteSpace(r.AvatarPath))
+            {
+                AvatarPath = r.AvatarPath;
+            }
         }
         else if (_account != null)
         {
