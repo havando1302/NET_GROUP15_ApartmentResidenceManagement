@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:enums="clr-namespace:ApartmentResidenceManagement.Domain.Enums;assembly=ApartmentResidenceManagement.Domain"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              d:DesignHeight="850" d:DesignWidth="1280"
              Background="#F8FAFC">
@@ -108,7 +109,7 @@
         <Grid Grid.Row="0" Margin="0,0,0,20">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Border Width="48" Height="48" CornerRadius="14" Background="#E0EEFF" Margin="0,0,14,0">
-                    <TextBlock Text="🏢" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <iconPacks:PackIconMaterial Kind="OfficeBuildingOutline" Width="26" Height="26" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Quản lý Căn hộ" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
@@ -143,7 +144,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Width="52" Height="52" CornerRadius="12" Background="#EFF6FF" VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock Text="🏢" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconMaterial Kind="OfficeBuildingOutline" Width="26" Height="26" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding TotalApartmentsCount}" FontSize="28" FontWeight="Bold" Foreground="#0F172A"/>
@@ -163,7 +164,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Width="52" Height="52" CornerRadius="12" Background="#ECFDF5" VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock Text="🏠" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconMaterial Kind="HomeCheckOutline" Width="26" Height="26" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding OccupiedApartmentsCount}" FontSize="28" FontWeight="Bold" Foreground="#10B981"/>
@@ -183,7 +184,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Width="52" Height="52" CornerRadius="12" Background="#F1F5F9" VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock Text="🏠" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.6"/>
+                        <iconPacks:PackIconMaterial Kind="HomeOutline" Width="26" Height="26" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding EmptyApartmentsCount}" FontSize="28" FontWeight="Bold" Foreground="#64748B"/>
@@ -203,7 +204,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Width="52" Height="52" CornerRadius="12" Background="#F5F3FF" VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock Text="🗂️" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconMaterial Kind="LayersOutline" Width="26" Height="26" Foreground="#8B5CF6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding TotalFloorsCount}" FontSize="28" FontWeight="Bold" Foreground="#8B5CF6"/>
@@ -256,7 +257,7 @@
                     <!-- Tiêu đề danh sách + Nút "+ Thêm căn hộ" -->
                     <Grid Grid.Row="0" Margin="0,0,0,16">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="📑 " FontSize="18"/>
+                            <iconPacks:PackIconMaterial Kind="FormatListBulleted" Width="18" Height="18" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="Danh sách căn hộ" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
                         </StackPanel>
 
@@ -266,7 +267,7 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="＋ " FontSize="14" FontWeight="Bold"/>
+                                            <iconPacks:PackIconMaterial Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock Text="Thêm căn hộ" FontSize="13" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Border>
@@ -296,7 +297,7 @@
                                     <ColumnDefinition Width="34"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🔍" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.6"/>
+                                <iconPacks:PackIconMaterial Grid.Column="0" Kind="Magnify" Width="16" Height="16" Foreground="#94A3B8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" VerticalAlignment="Center" FontSize="13"
                                          Padding="0,0,8,0"/>
@@ -372,7 +373,7 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="8" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="↻ " FontSize="14" FontWeight="Bold" Foreground="#2563EB"/>
+                                            <iconPacks:PackIconMaterial Kind="Refresh" Width="14" Height="14" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock Text="Làm mới" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"/>
                                         </StackPanel>
                                     </Border>
@@ -552,21 +553,21 @@
                                                 <Button Style="{StaticResource ActionIconButton}" Background="#EFF6FF" BorderBrush="#BFDBFE"
                                                         Command="{Binding DataContext.SelectApartmentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                         CommandParameter="{Binding}" ToolTip="Xem chi tiết căn hộ">
-                                                    <TextBlock Text="👁️" FontSize="13"/>
+                                                    <iconPacks:PackIconMaterial Kind="EyeOutline" Width="15" Height="15" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
                                                 <!-- Nút Chỉnh sửa -->
                                                 <Button Style="{StaticResource ActionIconButton}" Background="#FEF3C7" BorderBrush="#FDE68A"
                                                         Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                         CommandParameter="{Binding}" ToolTip="Chỉnh sửa thông tin">
-                                                    <TextBlock Text="✏️" FontSize="12"/>
+                                                    <iconPacks:PackIconMaterial Kind="PencilOutline" Width="14" Height="14" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
                                                 <!-- Nút Xóa -->
                                                 <Button Style="{StaticResource ActionIconButton}" Background="#FEE2E2" BorderBrush="#FECACA"
                                                         Command="{Binding DataContext.DeleteApartmentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                         CommandParameter="{Binding}" ToolTip="Xóa căn hộ">
-                                                    <TextBlock Text="🗑️" FontSize="12"/>
+                                                    <iconPacks:PackIconMaterial Kind="TrashCanOutline" Width="14" Height="14" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
                                             </StackPanel>
                                         </DataTemplate>
@@ -593,7 +594,7 @@
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <!-- Nút lùi trang < -->
                             <Button Style="{StaticResource PageNumButton}" Command="{Binding PreviousPageCommand}" ToolTip="Trang trước">
-                                <TextBlock Text="‹" FontSize="16" FontWeight="Bold"/>
+                                <iconPacks:PackIconMaterial Kind="ChevronLeft" Width="16" Height="16" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
 
                             <!-- Danh sách số trang -->
@@ -626,7 +627,7 @@
 
                             <!-- Nút tiến trang > -->
                             <Button Style="{StaticResource PageNumButton}" Command="{Binding NextPageCommand}" ToolTip="Trang sau">
-                                <TextBlock Text="›" FontSize="16" FontWeight="Bold"/>
+                                <iconPacks:PackIconMaterial Kind="ChevronRight" Width="16" Height="16" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
                         </StackPanel>
 
@@ -655,7 +656,7 @@
 
                     <!-- Tiêu đề cột phải -->
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-                        <TextBlock Text="ℹ️ " FontSize="16" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconMaterial Kind="InformationOutline" Width="18" Height="18" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Text="Chi tiết căn hộ" FontSize="17" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                     </StackPanel>
 
@@ -675,7 +676,7 @@
 
                             <!-- Ảnh minh họa toà nhà bo tròn -->
                             <Border Width="110" Height="110" CornerRadius="55" Background="#EFF6FF" HorizontalAlignment="Center" Margin="0,8,0,14" BorderBrush="#DBEAFE" BorderThickness="2">
-                                <TextBlock Text="🏢" FontSize="52" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <iconPacks:PackIconMaterial Kind="OfficeBuildingOutline" Width="52" Height="52" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 
                             <!-- Mã căn hộ lớn -->
@@ -744,7 +745,7 @@
                                 <!-- Tầng -->
                                 <Grid Margin="0,0,0,10">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14"/>
+                                        <iconPacks:PackIconMaterial Kind="LayersOutline" Width="16" Height="16" Foreground="#64748B" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Tầng:" FontSize="13" Foreground="#64748B"/>
                                     </StackPanel>
                                     <TextBlock Text="{Binding SelectedApartmentItem.Floor}" FontWeight="Bold" FontSize="13" Foreground="#0F172A" HorizontalAlignment="Right"/>
@@ -753,7 +754,7 @@
                                 <!-- Diện tích -->
                                 <Grid Margin="0,0,0,10">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📐" Margin="0,0,8,0" FontSize="14"/>
+                                        <iconPacks:PackIconMaterial Kind="RulerSquare" Width="16" Height="16" Foreground="#64748B" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Diện tích:" FontSize="13" Foreground="#64748B"/>
                                     </StackPanel>
                                     <TextBlock Text="{Binding SelectedApartmentItem.Area, StringFormat={}{0:N1} m²}" FontWeight="Bold" FontSize="13" Foreground="#0F172A" HorizontalAlignment="Right"/>
@@ -762,7 +763,7 @@
                                 <!-- Số cư dân -->
                                 <Grid Margin="0,0,0,10">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="👥" Margin="0,0,8,0" FontSize="14"/>
+                                        <iconPacks:PackIconMaterial Kind="AccountGroupOutline" Width="16" Height="16" Foreground="#64748B" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Số cư dân:" FontSize="13" Foreground="#64748B"/>
                                     </StackPanel>
                                     <TextBlock Text="{Binding SelectedApartmentItem.ResidentCount}" FontWeight="Bold" FontSize="13" Foreground="#0F172A" HorizontalAlignment="Right"/>
@@ -771,7 +772,7 @@
                                 <!-- Ngày cập nhật -->
                                 <Grid>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📅" Margin="0,0,8,0" FontSize="14"/>
+                                        <iconPacks:PackIconMaterial Kind="CalendarClockOutline" Width="16" Height="16" Foreground="#64748B" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Ngày cập nhật:" FontSize="13" Foreground="#64748B"/>
                                     </StackPanel>
                                     <TextBlock Text="{Binding SelectedApartmentItem.LastUpdated, StringFormat={}{0:dd/MM/yyyy}}" FontWeight="Bold" FontSize="13" Foreground="#0F172A" HorizontalAlignment="Right"/>
@@ -784,7 +785,7 @@
                             <!-- Khối Danh sách cư dân (N) -->
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <TextBlock Text="👥 " FontSize="14" Foreground="#2563EB"/>
+                                    <iconPacks:PackIconMaterial Kind="AccountMultipleOutline" Width="16" Height="16" Foreground="#2563EB" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Danh sách cư dân" FontWeight="Bold" FontSize="14" Foreground="#0F172A"/>
                                     <TextBlock Text=" (" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
                                     <TextBlock Text="{Binding SelectedApartmentItem.ResidentCount}" FontSize="14" FontWeight="Bold" Foreground="#2563EB"/>
@@ -802,7 +803,9 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="👤" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="0" Width="26" Height="26" CornerRadius="13" Background="#EFF6FF" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                        <iconPacks:PackIconMaterial Kind="Account" Width="15" Height="15" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
                                                     <TextBlock Grid.Column="1" Text="{Binding FullName}" FontWeight="SemiBold" FontSize="13" Foreground="#1E293B" VerticalAlignment="Center"/>
                                                     <Border Grid.Column="2" Background="#EFF6FF" CornerRadius="6" Padding="6,2" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding Relationship}" FontSize="11" FontWeight="Medium" Foreground="#2563EB"/>
@@ -843,7 +846,7 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="🏢" FontSize="44" HorizontalAlignment="Center" Opacity="0.3" Margin="0,0,0,12"/>
+                        <iconPacks:PackIconMaterial Kind="OfficeBuildingMarkerOutline" Width="52" Height="52" Foreground="#CBD5E1" HorizontalAlignment="Center" Margin="0,0,0,12"/>
                         <TextBlock Text="Chưa chọn căn hộ" FontSize="15" FontWeight="SemiBold" Foreground="#0F172A" HorizontalAlignment="Center"/>
                         <TextBlock Text="Chọn một căn hộ từ bảng để xem thông tin chi tiết và danh sách cư dân."
                                    FontSize="13" Foreground="#64748B" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,0"/>
