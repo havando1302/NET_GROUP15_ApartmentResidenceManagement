@@ -40,20 +40,26 @@
             <Setter Property="Margin" Value="12,2"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#25FFFFFF"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#25FFFFFF"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#35FFFFFF"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -155,6 +161,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="DashboardViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="DashboardViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -174,6 +198,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ApartmentViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ApartmentViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -193,6 +235,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidentViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidentViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -212,6 +272,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidencyViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidencyViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -231,6 +309,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="AccountManagementViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="AccountManagementViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -250,6 +346,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="VehicleViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="VehicleViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -269,6 +383,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="StatisticsViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="StatisticsViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -291,6 +423,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidentHomeViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidentHomeViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -310,6 +460,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="MyProfileViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="MyProfileViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -329,6 +497,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="MyApartmentViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="MyApartmentViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -348,6 +534,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="FamilyMembersViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="FamilyMembersViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -367,6 +571,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="MyVehiclesViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="MyVehiclesViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
@@ -386,6 +608,24 @@
                                                 <Setter Property="Foreground" Value="#1D4ED8" />
                                                 <Setter Property="FontWeight" Value="Bold"/>
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidencyHistoryViewModel"/>
+                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="White" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding ActiveTab}" Value="ResidencyHistoryViewModel"/>
+                                                    <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="#F1F5F9" />
+                                                <Setter Property="Foreground" Value="#1D4ED8" />
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
