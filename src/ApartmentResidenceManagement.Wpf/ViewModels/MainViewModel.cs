@@ -50,6 +50,7 @@ public class MainViewModel : ViewModelBase
     public string ResidentGreeting { get; }
     public bool IsAdmin => _account.Role == UserRole.Admin;
     public bool IsResident => !IsAdmin;
+    public string PortalSubtitle => IsAdmin ? "Cổng quản trị viên" : "Cổng thông tin cư dân";
 
     // Navigation Commands (Admin)
     public ICommand ShowDashboardCommand { get; }

@@ -213,6 +213,7 @@
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable" Value="False"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -231,6 +232,7 @@
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="Foreground" Value="#0F172A"/>
                     <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
                 </Trigger>
                 <Trigger Property="IsFocused" Value="True">
                     <Setter Property="BorderBrush" Value="Transparent"/>
@@ -238,6 +240,9 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Implicit DataGridCell Style (Áp dụng toàn view) -->
+        <Style TargetType="DataGridCell" BasedOn="{StaticResource ModernDataGridCell}"/>
 
         <!-- DataGrid Row Style (Tự động co giãn theo chiều dọc, nền xanh dịu mắt, chữ đậm nét) -->
         <Style x:Key="ModernDataGridRow" TargetType="DataGridRow">
