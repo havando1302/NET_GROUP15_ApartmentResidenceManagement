@@ -55,6 +55,38 @@ public class ResidenceDisplayItemViewModel : ViewModelBase
     public string HomeTown => History.Resident?.HomeTown ?? "Chưa cập nhật";
     public string Email => History.Resident?.Email ?? "Chưa cập nhật";
 
+    public string AvatarPath
+    {
+        get
+        {
+            var resident = History.Resident;
+            if (resident == null) return "/Assets/resident_avatar.png";
+
+            bool isFemale = resident.Gender == GenderType.Female ||
+                            resident.FullName.Contains("Thị") ||
+                            resident.FullName.Contains("Thúy") ||
+                            resident.FullName.Contains("Lan") ||
+                            resident.FullName.Contains("Hoa") ||
+                            resident.FullName.Contains("Hương") ||
+                            resident.FullName.Contains("Mai") ||
+                            resident.FullName.EndsWith(" B") ||
+                            resident.FullName.EndsWith(" Y");
+
+            int id = resident.Id;
+            if (isFemale)
+            {
+                if (id % 2 == 0) return "/Assets/avatar_daughter.png";
+                return "/Assets/avatar_young_woman.png";
+            }
+            else
+            {
+                if (id % 4 == 0) return "/Assets/avatar_young_man.png";
+                if (id % 4 == 1) return "/Assets/avatar_toddler_boy.png";
+                return "/Assets/avatar_son.png";
+            }
+        }
+    }
+
     public ResidenceDisplayItemViewModel(ResidenceHistory history, int stt = 1)
     {
         History = history;
@@ -375,7 +407,7 @@ public class ResidencyViewModel : ViewModelBase
             if (TotalFilteredCount == 0) return "Hiển thị 0 / 0 bản ghi";
             int start = (CurrentPage - 1) * PageSize + 1;
             int end = Math.Min(CurrentPage * PageSize, TotalFilteredCount);
-            return $"Hiển thị {end - start + 1} / {TotalFilteredCount} bản ghi";
+            return $"Hiển thị {start} – {end} của {TotalFilteredCount} bản ghi.";
         }
     }
     #endregion

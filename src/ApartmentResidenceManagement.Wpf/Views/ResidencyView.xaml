@@ -300,10 +300,10 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Icon Clipboard -->
+                <!-- Icon Users Group -->
                 <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#2563EB" VerticalAlignment="Center">
-                    <Path Data="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          Fill="White" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Path Data="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+                          Fill="White" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <!-- Title & Subtitle -->
@@ -318,7 +318,7 @@
                  2. STATS KPI CARDS (3 Thẻ thống kê: Đang cư trú / Chuyển hộ / Kết thúc)
             ══════════════════════════════════════════════════════════ -->
             <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
-                <!-- KPI 1: Cư dân đang cư trú (Green) -->
+                <!-- KPI 1: Cư dân đang cư trú (Green + Family Illustration) -->
                 <Border Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="16,12" Margin="0,0,8,0">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="6" Opacity="0.04" ShadowDepth="1" Color="#000000"/>
@@ -327,6 +327,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" Background="#DCFCE7" VerticalAlignment="Center">
                             <Path Data="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
@@ -336,10 +337,22 @@
                             <TextBlock Text="{Binding ActiveResidentsCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
                             <TextBlock Text="Cư dân đang cư trú" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
                         </StackPanel>
+                        <!-- Family Illustration -->
+                        <Grid Grid.Column="2" Width="68" Height="50" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <Image Source="/Assets/avatar_young_man.png" Width="36" Height="36" Margin="0,0,26,10" Stretch="Uniform">
+                                <RenderOptions.BitmapScalingMode>HighQuality</RenderOptions.BitmapScalingMode>
+                            </Image>
+                            <Image Source="/Assets/avatar_young_woman.png" Width="34" Height="34" Margin="28,2,0,10" Stretch="Uniform">
+                                <RenderOptions.BitmapScalingMode>HighQuality</RenderOptions.BitmapScalingMode>
+                            </Image>
+                            <Image Source="/Assets/avatar_son.png" Width="28" Height="28" Margin="16,16,16,0" Stretch="Uniform">
+                                <RenderOptions.BitmapScalingMode>HighQuality</RenderOptions.BitmapScalingMode>
+                            </Image>
+                        </Grid>
                     </Grid>
                 </Border>
 
-                <!-- KPI 2: Lượt chuyển căn hộ (Blue) -->
+                <!-- KPI 2: Lượt chuyển căn hộ (Blue + Moving Boxes Illustration) -->
                 <Border Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="16,12" Margin="4,0,4,0">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="6" Opacity="0.04" ShadowDepth="1" Color="#000000"/>
@@ -348,6 +361,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" Background="#DBEAFE" VerticalAlignment="Center">
                             <Path Data="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
@@ -357,10 +371,23 @@
                             <TextBlock Text="{Binding TransferCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
                             <TextBlock Text="Lượt chuyển căn hộ" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
                         </StackPanel>
+                        <!-- Moving Boxes Graphic -->
+                        <Grid Grid.Column="2" Width="68" Height="50" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <Path Data="M0 40 Q30 15 70 30 L70 50 L0 50 Z" Fill="#EFF6FF"/>
+                            <Border Width="24" Height="20" Background="#F59E0B" CornerRadius="3" BorderBrush="#D97706" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="4,0,0,4">
+                                <Rectangle Width="5" Height="18" Fill="#FDE68A" HorizontalAlignment="Center"/>
+                            </Border>
+                            <Border Width="22" Height="24" Background="#D97706" CornerRadius="3" BorderBrush="#B45309" BorderThickness="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,4">
+                                <Rectangle Width="5" Height="22" Fill="#FDE68A" HorizontalAlignment="Center"/>
+                            </Border>
+                            <Border Width="16" Height="14" Background="#FBBF24" CornerRadius="2" BorderBrush="#D97706" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,6,0,0">
+                                <Rectangle Width="4" Height="12" Fill="#93C5FD" HorizontalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Border>
 
-                <!-- KPI 3: Lượt kết thúc cư trú (Red) -->
+                <!-- KPI 3: Lượt kết thúc cư trú (Red + Calendar Graphic) -->
                 <Border Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="16,12" Margin="8,0,0,0">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="6" Opacity="0.04" ShadowDepth="1" Color="#000000"/>
@@ -369,6 +396,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" Background="#FEE2E2" VerticalAlignment="Center">
                             <Path Data="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6 M6 18l6-6m0 6l-6-6"
@@ -378,6 +406,38 @@
                             <TextBlock Text="{Binding EndedCount}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
                             <TextBlock Text="Lượt kết thúc cư trú" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
                         </StackPanel>
+                        <!-- Calendar Graphic -->
+                        <Grid Grid.Column="2" Width="68" Height="50" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <Path Data="M0 35 Q30 5 70 25 L70 50 L0 50 Z" Fill="#FFF1F2"/>
+                            <Border Width="36" Height="36" Background="White" CornerRadius="6" BorderBrush="#FECACA" BorderThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="11"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="#F87171" CornerRadius="4,4,0,0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Ellipse Width="3" Height="3" Fill="White" Margin="2,0"/>
+                                            <Ellipse Width="3" Height="3" Fill="White" Margin="2,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <UniformGrid Grid.Row="1" Rows="3" Columns="4" Margin="2">
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#F87171"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#F87171"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#EF4444"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#F87171"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                        <Ellipse Width="2.5" Height="2.5" Fill="#FCA5A5"/>
+                                    </UniformGrid>
+                                </Grid>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Border>
             </UniformGrid>
@@ -429,38 +489,40 @@
                     </Button.Template>
                 </Button>
 
-                <!-- Button: ⌂x Kết thúc cư trú -->
+                <!-- Button: ⃠ Kết thúc cư trú (Red Prohibited Circle Icon) -->
                 <Button Command="{Binding OpenTerminateFormCommand}"
-                        Background="White" Foreground="#1E293B" BorderBrush="#CBD5E1" BorderThickness="1"
+                        Background="White" Foreground="#DC2626" BorderBrush="#FECACA" BorderThickness="1"
                         Height="38" Padding="14,0" Margin="10,0,0,0" FontSize="13" FontWeight="SemiBold" Cursor="Hand">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="⌂x " FontSize="13" Margin="0,-1,4,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Kết thúc cư trú" VerticalAlignment="Center"/>
+                                    <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z"
+                                          Fill="#DC2626" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Kết thúc cư trú" Foreground="#DC2626" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#F8FAFC"/>
-                                    <Setter Property="BorderBrush" Value="#94A3B8"/>
+                                    <Setter Property="Background" Value="#FEF2F2"/>
+                                    <Setter Property="BorderBrush" Value="#F87171"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
 
-                <!-- Button: 🔔 Yêu cầu thêm thành viên -->
+                <!-- Button: 👥 Yêu cầu thêm thành viên -->
                 <Button Command="{Binding SwitchTabCommand}" CommandParameter="2"
-                        Background="White" Foreground="#1E293B" BorderBrush="#CBD5E1" BorderThickness="1"
+                        Background="White" Foreground="#0F172A" BorderBrush="#E2E8F0" BorderThickness="1"
                         Height="38" Padding="14,0" Margin="10,0,0,0" FontSize="13" FontWeight="SemiBold" Cursor="Hand">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="🔔 " FontSize="13" Margin="0,-1,4,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Yêu cầu thêm thành viên" VerticalAlignment="Center"/>
+                                    <Path Data="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+                                          Fill="#2563EB" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Yêu cầu thêm thành viên" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -472,8 +534,8 @@
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
-            </StackPanel>
 
+            </StackPanel>
             <!-- ERROR / SUCCESS NOTIFICATIONS -->
             <StackPanel Grid.Row="3" Margin="0,0,0,8">
                 <controls:NotificationBanner Message="{Binding RequestSuccessMessage}" Kind="Success" Margin="0,0,0,8"
@@ -594,17 +656,46 @@
                                     </TextBlock>
                                 </Grid>
 
-                                <!-- Filter Apartment Dropdown -->
-                                <ComboBox Grid.Column="1"
-                                          ItemsSource="{Binding ApartmentFilterOptions}"
-                                          SelectedItem="{Binding SelectedApartmentFilter}"
-                                          Height="36" Width="130" FontSize="13" Margin="0,0,10,0" VerticalContentAlignment="Center"/>
+                                <!-- Sort Dropdown with Calendar Icon 📅 -->
+                                <Grid Grid.Column="1" Margin="0,0,10,0">
+                                    <ComboBox ItemsSource="{Binding SortOrderOptions}"
+                                              SelectedItem="{Binding SelectedSortOrder}"
+                                              Height="36" Width="205" FontSize="13" Padding="28,0,10,0" VerticalContentAlignment="Center"/>
+                                    <Path Data="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"
+                                          Fill="#475569" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" IsHitTestVisible="False"/>
+                                </Grid>
 
-                                <!-- Sort Dropdown -->
-                                <ComboBox Grid.Column="2"
-                                          ItemsSource="{Binding SortOrderOptions}"
-                                          SelectedItem="{Binding SelectedSortOrder}"
-                                          Height="36" Width="185" FontSize="13" Margin="0,0,10,0" VerticalContentAlignment="Center"/>
+                                <!-- Filter Apartment Dropdown styled as [ Y Bộ lọc ] -->
+                                <Grid Grid.Column="2" Margin="0,0,10,0">
+                                    <ComboBox ItemsSource="{Binding ApartmentFilterOptions}"
+                                              SelectedItem="{Binding SelectedApartmentFilter}"
+                                              Height="36" Width="105" FontSize="13" Padding="26,0,8,0" VerticalContentAlignment="Center">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding StringFormat='Căn: {0}'}" FontSize="12.5"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" IsHitTestVisible="False">
+                                        <Path Data="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+                                              Fill="#475569" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Bộ lọc" FontSize="13" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedApartmentFilter}" Value="Tất cả">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding SelectedApartmentFilter}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
 
                                 <!-- Refresh Button -->
                                 <Button Grid.Column="3" Command="{Binding RefreshCommand}"
@@ -629,7 +720,6 @@
                                 </Button>
                             </Grid>
                         </Border>
-
                         <!-- DATAGRID TABLE (Fills vertical height) -->
                         <Border Grid.Row="1" Background="White" CornerRadius="8" BorderBrush="#E2E8F0" BorderThickness="1"
                                 VerticalAlignment="Stretch">
@@ -674,34 +764,34 @@
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
-                                    <!-- Column 2: Mã cư dân -->
-                                    <DataGridTextColumn Header="Mã cư dân" Binding="{Binding ResidentCode}" Width="1.1*" MinWidth="95">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="#2563EB"/>
-                                                <Setter Property="FontWeight" Value="Bold"/>
-                                                <Setter Property="FontSize" Value="13"/>
-                                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                                <Setter Property="Margin" Value="10,0"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
+                                    <!-- Column 2: Mã cư dân (Pill Badge [ CD012 ]) -->
+                                    <DataGridTemplateColumn Header="Mã cư dân" Width="1.1*" MinWidth="95">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#EFF6FF" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0">
+                                                    <TextBlock Text="{Binding ResidentCode}" FontWeight="Bold" FontSize="12.5" Foreground="#2563EB"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
 
-                                    <!-- Column 3: Họ và tên -->
-                                    <DataGridTextColumn Header="Họ và tên" Binding="{Binding ResidentName}" Width="1.8*" MinWidth="150">
-                                        <DataGridTextColumn.ElementStyle>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="#0F172A"/>
-                                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                                <Setter Property="FontSize" Value="13"/>
-                                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                                <Setter Property="Margin" Value="10,0"/>
-                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                                            </Style>
-                                        </DataGridTextColumn.ElementStyle>
-                                    </DataGridTextColumn>
+                                    <!-- Column 3: Họ và tên (Circular Avatar + Full Name) -->
+                                    <DataGridTemplateColumn Header="Họ và tên" Width="1.8*" MinWidth="160">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                                                    <Border Width="26" Height="26" CornerRadius="13" Margin="0,0,8,0" Background="#EFF6FF">
+                                                        <Image Source="{Binding AvatarPath}" Width="26" Height="26" Stretch="UniformToFill">
+                                                            <RenderOptions.BitmapScalingMode>HighQuality</RenderOptions.BitmapScalingMode>
+                                                        </Image>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding ResidentName}" FontWeight="SemiBold" FontSize="13" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
 
-                                    <!-- Column 4: Căn hộ (Pill Badge) -->
+                                    <!-- Column 4: Căn hộ (Pill Badge [ 1002 ]) -->
                                     <DataGridTemplateColumn Header="Căn hộ" Width="1.0*" MinWidth="85">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -737,7 +827,7 @@
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
-                                    <!-- Column 7: Thao tác (Eye Detail Icon) -->
+                                    <!-- Column 7: Thao tác (Eye Detail Icon ONLY) -->
                                     <DataGridTemplateColumn Header="Thao tác" Width="80">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -1120,9 +1210,8 @@
                             <!-- Row 0: Header with close button -->
                             <Grid Grid.Row="0" Margin="0,0,0,10">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Width="22" Height="22" CornerRadius="11" Background="#DBEAFE" Margin="0,0,8,0">
-                                        <TextBlock Text="ℹ" FontWeight="Bold" FontSize="13" Foreground="#2563EB"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Width="24" Height="24" CornerRadius="6" Background="#DBEAFE" Margin="0,0,8,0">
+                                        <Path Data="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM8 12h8v2H8v-2zm0 4h8v2H8v-2z" Fill="#2563EB" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <TextBlock Text="Chi tiết cư trú" FontSize="14" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -1138,9 +1227,10 @@
                             <!-- Row 1: Avatar & Profile -->
                             <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,4,0,10">
                                 <!-- Avatar Round Circle -->
-                                <Border Width="52" Height="52" CornerRadius="26" Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="2" HorizontalAlignment="Center">
-                                    <Path Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                                          Fill="#3B82F6" Width="26" Height="26" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Width="56" Height="56" CornerRadius="28" Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="2" HorizontalAlignment="Center">
+                                    <Image Source="{Binding SelectedResidenceItem.AvatarPath}" Width="52" Height="52" Stretch="UniformToFill">
+                                        <RenderOptions.BitmapScalingMode>HighQuality</RenderOptions.BitmapScalingMode>
+                                    </Image>
                                 </Border>
 
                                 <!-- Full Name -->
@@ -1275,11 +1365,9 @@
 
                                                 <!-- Stepper Node (Ring & Line) -->
                                                 <Grid Grid.Column="0" HorizontalAlignment="Center">
-                                                    <!-- Vertical Line -->
-                                                    <Rectangle Width="2" Fill="#E2E8F0" Margin="0,12,0,0"
+                                                    <Rectangle Width="2" Fill="#E2E8F0" Margin="0,14,0,0"
                                                                Visibility="{Binding ShowLine, Converter={StaticResource BoolToVis}}"/>
-                                                    <!-- Circle Dot -->
-                                                    <Ellipse Width="12" Height="12" StrokeThickness="2.5" VerticalAlignment="Top" Margin="0,2,0,0">
+                                                    <Ellipse Width="12" Height="12" StrokeThickness="2.5" VerticalAlignment="Top" Margin="0,4,0,0">
                                                         <Ellipse.Style>
                                                             <Style TargetType="Ellipse">
                                                                 <Setter Property="Stroke" Value="#16A34A"/>
@@ -1296,25 +1384,38 @@
                                                 </Grid>
 
                                                 <!-- Step Info -->
-                                                <StackPanel Grid.Column="1" Margin="6,0,0,8">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding ApartmentNumber}" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
-                                                        <TextBlock Text=" · " FontWeight="Bold" FontSize="13" Foreground="#64748B"/>
-                                                        <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold">
+                                                <Border Grid.Column="1" Margin="8,0,0,8" CornerRadius="8" Padding="10,6">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                    <Setter Property="Background" Value="#F0FDF4"/>
+                                                                    <Setter Property="BorderBrush" Value="#DCFCE7"/>
+                                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <StackPanel>
+                                                        <TextBlock FontWeight="Bold" FontSize="13">
                                                             <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
-                                                                    <Setter Property="Foreground" Value="#16A34A"/>
+                                                                    <Setter Property="Text" Value="{Binding ApartmentNumber, StringFormat='{}{0} – Đang cư trú'}"/>
+                                                                    <Setter Property="Foreground" Value="#15803D"/>
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                                            <Setter Property="Foreground" Value="#64748B"/>
+                                                                            <Setter Property="Text" Value="{Binding ApartmentNumber, StringFormat='{}{0} – Đã kết thúc'}"/>
+                                                                            <Setter Property="Foreground" Value="#334155"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </TextBlock.Style>
                                                         </TextBlock>
+                                                        <TextBlock Text="{Binding DateRangeText}" FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
                                                     </StackPanel>
-                                                    <TextBlock Text="{Binding DateRangeText}" FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
-                                                </StackPanel>
+                                                </Border>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
