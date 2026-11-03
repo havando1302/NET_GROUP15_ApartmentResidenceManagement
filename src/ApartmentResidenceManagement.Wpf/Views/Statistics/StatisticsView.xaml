@@ -72,7 +72,7 @@
             </Setter>
         </Style>
 
-        <!-- DataGrid Row Style -->
+        <!-- DataGrid Row Style giống trang Quản lý căn hộ -->
         <Style x:Key="StatDataGridRow" TargetType="DataGridRow">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Height" Value="42"/>
@@ -96,11 +96,41 @@
             <Setter Property="Foreground" Value="#64748B"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Cell centered text style -->
+        <Style x:Key="CenteredTextElement" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+        </Style>
+
+        <!-- Nút phân trang (Pagination Button) giống Quản lý căn hộ -->
+        <Style x:Key="PageNumButton" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -140,17 +170,14 @@
                  2. THANH 3 TAB CHỨC NĂNG (RP01)
             ══════════════════════════════════════════════════════════ -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,18">
-                <!-- Tab 1: Biến động cư trú -->
                 <RadioButton Content="Biến động cư trú" Style="{StaticResource ModernTabButton}" Margin="0,0,12,0"
                              IsChecked="{Binding IsTab1Active, Mode=OneWay}"
                              Command="{Binding SwitchTabCommand}" CommandParameter="0"/>
 
-                <!-- Tab 2: Thống kê căn hộ -->
                 <RadioButton Content="Thống kê căn hộ" Style="{StaticResource ModernTabButton}" Margin="0,0,12,0"
                              IsChecked="{Binding IsTab2Active, Mode=OneWay}"
                              Command="{Binding SwitchTabCommand}" CommandParameter="1"/>
 
-                <!-- Tab 3: Thống kê phương tiện -->
                 <RadioButton Content="Thống kê phương tiện" Style="{StaticResource ModernTabButton}"
                              IsChecked="{Binding IsTab3Active, Mode=OneWay}"
                              Command="{Binding SwitchTabCommand}" CommandParameter="2"/>
@@ -181,7 +208,7 @@
                  4. NỘI DUNG TAB 1: BIẾN ĐỘNG CƯ TRÚ (Mockup 2)
             ══════════════════════════════════════════════════════════ -->
             <StackPanel Grid.Row="3" Visibility="{Binding IsTab1Active, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <!-- Thanh bộ lọc Tab 1 (RP02) -->
+                <!-- Thanh bộ lọc Tab 1 (có nút Bỏ lọc) -->
                 <Border Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="14,10" Margin="0,0,0,18">
                     <WrapPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
@@ -210,13 +237,28 @@
                             <ComboBox ItemsSource="{Binding AvailableApartments}" SelectedValue="{Binding SelectedApartmentId}" SelectedValuePath="Id" DisplayMemberPath="ApartmentNumber" Height="34" Width="90"/>
                         </StackPanel>
 
-                        <Button Command="{Binding FilterCommand}" Height="34" Padding="16,0" Background="#2563EB" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0">
+                        <!-- Nút Thống kê -->
+                        <Button Command="{Binding FilterCommand}" Height="34" Padding="14,0" Background="#2563EB" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <iconPacks:PackIconMaterial Kind="Magnify" Width="13" Height="13" Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock Text="Thống kê" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Nút Bỏ lọc (Reset) -->
+                        <Button Command="{Binding ResetFilterCommand}" Height="34" Padding="14,0" Background="White" Foreground="#475569" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand" Margin="8,0,0,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="FilterRemoveOutline" Width="13" Height="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Bỏ lọc" FontSize="13" FontWeight="SemiBold" Foreground="#475569"/>
                                         </StackPanel>
                                     </Border>
                                 </ControlTemplate>
@@ -234,7 +276,6 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- KPI 1: Đăng ký mới -->
                     <Border Grid.Column="0" Style="{StaticResource StatKpiCard}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -249,14 +290,12 @@
                                 <TextBlock Text="{Binding ResidenceNewRegs}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
                                 <TextBlock Text="Đăng ký mới" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <!-- Badge % -->
                             <Border Grid.Column="2" Background="#DCFCE7" CornerRadius="6" Padding="6,3" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding ResidenceNewRegsChangeDisplay}" FontSize="11.5" FontWeight="Bold" Foreground="#16A34A"/>
                             </Border>
                         </Grid>
                     </Border>
 
-                    <!-- KPI 2: Kết thúc cư trú -->
                     <Border Grid.Column="1" Style="{StaticResource StatKpiCard}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -271,14 +310,12 @@
                                 <TextBlock Text="{Binding ResidenceEnded}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
                                 <TextBlock Text="Kết thúc cư trú" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <!-- Badge % -->
                             <Border Grid.Column="2" Background="#FEE2E2" CornerRadius="6" Padding="6,3" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding ResidenceEndedChangeDisplay}" FontSize="11.5" FontWeight="Bold" Foreground="#DC2626"/>
                             </Border>
                         </Grid>
                     </Border>
 
-                    <!-- KPI 3: Chuyển căn hộ -->
                     <Border Grid.Column="2" Style="{StaticResource StatKpiCard}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -295,7 +332,6 @@
                         </Grid>
                     </Border>
 
-                    <!-- KPI 4: Cư dân hiện tại -->
                     <Border Grid.Column="3" Style="{StaticResource StatKpiCard}" Margin="0">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -343,7 +379,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- Biểu đồ tròn Cơ cấu cư trú -->
+                    <!-- Biểu đồ hình tròn đặc (Pie Chart) Cơ cấu cư trú -->
                     <Border Grid.Column="1" Style="{StaticResource ModernStatCard}">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -359,47 +395,47 @@
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
+                                <!-- Pie Chart tròn đặc (HoleRatio = 0) -->
                                 <controls:DonutChart Grid.Column="0" Slices="{Binding ResidenceStructureSlices}"
-                                                     CenterText="{Binding ResidenceCurrent}"
-                                                     CenterSubText="Cư dân" Width="145" Height="145"/>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                                                     HoleRatio="0" Width="145" Height="145"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                            <TextBlock Grid.Column="1" Text="Cư dân thường trú" FontSize="12" Foreground="#0F172A"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding PermanentRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Column="1" Text="Cư dân thường trú" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding PermanentRateDisplay}" FontSize="12.5" FontWeight="Bold" Foreground="#2563EB"/>
                                         </Grid>
                                     </Border>
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="12,10">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#A855F7" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                            <TextBlock Grid.Column="1" Text="Cư dân tạm trú" FontSize="12" Foreground="#0F172A"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding TemporaryRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#A855F7"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#A855F7" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Column="1" Text="Cư dân tạm trú" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding TemporaryRateDisplay}" FontSize="12.5" FontWeight="Bold" Foreground="#A855F7"/>
                                         </Grid>
                                     </Border>
-                                    <Image Source="/Assets/sidebar_buildings.png" Height="45" HorizontalAlignment="Right" Opacity="0.8" Stretch="Uniform"/>
                                 </StackPanel>
                             </Grid>
                         </Grid>
                     </Border>
                 </Grid>
 
-                <!-- Bảng chi tiết biến động cư trú -->
+                <!-- Bảng chi tiết biến động cư trú (Căn giữa nội dung + Phân trang) -->
                 <Border Style="{StaticResource ModernStatCard}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>  <!-- Thanh phân trang -->
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -421,18 +457,57 @@
                             </Button>
                         </Grid>
 
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding ResidenceTrendTable}" AutoGenerateColumns="False" CanUserAddRows="False"
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding PagedResidenceTrendTable}" AutoGenerateColumns="False" CanUserAddRows="False"
                                   IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                   RowStyle="{StaticResource StatDataGridRow}" ColumnHeaderStyle="{StaticResource StatDataGridHeader}"
                                   GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="0" Background="White">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Tháng/Năm" Binding="{Binding MonthYearLabel}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Đăng ký mới" Binding="{Binding NewRegistrations}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Kết thúc cư trú" Binding="{Binding EndedResidences}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Chuyển căn hộ" Binding="{Binding ApartmentTransfers}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Tổng biến động" Binding="{Binding TotalFluctuations}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Tháng/Năm" Binding="{Binding MonthYearLabel}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Đăng ký mới" Binding="{Binding NewRegistrations}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Kết thúc cư trú" Binding="{Binding EndedResidences}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Chuyển căn hộ" Binding="{Binding ApartmentTransfers}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Tổng biến động" Binding="{Binding TotalFluctuations}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
                             </DataGrid.Columns>
                         </DataGrid>
+
+                        <!-- Thanh phân trang ở đáy bảng -->
+                        <Grid Grid.Row="2" Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="{Binding PaginationSummary}" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Button Style="{StaticResource PageNumButton}" Command="{Binding PreviousPageCommand}" ToolTip="Trang trước">
+                                    <iconPacks:PackIconMaterial Kind="ChevronLeft" Width="14" Height="14" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                                <ItemsControl ItemsSource="{Binding PageNumbers}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding}" Style="{StaticResource PageNumButton}"
+                                                    Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Style="{StaticResource PageNumButton}" Command="{Binding NextPageCommand}" ToolTip="Trang sau">
+                                    <iconPacks:PackIconMaterial Kind="ChevronRight" Width="14" Height="14" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Số dòng/trang: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding PageSizeOptions}" SelectedItem="{Binding PageSize}" Width="65" Height="30" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -441,7 +516,7 @@
                  5. NỘI DUNG TAB 2: THỐNG KÊ CĂN HỘ (Mockup 3)
             ══════════════════════════════════════════════════════════ -->
             <StackPanel Grid.Row="4" Visibility="{Binding IsTab2Active, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <!-- Thanh bộ lọc Tab 2 -->
+                <!-- Thanh bộ lọc Tab 2 (có nút Bỏ lọc) -->
                 <Border Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="14,10" Margin="0,0,0,18">
                     <WrapPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
@@ -465,13 +540,28 @@
                             <ComboBox ItemsSource="{Binding ApartmentStatusFilterOptions}" SelectedItem="{Binding SelectedApartmentStatusFilter}" Height="34" Width="100"/>
                         </StackPanel>
 
-                        <Button Command="{Binding FilterCommand}" Height="34" Padding="16,0" Background="#2563EB" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0">
+                        <!-- Nút Thống kê -->
+                        <Button Command="{Binding FilterCommand}" Height="34" Padding="14,0" Background="#2563EB" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <iconPacks:PackIconMaterial Kind="Magnify" Width="13" Height="13" Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock Text="Thống kê" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Nút Bỏ lọc (Reset) -->
+                        <Button Command="{Binding ResetFilterCommand}" Height="34" Padding="14,0" Background="White" Foreground="#475569" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand" Margin="8,0,0,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="FilterRemoveOutline" Width="13" Height="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Bỏ lọc" FontSize="13" FontWeight="SemiBold" Foreground="#475569"/>
                                         </StackPanel>
                                     </Border>
                                 </ControlTemplate>
@@ -584,7 +674,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- Tình trạng căn hộ toàn tòa -->
+                    <!-- Biểu đồ hình tròn đặc (Pie Chart) Tình trạng căn hộ toàn tòa -->
                     <Border Grid.Column="1" Style="{StaticResource ModernStatCard}">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -600,47 +690,48 @@
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
+                                <!-- Pie Chart tròn đặc (HoleRatio = 0) -->
                                 <controls:DonutChart Grid.Column="0" Slices="{Binding AptOccupancySlices}"
-                                                     CenterText="{Binding AptTotal}"
-                                                     CenterSubText="Căn hộ" Width="145" Height="145"/>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                                                     HoleRatio="0" Width="145" Height="145"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                            <TextBlock Grid.Column="1" Text="Đang ở" FontSize="12" Foreground="#0F172A"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding AptOccupancyRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Column="1" Text="Đang ở" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding AptOccupancyRateDisplay}" FontSize="12.5" FontWeight="Bold" Foreground="#2563EB"/>
                                         </Grid>
                                     </Border>
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="12,10">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#C084FC" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                            <TextBlock Grid.Column="1" Text="Trống" FontSize="12" Foreground="#0F172A"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding AptVacantRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#64748B"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#C084FC" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Grid.Column="1" Text="Trống" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding AptVacantRateDisplay}" FontSize="12.5" FontWeight="Bold" Foreground="#64748B"/>
                                         </Grid>
                                     </Border>
-                                    <Image Source="/Assets/sidebar_buildings.png" Height="45" HorizontalAlignment="Right" Opacity="0.8" Stretch="Uniform"/>
                                 </StackPanel>
                             </Grid>
                         </Grid>
                     </Border>
                 </Grid>
 
-                <!-- Bảng chi tiết tình trạng căn hộ theo từng tầng -->
+                <!-- Bảng chi tiết tình trạng căn hộ theo từng tầng (Căn giữa nội dung + Phân trang) -->
                 <Border Style="{StaticResource ModernStatCard}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>  <!-- Dòng Tổng -->
+                            <RowDefinition Height="Auto"/>  <!-- Thanh phân trang -->
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -662,44 +753,81 @@
                             </Button>
                         </Grid>
 
-                        <StackPanel Grid.Row="1">
-                            <DataGrid ItemsSource="{Binding AptFloorTable}" AutoGenerateColumns="False" CanUserAddRows="False"
-                                      IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
-                                      RowStyle="{StaticResource StatDataGridRow}" ColumnHeaderStyle="{StaticResource StatDataGridHeader}"
-                                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="0" Background="White">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Tầng" Binding="{Binding FloorLabel}" Width="1.5*"/>
-                                    <DataGridTextColumn Header="Tổng căn hộ" Binding="{Binding TotalApartments}" Width="1.5*"/>
-                                    <DataGridTextColumn Header="Đang ở" Binding="{Binding OccupiedApartments}" Width="1.5*"/>
-                                    <DataGridTextColumn Header="Trống" Binding="{Binding VacantApartments}" Width="1.5*"/>
-                                    <DataGridTemplateColumn Header="Tỷ lệ sử dụng" Width="1.5*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding OccupancyRate, StringFormat='{}{0:N1}%'}" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center"/>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding PagedAptFloorTable}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
+                                  RowStyle="{StaticResource StatDataGridRow}" ColumnHeaderStyle="{StaticResource StatDataGridHeader}"
+                                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="0" Background="White">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Tầng" Binding="{Binding FloorLabel}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Tổng căn hộ" Binding="{Binding TotalApartments}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Đang ở" Binding="{Binding OccupiedApartments}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Trống" Binding="{Binding VacantApartments}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTemplateColumn Header="Tỷ lệ sử dụng" Width="1.5*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding OccupancyRate, StringFormat='{}{0:N1}%'}" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
 
-                            <!-- Dòng Tổng (Mockup 3) -->
-                            <Border Background="#EFF6FF" CornerRadius="0,0,8,8" Padding="10,12" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1.5*"/>
-                                        <ColumnDefinition Width="1.5*"/>
-                                        <ColumnDefinition Width="1.5*"/>
-                                        <ColumnDefinition Width="1.5*"/>
-                                        <ColumnDefinition Width="1.5*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Tổng" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding AptTotal}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding AptOccupied}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding AptVacant}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding AptOccupancyRateDisplay}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
+                        <!-- Dòng Tổng (Mockup 3) -->
+                        <Border Grid.Row="2" Background="#EFF6FF" CornerRadius="0,0,8,8" Padding="10,12" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Tổng" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding AptTotal}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="{Binding AptOccupied}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="{Binding AptVacant}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="4" Text="{Binding AptOccupancyRateDisplay}" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Thanh phân trang ở đáy bảng -->
+                        <Grid Grid.Row="3" Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="{Binding PaginationSummary}" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Button Style="{StaticResource PageNumButton}" Command="{Binding PreviousPageCommand}" ToolTip="Trang trước">
+                                    <iconPacks:PackIconMaterial Kind="ChevronLeft" Width="14" Height="14" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                                <ItemsControl ItemsSource="{Binding PageNumbers}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding}" Style="{StaticResource PageNumButton}"
+                                                    Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Style="{StaticResource PageNumButton}" Command="{Binding NextPageCommand}" ToolTip="Trang sau">
+                                    <iconPacks:PackIconMaterial Kind="ChevronRight" Width="14" Height="14" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Số dòng/trang: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding PageSizeOptions}" SelectedItem="{Binding PageSize}" Width="65" Height="30" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -708,7 +836,7 @@
                  6. NỘI DUNG TAB 3: THỐNG KÊ PHƯƠNG TIỆN (Mockup 4)
             ══════════════════════════════════════════════════════════ -->
             <StackPanel Grid.Row="5" Visibility="{Binding IsTab3Active, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <!-- Thanh bộ lọc Tab 3 -->
+                <!-- Thanh bộ lọc Tab 3 (có nút Bỏ lọc) -->
                 <Border Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="14,10" Margin="0,0,0,18">
                     <WrapPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
@@ -737,13 +865,28 @@
                             <ComboBox ItemsSource="{Binding VehicleStatusFilterOptions}" SelectedItem="{Binding SelectedVehicleStatusFilter}" Height="34" Width="100"/>
                         </StackPanel>
 
-                        <Button Command="{Binding FilterCommand}" Height="34" Padding="16,0" Background="#2563EB" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0">
+                        <!-- Nút Thống kê -->
+                        <Button Command="{Binding FilterCommand}" Height="34" Padding="14,0" Background="#2563EB" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <iconPacks:PackIconMaterial Kind="Magnify" Width="13" Height="13" Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock Text="Thống kê" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Nút Bỏ lọc (Reset) -->
+                        <Button Command="{Binding ResetFilterCommand}" Height="34" Padding="14,0" Background="White" Foreground="#475569" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand" Margin="8,0,0,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="FilterRemoveOutline" Width="13" Height="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Bỏ lọc" FontSize="13" FontWeight="SemiBold" Foreground="#475569"/>
                                         </StackPanel>
                                     </Border>
                                 </ControlTemplate>
@@ -858,7 +1001,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- Tỷ lệ phương tiện theo trạng thái -->
+                    <!-- Biểu đồ hình tròn đặc (Pie Chart) Tỷ lệ phương tiện theo trạng thái -->
                     <Border Grid.Column="1" Style="{StaticResource ModernStatCard}">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -874,59 +1017,59 @@
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
+                                <!-- Pie Chart tròn đặc (HoleRatio = 0) -->
                                 <controls:DonutChart Grid.Column="0" Slices="{Binding VehStatusSlices}"
-                                                     CenterText="{Binding VehTotal}"
-                                                     CenterSubText="Phương tiện" Width="145" Height="145"/>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="8,6" Margin="0,0,0,6">
+                                                     HoleRatio="0" Width="145" Height="145"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <TextBlock Grid.Column="1" Text="Đã duyệt" FontSize="12" Foreground="#0F172A"/>
                                             <TextBlock Grid.Column="2" Text="{Binding VehApprovedRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
                                         </Grid>
                                     </Border>
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="8,6" Margin="0,0,0,6">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#FACC15" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#FACC15" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <TextBlock Grid.Column="1" Text="Chờ duyệt" FontSize="12" Foreground="#0F172A"/>
                                             <TextBlock Grid.Column="2" Text="{Binding VehPendingRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#D97706"/>
                                         </Grid>
                                     </Border>
-                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="8,6" Margin="0,0,0,6">
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="10,8">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#F87171" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#F87171" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                             <TextBlock Grid.Column="1" Text="Từ chối" FontSize="12" Foreground="#0F172A"/>
                                             <TextBlock Grid.Column="2" Text="{Binding VehRejectedRateDisplay}" FontSize="12" FontWeight="Bold" Foreground="#DC2626"/>
                                         </Grid>
                                     </Border>
-                                    <Image Source="/Assets/sidebar_buildings.png" Height="40" HorizontalAlignment="Right" Opacity="0.8" Stretch="Uniform"/>
                                 </StackPanel>
                             </Grid>
                         </Grid>
                     </Border>
                 </Grid>
 
-                <!-- Bảng chi tiết phương tiện -->
+                <!-- Bảng chi tiết phương tiện (Căn giữa nội dung + Phân trang) -->
                 <Border Style="{StaticResource ModernStatCard}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>  <!-- Thanh phân trang -->
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -948,22 +1091,22 @@
                             </Button>
                         </Grid>
 
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding VehDetailsTable}" AutoGenerateColumns="False" CanUserAddRows="False"
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding PagedVehDetailsTable}" AutoGenerateColumns="False" CanUserAddRows="False"
                                   IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                   RowStyle="{StaticResource StatDataGridRow}" ColumnHeaderStyle="{StaticResource StatDataGridHeader}"
                                   GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" BorderThickness="0" Background="White">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="50"/>
-                                <DataGridTextColumn Header="Biển số" Binding="{Binding LicensePlate}" FontWeight="Bold" Width="1.5*"/>
-                                <DataGridTextColumn Header="Loại phương tiện" Binding="{Binding VehicleTypeLabel}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="1.2*"/>
-                                <DataGridTextColumn Header="Chủ sở hữu" Binding="{Binding OwnerName}" Width="1.8*"/>
+                                <DataGridTextColumn Header="#" Binding="{Binding Index}" ElementStyle="{StaticResource CenteredTextElement}" Width="50"/>
+                                <DataGridTextColumn Header="Biển số" Binding="{Binding LicensePlate}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Loại phương tiện" Binding="{Binding VehicleTypeLabel}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.2*"/>
+                                <DataGridTextColumn Header="Chủ sở hữu" Binding="{Binding OwnerName}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.8*"/>
                                 
-                                <!-- Trạng thái: Pill badge -->
+                                <!-- Trạng thái: Pill badge căn giữa -->
                                 <DataGridTemplateColumn Header="Trạng thái" Width="1.5*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Center">
+                                            <Border CornerRadius="12" Padding="10,4" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Setter Property="Background" Value="#F1F5F9"/>
@@ -1003,9 +1146,48 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <DataGridTextColumn Header="Ngày đăng ký" Binding="{Binding RegistrationDateDisplay}" Width="1.5*"/>
+                                <DataGridTextColumn Header="Ngày đăng ký" Binding="{Binding RegistrationDateDisplay}" ElementStyle="{StaticResource CenteredTextElement}" Width="1.5*"/>
                             </DataGrid.Columns>
                         </DataGrid>
+
+                        <!-- Thanh phân trang ở đáy bảng -->
+                        <Grid Grid.Row="2" Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="{Binding PaginationSummary}" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Button Style="{StaticResource PageNumButton}" Command="{Binding PreviousPageCommand}" ToolTip="Trang trước">
+                                    <iconPacks:PackIconMaterial Kind="ChevronLeft" Width="14" Height="14" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                                <ItemsControl ItemsSource="{Binding PageNumbers}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding}" Style="{StaticResource PageNumButton}"
+                                                    Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Style="{StaticResource PageNumButton}" Command="{Binding NextPageCommand}" ToolTip="Trang sau">
+                                    <iconPacks:PackIconMaterial Kind="ChevronRight" Width="14" Height="14" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Số dòng/trang: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <ComboBox ItemsSource="{Binding PageSizeOptions}" SelectedItem="{Binding PageSize}" Width="65" Height="30" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
             </StackPanel>

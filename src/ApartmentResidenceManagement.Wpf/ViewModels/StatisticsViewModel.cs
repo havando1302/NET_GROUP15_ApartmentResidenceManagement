@@ -30,8 +30,8 @@ public class StatisticsViewModel : ViewModelBase
     public List<int> YearOptions { get; } = new() { 2024, 2025, 2026, 2027 };
 
     private string _selectedTimeMode = "Theo tháng";
-    private int _selectedMonth = 10;
-    private int _selectedYear = 2026;
+    private int _selectedMonth = DateTime.Today.Month;
+    private int _selectedYear = DateTime.Today.Year;
 
     // Lọc Tầng và Căn hộ
     private ObservableCollection<int?> _availableFloors = new();
@@ -52,6 +52,72 @@ public class StatisticsViewModel : ViewModelBase
     private string _selectedVehicleStatusFilter = "Tất cả";
     #endregion
 
+    #region Phân Trang (Pagination)
+    private int _currentPage = 1;
+    private int _pageSize = 8;
+    private int _totalFilteredCount = 0;
+    public List<int> PageSizeOptions { get; } = new() { 5, 8, 10, 20 };
+    private ObservableCollection<int> _pageNumbers = new();
+
+    public int CurrentPage
+    {
+        get => _currentPage;
+        set
+        {
+            if (SetProperty(ref _currentPage, value))
+            {
+                OnPropertyChanged(nameof(CanPreviousPage));
+                OnPropertyChanged(nameof(CanNextPage));
+                ApplyPagination();
+            }
+        }
+    }
+
+    public int PageSize
+    {
+        get => _pageSize;
+        set
+        {
+            if (SetProperty(ref _pageSize, value))
+            {
+                CurrentPage = 1;
+                ApplyPagination();
+            }
+        }
+    }
+
+    public int TotalFilteredCount
+    {
+        get => _totalFilteredCount;
+        set
+        {
+            if (SetProperty(ref _totalFilteredCount, value))
+            {
+                OnPropertyChanged(nameof(TotalPages));
+                OnPropertyChanged(nameof(CanPreviousPage));
+                OnPropertyChanged(nameof(CanNextPage));
+                OnPropertyChanged(nameof(PaginationSummary));
+            }
+        }
+    }
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalFilteredCount / PageSize));
+    public bool CanPreviousPage => CurrentPage > 1;
+    public bool CanNextPage => CurrentPage < TotalPages;
+    public ObservableCollection<int> PageNumbers { get => _pageNumbers; set => SetProperty(ref _pageNumbers, value); }
+
+    public string PaginationSummary
+    {
+        get
+        {
+            if (TotalFilteredCount == 0) return "Hiển thị 0 / 0 bản ghi";
+            int start = (CurrentPage - 1) * PageSize + 1;
+            int end = Math.Min(CurrentPage * PageSize, TotalFilteredCount);
+            return $"Hiển thị {start} – {end} của {TotalFilteredCount} bản ghi.";
+        }
+    }
+    #endregion
+
     #region Tab 1: Biến động cư trú (Mockup 2)
     private int _residenceNewRegs;
     private double? _residenceNewRegsChangePercent;
@@ -68,6 +134,7 @@ public class StatisticsViewModel : ViewModelBase
     private ObservableCollection<BarCategoryGroup> _residenceFluctuationBars = new();
     private ObservableCollection<DonutSliceItem> _residenceStructureSlices = new();
     private ObservableCollection<MonthlyResidenceTrendDto> _residenceTrendTable = new();
+    private ObservableCollection<MonthlyResidenceTrendDto> _pagedResidenceTrendTable = new();
     #endregion
 
     #region Tab 2: Thống kê căn hộ (Mockup 3)
@@ -79,6 +146,7 @@ public class StatisticsViewModel : ViewModelBase
     private ObservableCollection<BarCategoryGroup> _aptFloorDistributionBars = new();
     private ObservableCollection<DonutSliceItem> _aptOccupancySlices = new();
     private ObservableCollection<FloorApartmentStatDto> _aptFloorTable = new();
+    private ObservableCollection<FloorApartmentStatDto> _pagedAptFloorTable = new();
     #endregion
 
     #region Tab 3: Thống kê phương tiện (Mockup 4)
@@ -90,6 +158,7 @@ public class StatisticsViewModel : ViewModelBase
     private ObservableCollection<BarCategoryGroup> _vehTypeDistributionBars = new();
     private ObservableCollection<DonutSliceItem> _vehStatusSlices = new();
     private ObservableCollection<VehicleReportDetailDto> _vehDetailsTable = new();
+    private ObservableCollection<VehicleReportDetailDto> _pagedVehDetailsTable = new();
     #endregion
 
     #region Trạng thái và Thông báo
@@ -111,6 +180,7 @@ public class StatisticsViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsTab1Active));
                 OnPropertyChanged(nameof(IsTab2Active));
                 OnPropertyChanged(nameof(IsTab3Active));
+                CurrentPage = 1;
                 _ = LoadActiveTabDataAsync();
             }
         }
@@ -209,6 +279,7 @@ public class StatisticsViewModel : ViewModelBase
     public ObservableCollection<BarCategoryGroup> ResidenceFluctuationBars { get => _residenceFluctuationBars; set => SetProperty(ref _residenceFluctuationBars, value); }
     public ObservableCollection<DonutSliceItem> ResidenceStructureSlices { get => _residenceStructureSlices; set => SetProperty(ref _residenceStructureSlices, value); }
     public ObservableCollection<MonthlyResidenceTrendDto> ResidenceTrendTable { get => _residenceTrendTable; set => SetProperty(ref _residenceTrendTable, value); }
+    public ObservableCollection<MonthlyResidenceTrendDto> PagedResidenceTrendTable { get => _pagedResidenceTrendTable; set => SetProperty(ref _pagedResidenceTrendTable, value); }
 
     // Tab 2 Bindings
     public int AptTotal { get => _aptTotal; set => SetProperty(ref _aptTotal, value); }
@@ -221,6 +292,7 @@ public class StatisticsViewModel : ViewModelBase
     public ObservableCollection<BarCategoryGroup> AptFloorDistributionBars { get => _aptFloorDistributionBars; set => SetProperty(ref _aptFloorDistributionBars, value); }
     public ObservableCollection<DonutSliceItem> AptOccupancySlices { get => _aptOccupancySlices; set => SetProperty(ref _aptOccupancySlices, value); }
     public ObservableCollection<FloorApartmentStatDto> AptFloorTable { get => _aptFloorTable; set => SetProperty(ref _aptFloorTable, value); }
+    public ObservableCollection<FloorApartmentStatDto> PagedAptFloorTable { get => _pagedAptFloorTable; set => SetProperty(ref _pagedAptFloorTable, value); }
 
     // Tab 3 Bindings
     public int VehTotal { get => _vehTotal; set => SetProperty(ref _vehTotal, value); }
@@ -235,6 +307,7 @@ public class StatisticsViewModel : ViewModelBase
     public ObservableCollection<BarCategoryGroup> VehTypeDistributionBars { get => _vehTypeDistributionBars; set => SetProperty(ref _vehTypeDistributionBars, value); }
     public ObservableCollection<DonutSliceItem> VehStatusSlices { get => _vehStatusSlices; set => SetProperty(ref _vehStatusSlices, value); }
     public ObservableCollection<VehicleReportDetailDto> VehDetailsTable { get => _vehDetailsTable; set => SetProperty(ref _vehDetailsTable, value); }
+    public ObservableCollection<VehicleReportDetailDto> PagedVehDetailsTable { get => _pagedVehDetailsTable; set => SetProperty(ref _pagedVehDetailsTable, value); }
 
     // Thông báo & Lỗi
     public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
@@ -264,7 +337,12 @@ public class StatisticsViewModel : ViewModelBase
     #region Commands
     public ICommand SwitchTabCommand { get; }
     public ICommand FilterCommand { get; }
+    public ICommand ResetFilterCommand { get; }
     public ICommand ExportReportCommand { get; }
+
+    public ICommand NextPageCommand { get; }
+    public ICommand PreviousPageCommand { get; }
+    public ICommand GoToPageCommand { get; }
     #endregion
 
     public StatisticsViewModel(StatisticsService statisticsService, ApartmentService apartmentService)
@@ -280,8 +358,52 @@ public class StatisticsViewModel : ViewModelBase
             }
         });
 
-        FilterCommand = new AsyncRelayCommand(_ => LoadActiveTabDataAsync());
+        FilterCommand = new AsyncRelayCommand(_ =>
+        {
+            CurrentPage = 1;
+            return LoadActiveTabDataAsync();
+        });
+
+        ResetFilterCommand = new AsyncRelayCommand(_ => ResetFiltersAsync());
+
         ExportReportCommand = new RelayCommand(_ => ExportCurrentReportToCsv());
+
+        NextPageCommand = new RelayCommand(_ =>
+        {
+            if (CanNextPage) CurrentPage++;
+        });
+
+        PreviousPageCommand = new RelayCommand(_ =>
+        {
+            if (CanPreviousPage) CurrentPage--;
+        });
+
+        GoToPageCommand = new RelayCommand(p =>
+        {
+            if (p is int pageNum && pageNum >= 1 && pageNum <= TotalPages)
+            {
+                CurrentPage = pageNum;
+            }
+            else if (p is string s && int.TryParse(s, out int parsed) && parsed >= 1 && parsed <= TotalPages)
+            {
+                CurrentPage = parsed;
+            }
+        });
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        SelectedTimeMode = "Theo tháng";
+        SelectedMonth = DateTime.Today.Month;
+        SelectedYear = DateTime.Today.Year;
+        SelectedFloor = null;
+        SelectedApartmentId = null;
+        SelectedApartmentStatusFilter = "Tất cả";
+        SelectedVehicleTypeFilter = "Tất cả";
+        SelectedVehicleStatusFilter = "Tất cả";
+        CurrentPage = 1;
+
+        await LoadActiveTabDataAsync();
     }
 
     public async Task LoadStatisticsAsync()
@@ -361,6 +483,7 @@ public class StatisticsViewModel : ViewModelBase
                     await LoadVehicleStatisticsDataAsync();
                     break;
             }
+            ApplyPagination();
         }
         catch (Exception ex)
         {
@@ -370,6 +493,36 @@ public class StatisticsViewModel : ViewModelBase
         {
             IsLoading = false;
         }
+    }
+
+    private void ApplyPagination()
+    {
+        if (SelectedTabIndex == 0)
+        {
+            TotalFilteredCount = ResidenceTrendTable.Count;
+            var items = ResidenceTrendTable.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+            PagedResidenceTrendTable = new ObservableCollection<MonthlyResidenceTrendDto>(items);
+        }
+        else if (SelectedTabIndex == 1)
+        {
+            TotalFilteredCount = AptFloorTable.Count;
+            var items = AptFloorTable.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+            PagedAptFloorTable = new ObservableCollection<FloorApartmentStatDto>(items);
+        }
+        else
+        {
+            TotalFilteredCount = VehDetailsTable.Count;
+            var items = VehDetailsTable.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
+            PagedVehDetailsTable = new ObservableCollection<VehicleReportDetailDto>(items);
+        }
+
+        // Tạo danh sách số trang
+        PageNumbers.Clear();
+        for (int i = 1; i <= TotalPages; i++)
+        {
+            PageNumbers.Add(i);
+        }
+        OnPropertyChanged(nameof(PaginationSummary));
     }
 
     private async Task LoadResidenceFluctuationDataAsync()
@@ -394,7 +547,7 @@ public class StatisticsViewModel : ViewModelBase
         TemporaryResidents = report.TemporaryResidents;
         TemporaryRate = report.TemporaryRate;
 
-        // 3. Biểu đồ tròn Cơ cấu cư trú
+        // 3. Biểu đồ tròn đặc (Pie Chart) Cơ cấu cư trú
         var donutSlices = new ObservableCollection<DonutSliceItem>
         {
             new DonutSliceItem
@@ -453,7 +606,7 @@ public class StatisticsViewModel : ViewModelBase
         AptVacant = report.VacantApartments;
         AptOccupancyRate = report.OccupancyRate;
 
-        // 2. Biểu đồ tròn Tình trạng căn hộ
+        // 2. Biểu đồ tròn đặc (Pie Chart) Tình trạng căn hộ
         var slices = new ObservableCollection<DonutSliceItem>
         {
             new DonutSliceItem
@@ -523,7 +676,7 @@ public class StatisticsViewModel : ViewModelBase
         VehPending = report.PendingVehicles;
         VehRejected = report.RejectedVehicles;
 
-        // 2. Biểu đồ tròn Tỷ lệ phương tiện theo trạng thái
+        // 2. Biểu đồ tròn đặc (Pie Chart) Tỷ lệ phương tiện theo trạng thái
         var slices = new ObservableCollection<DonutSliceItem>
         {
             new DonutSliceItem { Title = "Đã duyệt", Value = VehApproved, Brush = new SolidColorBrush(Color.FromRgb(37, 99, 235)) },
