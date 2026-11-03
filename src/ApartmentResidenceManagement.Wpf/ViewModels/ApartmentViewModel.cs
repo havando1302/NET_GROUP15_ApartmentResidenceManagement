@@ -21,6 +21,12 @@ public class ResidentMemberItem
     public string Relationship { get; set; } = string.Empty;
 }
 
+public class PageItem
+{
+    public int PageNumber { get; set; }
+    public bool IsActive { get; set; }
+}
+
 public class ApartmentDisplayItem
 {
     public int Id { get; set; }
@@ -68,7 +74,7 @@ public class ApartmentViewModel : ViewModelBase
     private int _currentPage = 1;
     private int _pageSize = 8;
     private int _totalPages = 1;
-    private ObservableCollection<int> _pageNumbers = new();
+    private ObservableCollection<PageItem> _pageItems = new();
     public List<int> PageSizeOptions { get; } = new() { 5, 8, 10, 15, 20 };
 
     #region Binding Properties
@@ -218,10 +224,10 @@ public class ApartmentViewModel : ViewModelBase
 
     public string PaginationSummary => $"Hiển thị {PagedApartments.Count} / {TotalApartmentsCount} căn hộ";
 
-    public ObservableCollection<int> PageNumbers
+    public ObservableCollection<PageItem> PageItems
     {
-        get => _pageNumbers;
-        set => SetProperty(ref _pageNumbers, value);
+        get => _pageItems;
+        set => SetProperty(ref _pageItems, value);
     }
 
     public bool IsFormOpen
@@ -449,13 +455,6 @@ public class ApartmentViewModel : ViewModelBase
         if (CurrentPage > TotalPages) CurrentPage = TotalPages;
         if (CurrentPage < 1) CurrentPage = 1;
 
-        // Cập nhật danh sách số trang
-        PageNumbers.Clear();
-        for (int i = 1; i <= TotalPages; i++)
-        {
-            PageNumbers.Add(i);
-        }
-
         UpdatePagedItems();
     }
 
@@ -470,6 +469,13 @@ public class ApartmentViewModel : ViewModelBase
         foreach (var item in pagedList)
         {
             PagedApartments.Add(item);
+        }
+
+        // Cập nhật danh sách số trang PageItems
+        PageItems.Clear();
+        for (int i = 1; i <= TotalPages; i++)
+        {
+            PageItems.Add(new PageItem { PageNumber = i, IsActive = (i == CurrentPage) });
         }
 
         OnPropertyChanged(nameof(PaginationSummary));
