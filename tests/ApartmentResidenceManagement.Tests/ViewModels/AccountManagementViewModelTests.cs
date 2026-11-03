@@ -174,5 +174,28 @@ public class AccountManagementViewModelTests
         Assert.False(vm.IsResetPasswordDialogOpen);
         Assert.Null(vm.AccountToReset);
     }
+
+    [Fact]
+    public async Task DetailPanel_OpenWithSelectAndCloseWithCommand_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var sampleAccounts = CreateSampleAccounts();
+        _mockAccountRepo.Setup(r => r.GetAllWithResidentAsync()).ReturnsAsync(sampleAccounts);
+
+        var vm = new AccountManagementViewModel(_accountService, _residentService);
+        await vm.LoadDataAsync();
+
+        // Ban đầu chưa bấm xem chi tiết -> Panel đóng
+        Assert.False(vm.IsDetailPanelOpen);
+
+        // Bấm icon xem chi tiết tài khoản thứ 2
+        vm.SelectAccountCommand.Execute(vm.PagedAccounts[1]);
+        Assert.True(vm.IsDetailPanelOpen);
+        Assert.Equal("nguyenvana", vm.SelectedAccount?.Username);
+
+        // Bấm nút X đóng tab chi tiết
+        vm.CloseDetailPanelCommand.Execute(null);
+        Assert.False(vm.IsDetailPanelOpen);
+    }
 }
 

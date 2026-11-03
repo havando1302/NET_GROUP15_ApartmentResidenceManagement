@@ -47,5 +47,31 @@ public partial class AccountManagementView : UserControl
             }
         }
     }
+
+    private void OnAccountRowPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        // Bỏ qua nếu người dùng bấm trực tiếp vào Button thao tác (Xem, Đặt lại mật khẩu, Khóa/Mở khóa)
+        if (e.OriginalSource is System.Windows.DependencyObject dep && FindVisualParent<Button>(dep) != null)
+        {
+            return;
+        }
+
+        if (sender is DataGridRow row && row.Item is AccountDisplayItemViewModel item)
+        {
+            if (DataContext is AccountManagementViewModel vm)
+            {
+                vm.SelectedAccount = item;
+                vm.IsDetailPanelOpen = true;
+            }
+        }
+    }
+
+    private static T? FindVisualParent<T>(System.Windows.DependencyObject child) where T : System.Windows.DependencyObject
+    {
+        System.Windows.DependencyObject parentObject = System.Windows.Media.VisualTreeHelper.GetParent(child);
+        if (parentObject == null) return null;
+        if (parentObject is T parent) return parent;
+        return FindVisualParent<T>(parentObject);
+    }
 }
 

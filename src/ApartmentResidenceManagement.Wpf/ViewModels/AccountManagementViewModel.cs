@@ -123,6 +123,7 @@ public class AccountManagementViewModel : ViewModelBase
     private List<AccountDisplayItemViewModel> _allAccounts = new();
     private ObservableCollection<AccountDisplayItemViewModel> _pagedAccounts = new();
     private AccountDisplayItemViewModel? _selectedAccount;
+    private bool _isDetailPanelOpen;
 
     // Filters
     private string _searchText = string.Empty;
@@ -172,6 +173,12 @@ public class AccountManagementViewModel : ViewModelBase
     {
         get => _selectedAccount;
         set => SetProperty(ref _selectedAccount, value);
+    }
+
+    public bool IsDetailPanelOpen
+    {
+        get => _isDetailPanelOpen;
+        set => SetProperty(ref _isDetailPanelOpen, value);
     }
 
     public int TotalAccountsCount
@@ -376,6 +383,7 @@ public class AccountManagementViewModel : ViewModelBase
     #region Commands
     public ICommand RefreshCommand { get; }
     public ICommand SelectAccountCommand { get; }
+    public ICommand CloseDetailPanelCommand { get; }
     public ICommand ToggleAccountStatusCommand { get; }
     public ICommand NextPageCommand { get; }
     public ICommand PreviousPageCommand { get; }
@@ -402,7 +410,13 @@ public class AccountManagementViewModel : ViewModelBase
             if (p is AccountDisplayItemViewModel item)
             {
                 SelectedAccount = item;
+                IsDetailPanelOpen = true;
             }
+        });
+
+        CloseDetailPanelCommand = new RelayCommand(_ =>
+        {
+            IsDetailPanelOpen = false;
         });
 
         ToggleAccountStatusCommand = new AsyncRelayCommand(async p =>
