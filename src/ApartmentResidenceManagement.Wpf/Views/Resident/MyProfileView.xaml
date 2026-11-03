@@ -85,7 +85,7 @@
                     </StackPanel>
 
                     <!-- Nút Làm mới bên phải -->
-                    <Button Grid.Column="1" Command="{Binding RefreshCommand}" Style="{StaticResource OutlineBtn}" VerticalAlignment="Center" Padding="14,8">
+                    <Button Grid.Column="1" Command="{Binding RefreshCommand}" Style="{StaticResource OutlineButton}" VerticalAlignment="Center" Padding="14,8">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔄" Margin="0,0,8,0" FontSize="13"/>
                             <TextBlock Text="Làm mới dữ liệu" FontWeight="SemiBold"/>
@@ -224,7 +224,7 @@
 
                             <!-- Nút thao tác nhanh Quản trị viên -->
                             <StackPanel Width="270">
-                                <Button Command="{Binding OpenChangePasswordModalCommand}" Style="{StaticResource PrimaryBtn}"
+                                <Button Command="{Binding OpenChangePasswordModalCommand}" Style="{StaticResource PrimaryButton}"
                                         Height="42" Margin="0,0,0,10" Cursor="Hand">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                         <TextBlock Text="🔑" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
@@ -232,7 +232,7 @@
                                     </StackPanel>
                                 </Button>
 
-                                <Button Command="{Binding CheckSecurityCommand}" Style="{StaticResource OutlineBtn}"
+                                <Button Command="{Binding CheckSecurityCommand}" Style="{StaticResource OutlineButton}"
                                         Height="40" Cursor="Hand">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                         <TextBlock Text="🛡️" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
