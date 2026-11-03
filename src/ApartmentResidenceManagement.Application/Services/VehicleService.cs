@@ -12,6 +12,8 @@ namespace ApartmentResidenceManagement.Application.Services;
 
 public class VehicleService
 {
+    public const int MotorcycleLimitPerApartment = 3;
+    public const int CarLimitPerApartment = 1;
     private readonly IUnitOfWork _unitOfWork;
 
     public VehicleService(IUnitOfWork unitOfWork)
@@ -46,20 +48,23 @@ public class VehicleService
 
     public async Task UpdateVehicleAsync(Vehicle vehicle)
     {
-        var existing = await _unitOfWork.Vehicles.GetByIdAsync(vehicle.Id);
-        if (existing == null)
+        await ExecuteWithQuotaLockAsync(vehicle.OwnerId, async () =>
         {
-            throw new BusinessRuleException("Không tìm thấy phương tiện cần cập nhật.");
-        }
-
-        await ValidateVehicleDataAsync(vehicle, existing.Id);
-        existing.LicensePlate = vehicle.LicensePlate;
-        existing.VehicleType = vehicle.VehicleType;
-        existing.Brand = vehicle.Brand;
-        existing.OwnerId = vehicle.OwnerId;
-
-        _unitOfWork.Vehicles.Update(existing);
-        await _unitOfWork.CompleteAsync();
+            // Re-read within the lock rather than updating an old pre-lock snapshot.
+            var existing = await _unitOfWork.Vehicles.GetByIdAsync(vehicle.Id)
+                ?? throw new BusinessRuleException("Không tìm thấy phương tiện cần cập nhật.");
+            await ValidateVehicleDataAsync(vehicle, existing.Id);
+            if (existing.RegistrationStatus == VehicleRegistrationStatus.Approved)
+                await EnsureQuotaAvailableAsync(vehicle.OwnerId, vehicle.VehicleType, existing.Id);
+            existing.LicensePlate = vehicle.LicensePlate;
+            existing.VehicleType = vehicle.VehicleType;
+            existing.Brand = vehicle.Brand;
+            existing.Color = vehicle.Color;
+            existing.OwnerId = vehicle.OwnerId;
+            _unitOfWork.Vehicles.Update(existing);
+            await _unitOfWork.CompleteAsync();
+            return true;
+        });
     }
 
     public async Task UpdateVehicleRegistrationAsync(int ownerId, Vehicle vehicle)
@@ -79,6 +84,7 @@ public class VehicleService
         existing.LicensePlate = vehicle.LicensePlate;
         existing.VehicleType = vehicle.VehicleType;
         existing.Brand = vehicle.Brand;
+        existing.Color = vehicle.Color;
         existing.RegistrationStatus = VehicleRegistrationStatus.Pending;
 
         _unitOfWork.Vehicles.Update(existing);
@@ -88,28 +94,32 @@ public class VehicleService
     public async Task ReviewVehicleAsync(int vehicleId, VehicleRegistrationStatus status)
     {
         if (status is not VehicleRegistrationStatus.Approved and not VehicleRegistrationStatus.Rejected)
-        {
             throw new BusinessRuleException("Trạng thái duyệt phương tiện không hợp lệ.");
-        }
 
-        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId);
-        if (vehicle == null)
-        {
-            throw new BusinessRuleException("Không tìm thấy phương tiện cần duyệt.");
-        }
+        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId)
+            ?? throw new BusinessRuleException("Không tìm thấy phương tiện cần duyệt.");
+        if (vehicle.RegistrationStatus != VehicleRegistrationStatus.Pending)
+            throw new BusinessRuleException("Chỉ có thể duyệt hoặc từ chối phương tiện đang chờ duyệt.");
 
         if (status == VehicleRegistrationStatus.Approved)
         {
             var owner = await _unitOfWork.Residents.GetByIdAsync(vehicle.OwnerId);
             if (owner == null)
-            {
                 throw new BusinessRuleException("Không thể duyệt xe vì không tìm thấy cư dân sở hữu.");
-            }
-        }
-
-        if (status == VehicleRegistrationStatus.Approved)
-        {
-            await EnsureActiveResidenceAsync(vehicle.OwnerId);
+            await ExecuteWithQuotaLockAsync(vehicle.OwnerId, async () =>
+            {
+                // Re-read after taking the apartment lock to handle concurrent reviews.
+                var current = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId)
+                    ?? throw new BusinessRuleException("Không tìm thấy phương tiện cần duyệt.");
+                if (current.RegistrationStatus != VehicleRegistrationStatus.Pending)
+                    throw new BusinessRuleException("Phương tiện đã được xử lý.");
+                await EnsureQuotaAvailableAsync(current.OwnerId, current.VehicleType, current.Id);
+                current.RegistrationStatus = status;
+                _unitOfWork.Vehicles.Update(current);
+                await _unitOfWork.CompleteAsync();
+                return true;
+            });
+            return;
         }
 
         vehicle.RegistrationStatus = status;
@@ -148,13 +158,57 @@ public class VehicleService
 
     private async Task<Vehicle> CreateVehicleCoreAsync(Vehicle vehicle, VehicleRegistrationStatus status)
     {
-        await ValidateVehicleDataAsync(vehicle);
-        vehicle.RegistrationStatus = status;
+        async Task<Vehicle> CreateAsync()
+        {
+            await ValidateVehicleDataAsync(vehicle);
+            if (status == VehicleRegistrationStatus.Approved)
+                await EnsureQuotaAvailableAsync(vehicle.OwnerId, vehicle.VehicleType);
+            vehicle.RegistrationStatus = status;
+            vehicle.RegisteredAtUtc = DateTime.UtcNow;
+            await _unitOfWork.Vehicles.AddAsync(vehicle);
+            await _unitOfWork.CompleteAsync();
+            return vehicle;
+        }
 
-        await _unitOfWork.Vehicles.AddAsync(vehicle);
-        await _unitOfWork.CompleteAsync();
+        return status == VehicleRegistrationStatus.Approved
+            ? await ExecuteWithQuotaLockAsync(vehicle.OwnerId, CreateAsync)
+            : await CreateAsync();
+    }
 
-        return vehicle;
+    private async Task<T> ExecuteWithQuotaLockAsync<T>(int ownerId, Func<Task<T>> action)
+    {
+        var initial = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(ownerId)
+            ?? throw new BusinessRuleException("Cư dân phải có cư trú đang hoạt động để đăng ký hoặc duyệt phương tiện.");
+        return await _unitOfWork.ExecuteInTransactionAsync(async () =>
+        {
+            var apartment = await _unitOfWork.Apartments.LockForVehicleQuotaAsync(initial.ApartmentId);
+            if (apartment == null)
+                throw new BusinessRuleException("Không tìm thấy căn hộ của cư dân.");
+            var current = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(ownerId);
+            if (current == null || current.ApartmentId != initial.ApartmentId)
+                throw new BusinessRuleException("Thông tin cư trú đã thay đổi. Vui lòng thử lại.");
+            return await action();
+        });
+    }
+
+    private async Task EnsureQuotaAvailableAsync(int ownerId, VehicleType type, int? excludeVehicleId = null)
+    {
+        int? limit = type switch
+        {
+            VehicleType.Moto => MotorcycleLimitPerApartment,
+            VehicleType.Car => CarLimitPerApartment,
+            _ => null
+        };
+        if (limit == null) return;
+        var residence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(ownerId)
+            ?? throw new BusinessRuleException("Cư dân chưa có cư trú đang hoạt động.");
+        var residents = await _unitOfWork.ResidenceHistories.GetActiveByApartmentIdAsync(residence.ApartmentId);
+        var ownerIds = residents.Select(r => r.ResidentId).ToHashSet();
+        var vehicles = await _unitOfWork.Vehicles.GetAllWithDetailsAsync();
+        var count = vehicles.Count(v => ownerIds.Contains(v.OwnerId) && v.VehicleType == type
+            && v.RegistrationStatus == VehicleRegistrationStatus.Approved && v.Id != excludeVehicleId);
+        if (count >= limit)
+            throw new BusinessRuleException($"Căn hộ đã đạt hạn mức {limit} {(type == VehicleType.Moto ? "xe máy" : "ô tô")} đã duyệt.");
     }
 
     private async Task ValidateVehicleDataAsync(Vehicle vehicle, int? currentVehicleId = null)
@@ -166,6 +220,7 @@ public class VehicleService
 
         vehicle.LicensePlate = vehicle.LicensePlate.Replace(" ", "").ToUpperInvariant();
         vehicle.Brand = string.IsNullOrWhiteSpace(vehicle.Brand) ? null : vehicle.Brand.Trim();
+        vehicle.Color = string.IsNullOrWhiteSpace(vehicle.Color) ? null : vehicle.Color.Trim();
 
         if (!Enum.IsDefined(vehicle.VehicleType))
         {
@@ -181,6 +236,9 @@ public class VehicleService
         {
             throw new BusinessRuleException("Nhãn hiệu phương tiện không được vượt quá 50 ký tự.");
         }
+
+        if (vehicle.Color?.Length > 50)
+            throw new BusinessRuleException("Màu xe không được vượt quá 50 ký tự.");
 
         var duplicate = await _unitOfWork.Vehicles.GetByLicensePlateAsync(vehicle.LicensePlate);
         if (duplicate != null && duplicate.Id != currentVehicleId)

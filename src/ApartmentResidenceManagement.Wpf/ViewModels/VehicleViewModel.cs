@@ -18,7 +18,19 @@ public class VehicleItem
     public int Id => Vehicle.Id;
     public string LicensePlate => Vehicle.LicensePlate;
     public VehicleType VehicleType => Vehicle.VehicleType;
-    public string Brand => Vehicle.Brand ?? "Chưa rõ";
+    public string Brand => string.IsNullOrWhiteSpace(Vehicle.Brand) ? "Chưa cập nhật" : Vehicle.Brand;
+    public string Color => string.IsNullOrWhiteSpace(Vehicle.Color) ? "Chưa cập nhật" : Vehicle.Color;
+    public string RegisteredDateText => Vehicle.RegisteredAtUtc.HasValue
+        ? DateTime.SpecifyKind(Vehicle.RegisteredAtUtc.Value, DateTimeKind.Utc).ToLocalTime().ToString("dd/MM/yyyy")
+        : "Chưa ghi nhận";
+    public int? ApartmentId { get; }
+    public string VehicleTypeText => VehicleType switch
+    {
+        VehicleType.Moto => "Xe máy",
+        VehicleType.Car => "Ô tô",
+        VehicleType.Bicycle => "Xe đạp",
+        _ => "Khác"
+    };
     public int OwnerId => Vehicle.OwnerId;
     public string OwnerName => Vehicle.Owner?.FullName ?? "Chưa rõ";
     public string OwnerIdentityCard => Vehicle.Owner?.IdentityCard ?? "Chưa rõ";
@@ -34,10 +46,11 @@ public class VehicleItem
 
     public Vehicle Vehicle { get; }
 
-    public VehicleItem(Vehicle vehicle, string apartmentNumber)
+    public VehicleItem(Vehicle vehicle, string apartmentNumber, int? apartmentId = null)
     {
         Vehicle = vehicle;
         ApartmentNumber = apartmentNumber;
+        ApartmentId = apartmentId;
     }
 }
 
@@ -51,7 +64,11 @@ public class VehicleViewModel : ViewModelBase
 
     // Lọc & Tìm kiếm
     private string _searchText = string.Empty;
-    private string _selectedTypeFilter = "Tất cả"; // Tất cả, Xe máy, Ô tô, Xe đạp, Khác
+    private string _selectedTypeFilter = "Tất cả";
+    private string _selectedStatusFilter = "Tất cả";
+    private List<VehicleItem> _filteredVehicles = new();
+    private int _currentPage = 1;
+    private int _pageSize = 8;
 
     // UI Collections
     private ObservableCollection<VehicleItem> _vehicles = new();
@@ -107,10 +124,59 @@ public class VehicleViewModel : ViewModelBase
 
     public List<string> TypeFilterOptions { get; } = new() { "Tất cả", "Xe máy", "Ô tô", "Xe đạp" };
 
+    public List<string> StatusFilterOptions { get; } = new() { "Tất cả", "Chờ duyệt", "Đã duyệt", "Từ chối" };
+    public List<int> PageSizeOptions { get; } = new() { 8, 16, 32 };
+    public int TotalCount => _allVehicles.Count;
+    public int PendingCount => _allVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending);
+    public int ApprovedCount => _allVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Approved);
+    public int RejectedCount => _allVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Rejected);
+    public int FilteredCount => _filteredVehicles.Count;
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredCount / PageSize));
+    public int CurrentPage => _currentPage;
+    public string PageSummary => FilteredCount == 0
+        ? "Không có phương tiện phù hợp"
+        : $"Hiển thị {(_currentPage - 1) * PageSize + 1}–{Math.Min(_currentPage * PageSize, FilteredCount)} / {FilteredCount} phương tiện";
+    public string PageIndicator => $"Trang {CurrentPage} / {TotalPages}";
+    public bool CanGoPrevious => CurrentPage > 1;
+    public bool CanGoNext => CurrentPage < TotalPages;
+    public bool HasSelection => SelectedVehicleItem != null;
+    public bool HasQuotaInfo => SelectedVehicleItem?.ApartmentId != null;
+    public string MotorcycleQuotaText => GetQuotaText(VehicleType.Moto, VehicleService.MotorcycleLimitPerApartment);
+    public string CarQuotaText => GetQuotaText(VehicleType.Car, VehicleService.CarLimitPerApartment);
+    public int MotorcycleQuotaCount => GetQuotaCount(VehicleType.Moto);
+    public int CarQuotaCount => GetQuotaCount(VehicleType.Car);
+    public int MotorcycleQuotaLimit => VehicleService.MotorcycleLimitPerApartment;
+    public int CarQuotaLimit => VehicleService.CarLimitPerApartment;
+    public bool CanReviewSelected => SelectedVehicleItem?.RegistrationStatus == VehicleRegistrationStatus.Pending;
+
+    public string SelectedStatusFilter
+    {
+        get => _selectedStatusFilter;
+        set { if (SetProperty(ref _selectedStatusFilter, value)) ApplyFilters(); }
+    }
+
+    public int PageSize
+    {
+        get => _pageSize;
+        set { if (value > 0 && SetProperty(ref _pageSize, value)) ApplyFilters(); }
+    }
+
     public VehicleItem? SelectedVehicleItem
     {
         get => _selectedVehicleItem;
-        set => SetProperty(ref _selectedVehicleItem, value);
+        set
+        {
+            if (SetProperty(ref _selectedVehicleItem, value))
+            {
+                OnPropertyChanged(nameof(HasSelection));
+                OnPropertyChanged(nameof(CanReviewSelected));
+                OnPropertyChanged(nameof(HasQuotaInfo));
+                OnPropertyChanged(nameof(MotorcycleQuotaText));
+                OnPropertyChanged(nameof(CarQuotaText));
+                OnPropertyChanged(nameof(MotorcycleQuotaCount));
+                OnPropertyChanged(nameof(CarQuotaCount));
+            }
+        }
     }
 
     public Vehicle EditingVehicle
@@ -169,6 +235,8 @@ public class VehicleViewModel : ViewModelBase
     public ICommand DeleteVehicleCommand { get; }
     public ICommand ApproveVehicleCommand { get; }
     public ICommand RejectVehicleCommand { get; }
+    public ICommand PreviousPageCommand { get; }
+    public ICommand NextPageCommand { get; }
     #endregion
 
     public VehicleViewModel(VehicleService vehicleService, ResidentService residentService, ResidenceService residenceService)
@@ -185,6 +253,8 @@ public class VehicleViewModel : ViewModelBase
         DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
         ApproveVehicleCommand = new AsyncRelayCommand(p => ReviewVehicleAsync(p, VehicleRegistrationStatus.Approved));
         RejectVehicleCommand = new AsyncRelayCommand(p => ReviewVehicleAsync(p, VehicleRegistrationStatus.Rejected));
+        PreviousPageCommand = new RelayCommand(_ => { if (CanGoPrevious) { _currentPage--; ShowPage(); } });
+        NextPageCommand = new RelayCommand(_ => { if (CanGoNext) { _currentPage++; ShowPage(); } });
     }
 
     public async Task LoadDataAsync()
@@ -198,7 +268,7 @@ public class VehicleViewModel : ViewModelBase
             var residentApartmentMap = activeResidences
                 .Where(rh => rh.IsActive)
                 .GroupBy(rh => rh.ResidentId)
-                .ToDictionary(g => g.Key, g => g.First().Apartment?.ApartmentNumber ?? "Chưa rõ");
+                .ToDictionary(g => g.Key, g => g.First());
 
             // 2. Lấy danh sách cư dân đang cư trú active để chọn lựa trong Form đăng ký xe
             var activeResidentIds = residentApartmentMap.Keys.ToList();
@@ -212,10 +282,14 @@ public class VehicleViewModel : ViewModelBase
             var vehicles = await _vehicleService.GetAllVehiclesAsync();
             _allVehicles = vehicles.Select(v =>
             {
-                residentApartmentMap.TryGetValue(v.OwnerId, out var aptNum);
-                return new VehicleItem(v, aptNum ?? "Chưa rõ");
+                residentApartmentMap.TryGetValue(v.OwnerId, out var residence);
+                return new VehicleItem(v, residence?.Apartment?.ApartmentNumber ?? "Chưa rõ", residence?.ApartmentId);
             }).ToList();
 
+            OnPropertyChanged(nameof(TotalCount));
+            OnPropertyChanged(nameof(PendingCount));
+            OnPropertyChanged(nameof(ApprovedCount));
+            OnPropertyChanged(nameof(RejectedCount));
             ApplyFilters();
         }
         catch (Exception)
@@ -256,12 +330,42 @@ public class VehicleViewModel : ViewModelBase
                 v.ApartmentNumber.ToLower().Contains(keyword));
         }
 
-        Vehicles.Clear();
-        foreach (var item in filtered)
+        filtered = SelectedStatusFilter switch
         {
-            Vehicles.Add(item);
-        }
+            "Chờ duyệt" => filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending),
+            "Đã duyệt" => filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Approved),
+            "Từ chối" => filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Rejected),
+            _ => filtered
+        };
+        _filteredVehicles = filtered.ToList();
+        _currentPage = 1;
+        ShowPage();
     }
+
+    private void ShowPage()
+    {
+        var selectedId = SelectedVehicleItem?.Id;
+        Vehicles.Clear();
+        foreach (var item in _filteredVehicles.Skip((_currentPage - 1) * PageSize).Take(PageSize))
+            Vehicles.Add(item);
+        SelectedVehicleItem = Vehicles.FirstOrDefault(v => v.Id == selectedId) ?? Vehicles.FirstOrDefault();
+        OnPropertyChanged(nameof(FilteredCount));
+        OnPropertyChanged(nameof(CurrentPage));
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(PageSummary));
+        OnPropertyChanged(nameof(PageIndicator));
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+    }
+
+    private int GetQuotaCount(VehicleType type) => SelectedVehicleItem?.ApartmentId is int apartmentId
+        ? _allVehicles.Count(v => v.ApartmentId == apartmentId && v.VehicleType == type
+            && v.RegistrationStatus == VehicleRegistrationStatus.Approved)
+        : 0;
+
+    private string GetQuotaText(VehicleType type, int limit) => HasQuotaInfo
+        ? $"{GetQuotaCount(type)} / {limit} xe đã duyệt"
+        : "Không xác định được căn hộ";
 
     private void OpenAddForm()
     {
@@ -285,6 +389,7 @@ public class VehicleViewModel : ViewModelBase
             LicensePlate = item.Vehicle.LicensePlate,
             VehicleType = item.Vehicle.VehicleType,
             Brand = item.Vehicle.Brand,
+            Color = item.Vehicle.Color,
             OwnerId = item.Vehicle.OwnerId,
             RegistrationStatus = item.Vehicle.RegistrationStatus
         };
@@ -373,7 +478,7 @@ public class VehicleViewModel : ViewModelBase
 
     private async Task ReviewVehicleAsync(object? parameter, VehicleRegistrationStatus status)
     {
-        if (parameter is not VehicleItem item) return;
+        if (parameter is not VehicleItem item || item.RegistrationStatus != VehicleRegistrationStatus.Pending) return;
         ErrorMessage = string.Empty;
 
         try

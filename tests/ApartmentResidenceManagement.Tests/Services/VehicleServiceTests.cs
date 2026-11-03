@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
@@ -30,6 +32,17 @@ public class VehicleServiceTests
         _mockUow.Setup(u => u.ResidenceHistories).Returns(_mockResidenceRepo.Object);
         _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(It.IsAny<int>()))
             .ReturnsAsync((int id) => new ResidenceHistory { ResidentId = id, IsActive = true });
+        var apartments = new Mock<IApartmentRepository>();
+        apartments.Setup(r => r.LockForVehicleQuotaAsync(It.IsAny<int>()))
+            .ReturnsAsync((int id) => new Apartment { Id = id });
+        _mockUow.Setup(u => u.Apartments).Returns(apartments.Object);
+        _mockUow.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task<Vehicle>>>()))
+            .Returns((Func<Task<Vehicle>> action) => action());
+        _mockUow.Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task<bool>>>()))
+            .Returns((Func<Task<bool>> action) => action());
+        _mockResidenceRepo.Setup(r => r.GetActiveByApartmentIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new[] { new ResidenceHistory { ResidentId = 10, IsActive = true } });
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(Array.Empty<Vehicle>());
         _service = new VehicleService(_mockUow.Object);
     }
 
@@ -154,6 +167,99 @@ public class VehicleServiceTests
         _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
         await _service.ReviewVehicleAsync(5, VehicleRegistrationStatus.Approved);
         Assert.Equal(VehicleRegistrationStatus.Approved, vehicle.RegistrationStatus);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+    [Fact]
+    public async Task SubmitRegistration_SavesColorAndTimestampWithoutConsumingQuota()
+    {
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        var before = DateTime.UtcNow;
+        var vehicle = new Vehicle { OwnerId = 10, LicensePlate = "29A1-12345", VehicleType = VehicleType.Moto, Color = "  Đỏ  " };
+        var saved = await _service.SubmitVehicleRegistrationAsync(vehicle);
+        Assert.Equal("Đỏ", saved.Color);
+        Assert.InRange(saved.RegisteredAtUtc!.Value, before, DateTime.UtcNow);
+        Assert.Equal(VehicleRegistrationStatus.Pending, saved.RegistrationStatus);
+        _mockVehicleRepo.Verify(r => r.GetAllWithDetailsAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Approve_FullMotorcycleQuota_RejectsAndDoesNotSave()
+    {
+        var pending = new Vehicle { Id = 9, OwnerId = 10, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(9)).ReturnsAsync(pending);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(Enumerable.Range(1, 3).Select(i => new Vehicle { Id = i, OwnerId = 10, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Approved }).ToArray());
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ReviewVehicleAsync(9, VehicleRegistrationStatus.Approved));
+        Assert.Contains("hạn mức", ex.Message);
+        Assert.Equal(VehicleRegistrationStatus.Pending, pending.RegistrationStatus);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Approve_CarQuotaCountsOtherActiveResidentsInApartment()
+    {
+        var pending = new Vehicle { Id = 9, OwnerId = 10, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(9)).ReturnsAsync(pending);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockResidenceRepo.Setup(r => r.GetActiveByApartmentIdAsync(It.IsAny<int>())).ReturnsAsync(new[] { new ResidenceHistory { ResidentId = 10 }, new ResidenceHistory { ResidentId = 20 } });
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new[] { new Vehicle { Id = 1, OwnerId = 20, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved } });
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ReviewVehicleAsync(9, VehicleRegistrationStatus.Approved));
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Approve_BicyclesHaveNoQuota()
+    {
+        var pending = new Vehicle { Id = 9, OwnerId = 10, VehicleType = VehicleType.Bicycle, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(9)).ReturnsAsync(pending);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        await _service.ReviewVehicleAsync(9, VehicleRegistrationStatus.Approved);
+        Assert.Equal(VehicleRegistrationStatus.Approved, pending.RegistrationStatus);
+    }
+
+    [Fact]
+    public async Task UpdateRegistration_PreservesDateAndStoresColor()
+    {
+        var timestamp = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var existing = new Vehicle { Id = 5, OwnerId = 10, LicensePlate = "29A1-12345", RegisteredAtUtc = timestamp };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(existing);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        await _service.UpdateVehicleRegistrationAsync(10, new Vehicle { Id = 5, OwnerId = 10, LicensePlate = "29A1-12345", Color = " Xanh " });
+        Assert.Equal("Xanh", existing.Color);
+        Assert.Equal(timestamp, existing.RegisteredAtUtc);
+        Assert.Equal(VehicleRegistrationStatus.Pending, existing.RegistrationStatus);
+    }
+    [Fact]
+    public async Task CreateByAdmin_FullCarQuota_RejectsBeforeSaving()
+    {
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new[] { new Vehicle { Id = 1, OwnerId = 10, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved } });
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateVehicleAsync(new Vehicle { OwnerId = 10, LicensePlate = "30A-12345", VehicleType = VehicleType.Car }));
+        _mockVehicleRepo.Verify(r => r.AddAsync(It.IsAny<Vehicle>()), Times.Never);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Approve_PendingAndRejectedVehiclesDoNotConsumeQuota()
+    {
+        var pending = new Vehicle { Id = 9, OwnerId = 10, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(9)).ReturnsAsync(pending);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new[] {
+            pending, new Vehicle { Id = 1, OwnerId = 10, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Rejected } });
+        await _service.ReviewVehicleAsync(9, VehicleRegistrationStatus.Approved);
+        Assert.Equal(VehicleRegistrationStatus.Approved, pending.RegistrationStatus);
+    }
+
+    [Fact]
+    public async Task UpdateApprovedVehicle_DoesNotCountItselfAgainstQuota()
+    {
+        var existing = new Vehicle { Id = 1, OwnerId = 10, VehicleType = VehicleType.Car, LicensePlate = "30A-12345", RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new[] { existing });
+        await _service.UpdateVehicleAsync(new Vehicle { Id = 1, OwnerId = 10, LicensePlate = "30A-12345", VehicleType = VehicleType.Car, Color = "Trắng" });
+        Assert.Equal("Trắng", existing.Color);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
 }

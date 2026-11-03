@@ -1,3 +1,4 @@
+using System;
 using ApartmentResidenceManagement.Domain.Enums;
 
 namespace ApartmentResidenceManagement.Domain.Entities;
@@ -8,6 +9,9 @@ public class Vehicle
     public string LicensePlate { get; set; } = string.Empty;
     public VehicleType VehicleType { get; set; }
     public string? Brand { get; set; }
+    public string? Color { get; set; }
+    // Null denotes an existing vehicle whose registration date was not recorded.
+    public DateTime? RegisteredAtUtc { get; set; }
     public int OwnerId { get; set; }
     public VehicleRegistrationStatus RegistrationStatus { get; set; } = VehicleRegistrationStatus.Pending;
 

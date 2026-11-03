@@ -244,6 +244,7 @@ public class MyVehiclesViewModel : ViewModelBase
             LicensePlate = vehicle.LicensePlate,
             VehicleType = vehicle.VehicleType,
             Brand = vehicle.Brand,
+            Color = vehicle.Color,
             OwnerId = vehicle.OwnerId
         };
         IsFormOpen = true;

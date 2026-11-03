@@ -207,6 +207,10 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<string>("Color")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<string>("LicensePlate")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -214,6 +218,9 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
 
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegisteredAtUtc")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("RegistrationStatus")
                         .ValueGeneratedOnAdd()

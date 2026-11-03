@@ -116,13 +116,13 @@ public class MainViewModel : ViewModelBase
         // Đặt Tab mặc định ban đầu dựa vào Role
         if (IsAdmin)
         {
-            _currentViewModel = DashboardVm;
-            _ = DashboardVm.LoadStatsAsync();
+            _currentViewModel = VehicleVm;
+            _ = VehicleVm.LoadDataAsync();
         }
         else
         {
-            _currentViewModel = ResidentHomeVm;
-            _ = ResidentHomeVm.LoadStatsAsync();
+            _currentViewModel = MyVehiclesVm;
+            _ = MyVehiclesVm.LoadMyVehiclesAsync();
         }
 
         // Khởi tạo các command điều hướng Admin

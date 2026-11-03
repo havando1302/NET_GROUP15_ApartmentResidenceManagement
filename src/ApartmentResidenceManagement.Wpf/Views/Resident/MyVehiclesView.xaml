@@ -413,6 +413,9 @@
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
+                            <DataGridTextColumn Header="Màu xe" Binding="{Binding Color, TargetNullValue=Chưa cập nhật}" Width="1.2*"/>
+                            <DataGridTextColumn Header="Ngày đăng ký (UTC)" Binding="{Binding RegisteredAtUtc, StringFormat=dd/MM/yyyy, TargetNullValue=Chưa ghi nhận}" Width="1.4*"/>
+
                             <DataGridTemplateColumn Header="Trạng thái" Width="1.5*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -568,6 +571,11 @@
                                        Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
                             <TextBox Style="{StaticResource FormTextBox}"
                                      Text="{Binding EditingVehicle.Brand, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,14">
+                            <TextBlock Text="Màu xe (không bắt buộc)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
+                            <TextBox Style="{StaticResource FormTextBox}" MaxLength="50" Text="{Binding EditingVehicle.Color, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
                         <controls:NotificationBanner Kind="Information"

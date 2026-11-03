@@ -1,12 +1,65 @@
-﻿<Window x:Class="ApartmentResidenceManagement.Wpf.MainWindow"
+<Window x:Class="ApartmentResidenceManagement.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ApartmentResidenceManagement.Wpf"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        xmlns:views="clr-namespace:ApartmentResidenceManagement.Wpf.Views"
+        xmlns:vm="clr-namespace:ApartmentResidenceManagement.Wpf.ViewModels"
+        Title="ResidenceManager — Quản lý căn hộ và cư trú" Width="1440" Height="900" MinWidth="1000" MinHeight="700" WindowStartupLocation="CenterScreen" Background="#F2F5FB">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:VehicleViewModel}"><views:VehicleView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ApartmentViewModel}"><views:ApartmentView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ResidentViewModel}"><views:ResidentView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ResidencyViewModel}"><views:ResidencyView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MyVehiclesViewModel}"><views:MyVehiclesView/></DataTemplate>
+        <Style x:Key="NavigationButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#D5DFEF"/>
+            <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="16,13"/><Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Border x:Name="nav" Background="{TemplateBinding Background}" CornerRadius="8"><ContentPresenter Margin="{TemplateBinding Padding}"/></Border>
+                <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="nav" Property="Background" Value="#1E345A"/></Trigger></ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="VehicleNavigation" TargetType="Button" BasedOn="{StaticResource NavigationButton}"><Style.Triggers><DataTrigger Binding="{Binding ActiveTab}" Value="VehicleViewModel"><Setter Property="Background" Value="#2563EB"/><Setter Property="Foreground" Value="White"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="ApartmentNavigation" TargetType="Button" BasedOn="{StaticResource NavigationButton}"><Style.Triggers><DataTrigger Binding="{Binding ActiveTab}" Value="ApartmentViewModel"><Setter Property="Background" Value="#2563EB"/><Setter Property="Foreground" Value="White"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="ResidentNavigation" TargetType="Button" BasedOn="{StaticResource NavigationButton}"><Style.Triggers><DataTrigger Binding="{Binding ActiveTab}" Value="ResidentViewModel"><Setter Property="Background" Value="#2563EB"/><Setter Property="Foreground" Value="White"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="ResidencyNavigation" TargetType="Button" BasedOn="{StaticResource NavigationButton}"><Style.Triggers><DataTrigger Binding="{Binding ActiveTab}" Value="ResidencyViewModel"><Setter Property="Background" Value="#2563EB"/><Setter Property="Foreground" Value="White"/></DataTrigger></Style.Triggers></Style>
+        <Style x:Key="MyVehiclesNavigation" TargetType="Button" BasedOn="{StaticResource NavigationButton}"><Style.Triggers><DataTrigger Binding="{Binding ActiveTab}" Value="MyVehiclesViewModel"><Setter Property="Background" Value="#2563EB"/><Setter Property="Foreground" Value="White"/></DataTrigger></Style.Triggers></Style>
+    </Window.Resources>
     <Grid>
-
+        <Grid.ColumnDefinitions><ColumnDefinition Width="230"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Border Background="#0F1C35">
+            <DockPanel Margin="12,24,12,16">
+                <StackPanel DockPanel.Dock="Top" Margin="8,0,0,32">
+                    <TextBlock Text="▣  ResidenceManager" Foreground="White" FontSize="17" FontWeight="Bold"/>
+                    <TextBlock Text="Quản trị cư trú" Foreground="#94A3B8" Margin="26,5,0,0" FontSize="12"/>
+                </StackPanel>
+                <Button DockPanel.Dock="Bottom" Content="⏻   Đăng xuất" Style="{StaticResource NavigationButton}" Foreground="#FCA5A5" Command="{Binding LogoutCommand}"/>
+                <StackPanel>
+                    <StackPanel Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="QUẢN LÝ" Foreground="#71829F" FontSize="10" FontWeight="Bold" Margin="16,0,0,10"/>
+                        <Button Content="▦   Quản lý Căn hộ" Style="{StaticResource ApartmentNavigation}" Command="{Binding ShowApartmentCommand}"/>
+                        <Button Content="♙   Quản lý Cư dân" Style="{StaticResource ResidentNavigation}" Command="{Binding ShowResidentCommand}"/>
+                        <Button Content="☷   Quản lý Cư trú" Style="{StaticResource ResidencyNavigation}" Command="{Binding ShowResidencyCommand}"/>
+                        <Button Content="▣   Quản lý Phương tiện" Style="{StaticResource VehicleNavigation}" Command="{Binding ShowVehicleCommand}"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="CƯ DÂN" Foreground="#71829F" FontSize="10" FontWeight="Bold" Margin="16,0,0,10"/>
+                        <Button Content="▣   Phương tiện của tôi" Style="{StaticResource MyVehiclesNavigation}" Command="{Binding ShowMyVehiclesCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions><RowDefinition Height="76"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Background="White" BorderBrush="#E5EAF3" BorderThickness="0,0,0,1" Padding="24,14">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding RoleMessage}" VerticalAlignment="Center" Foreground="#64748B" FontWeight="SemiBold"/>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="{Binding WelcomeMessage}" FontSize="17" FontWeight="Bold" Foreground="#15223B"/><TextBlock Text="Chào mừng đến với hệ thống quản lý cư trú" Foreground="#64748B" FontSize="12" Margin="0,4,0,0"/></StackPanel>
+                </DockPanel>
+            </Border>
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <ContentControl Content="{Binding CurrentViewModel}" MinWidth="800" MinHeight="600"/>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Window>
