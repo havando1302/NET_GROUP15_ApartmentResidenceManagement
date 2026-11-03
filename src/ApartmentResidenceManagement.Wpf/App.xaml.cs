@@ -82,6 +82,8 @@ public partial class App : System.Windows.Application
                 services.AddTransient<ResidencyViewModel>();
                 services.AddTransient<VehicleViewModel>();
                 services.AddTransient<StatisticsViewModel>();
+                services.AddTransient<AccountManagementViewModel>();
+                services.AddTransient<AccountManagementView>();
                 
                 // Resident ViewModels
                 services.AddTransient<ResidentHomeViewModel>();
@@ -159,6 +161,7 @@ public partial class App : System.Windows.Application
                 services.GetRequiredService<ResidencyViewModel>(),
                 services.GetRequiredService<VehicleViewModel>(),
                 services.GetRequiredService<StatisticsViewModel>(),
+                services.GetRequiredService<AccountManagementViewModel>(),
                 services.GetRequiredService<ResidentHomeViewModel>(),
                 services.GetRequiredService<MyProfileViewModel>(),
                 services.GetRequiredService<MyApartmentViewModel>(),

@@ -33,6 +33,9 @@ public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccount>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
+        builder.Property(u => u.LastLoginAt)
+            .IsRequired(false);
+
         builder.HasIndex(u => u.ResidentId)
             .IsUnique();
 

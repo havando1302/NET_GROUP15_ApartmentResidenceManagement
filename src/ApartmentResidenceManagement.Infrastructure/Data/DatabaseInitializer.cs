@@ -26,6 +26,51 @@ public static class DatabaseInitializer
             await context.SaveChangesAsync();
         }
 
+        // Tự động cấp tài khoản cho các cư dân có thật trong CSDL chưa có tài khoản
+        var allResidents = await context.Residents.Include(r => r.UserAccount).ToListAsync();
+        var residentsWithoutAccount = allResidents.Where(r => r.UserAccount == null).ToList();
+
+        if (residentsWithoutAccount.Count > 0)
+        {
+            string defaultResidentPasswordHash = BCrypt.Net.BCrypt.HashPassword("123456");
+            var existingUsernames = new System.Collections.Generic.HashSet<string>(
+                await context.UserAccounts.Select(u => u.Username).ToListAsync(),
+                System.StringComparer.OrdinalIgnoreCase);
+
+            int count = 0;
+            foreach (var r in residentsWithoutAccount)
+            {
+                count++;
+                string baseUsername = GenerateUsernameFromName(r.FullName);
+                string username = baseUsername;
+                int suffix = 1;
+                while (existingUsernames.Contains(username))
+                {
+                    username = $"{baseUsername}{suffix++}";
+                }
+                existingUsernames.Add(username);
+
+                // Mô phỏng 4 tài khoản bị khóa như ảnh mẫu (tài khoản thứ 3, 7, 18, 25)
+                bool isActive = !(count == 3 || count == 7 || count == 18 || count == 25);
+                var createdAt = new DateTime(2026, 1, 10).AddDays(r.Id % 15);
+                DateTime? lastLoginAt = isActive ? new DateTime(2026, 1, 28, 9, 21, 0).AddHours(-(r.Id * 2 % 48)) : null;
+
+                var account = new UserAccount
+                {
+                    Username = username,
+                    PasswordHash = defaultResidentPasswordHash,
+                    Role = UserRole.Resident,
+                    ResidentId = r.Id,
+                    IsActive = isActive,
+                    CreatedAt = createdAt,
+                    LastLoginAt = lastLoginAt
+                };
+
+                context.UserAccounts.Add(account);
+            }
+            await context.SaveChangesAsync();
+        }
+
         if (!seedDemoData)
         {
             return;
@@ -130,5 +175,24 @@ public static class DatabaseInitializer
             if (id % 4 == 1) return "/Assets/avatar_toddler_boy.png";
             return "/Assets/avatar_son.png";
         }
+    }
+
+    private static string GenerateUsernameFromName(string fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName)) return "user";
+
+        string normalized = fullName.Normalize(System.Text.NormalizationForm.FormD);
+        var sb = new System.Text.StringBuilder();
+        foreach (char c in normalized)
+        {
+            var category = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+            if (category != System.Globalization.UnicodeCategory.NonSpacingMark)
+            {
+                if (c == 'đ' || c == 'Đ') sb.Append('d');
+                else if (char.IsLetterOrDigit(c)) sb.Append(char.ToLowerInvariant(c));
+            }
+        }
+        string result = sb.ToString();
+        return string.IsNullOrWhiteSpace(result) ? "user" : result;
     }
 }
