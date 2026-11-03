@@ -1,4 +1,4 @@
-using ApartmentResidenceManagement.Wpf.Services;
+﻿using ApartmentResidenceManagement.Wpf.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +15,7 @@ namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
 public class MyVehiclesViewModel : ViewModelBase
 {
+    private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
     private UserAccount? _account;
     private readonly VehicleService _vehicleService;
     private readonly ResidenceService _residenceService;
@@ -156,6 +157,7 @@ public class MyVehiclesViewModel : ViewModelBase
 
     public async Task LoadMyVehiclesAsync()
     {
+        if (!await _loadLock.WaitAsync(0)) return;
         if (_account?.Resident == null)
         {
             HasApartment = false;
@@ -187,6 +189,7 @@ public class MyVehiclesViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            _loadLock.Release();
         }
     }
 

@@ -1,5 +1,7 @@
-using System;
+﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using ApartmentResidenceManagement.Wpf.Services;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
 using ApartmentResidenceManagement.Wpf.Commands;
@@ -140,68 +142,68 @@ public class MainViewModel : ViewModelBase
         if (IsAdmin)
         {
             _currentViewModel = ApartmentVm;
-            _ = ApartmentVm.LoadDataAsync();
+            _ = SafeExecuteAsync(() => ApartmentVm.LoadDataAsync());
         }
         else
         {
             _currentViewModel = ResidentHomeVm;
-            _ = ResidentHomeVm.LoadStatsAsync();
+            _ = SafeExecuteAsync(() => ResidentHomeVm.LoadStatsAsync());
         }
 
         // Khởi tạo các command điều hướng Admin
         ShowDashboardCommand = new RelayCommand(_ => {
             CurrentViewModel = DashboardVm;
-            _ = DashboardVm.LoadStatsAsync(); 
+            _ = SafeExecuteAsync(() => DashboardVm.LoadStatsAsync()); 
         });
         ShowApartmentCommand = new RelayCommand(_ => {
             CurrentViewModel = ApartmentVm;
-            _ = ApartmentVm.LoadDataAsync();
+            _ = SafeExecuteAsync(() => ApartmentVm.LoadDataAsync());
         });
         ShowResidentCommand = new RelayCommand(_ => {
             CurrentViewModel = ResidentVm;
-            _ = ResidentVm.LoadDataAsync();
+            _ = SafeExecuteAsync(() => ResidentVm.LoadDataAsync());
         });
         ShowResidencyCommand = new RelayCommand(_ => {
             CurrentViewModel = ResidencyVm;
-            _ = ResidencyVm.LoadDataAsync();
+            _ = SafeExecuteAsync(() => ResidencyVm.LoadDataAsync());
         });
         ShowVehicleCommand = new RelayCommand(_ => {
             CurrentViewModel = VehicleVm;
-            _ = VehicleVm.LoadDataAsync();
+            _ = SafeExecuteAsync(() => VehicleVm.LoadDataAsync());
         });
         ShowStatisticsCommand = new RelayCommand(_ => {
             CurrentViewModel = StatisticsVm;
-            _ = StatisticsVm.LoadStatisticsAsync();
+            _ = SafeExecuteAsync(() => StatisticsVm.LoadStatisticsAsync());
         });
         ShowAccountManagementCommand = new RelayCommand(_ => {
             CurrentViewModel = AccountManagementVm;
-            _ = AccountManagementVm.LoadDataAsync();
+            _ = SafeExecuteAsync(() => AccountManagementVm.LoadDataAsync());
         });
 
         // Khởi tạo các command điều hướng Resident
         ShowResidentHomeCommand = new RelayCommand(_ => {
             CurrentViewModel = ResidentHomeVm;
-            _ = ResidentHomeVm.LoadStatsAsync();
+            _ = SafeExecuteAsync(() => ResidentHomeVm.LoadStatsAsync());
         });
         ShowMyProfileCommand = new RelayCommand(_ => {
             CurrentViewModel = MyProfileVm;
-            _ = MyProfileVm.LoadProfileAsync();
+            _ = SafeExecuteAsync(() => MyProfileVm.LoadProfileAsync());
         });
         ShowMyApartmentCommand = new RelayCommand(_ => {
             CurrentViewModel = MyApartmentVm;
-            _ = MyApartmentVm.LoadApartmentDataAsync();
+            _ = SafeExecuteAsync(() => MyApartmentVm.LoadApartmentDataAsync());
         });
         ShowFamilyMembersCommand = new RelayCommand(_ => {
             CurrentViewModel = FamilyMembersVm;
-            _ = FamilyMembersVm.LoadFamilyMembersAsync();
+            _ = SafeExecuteAsync(() => FamilyMembersVm.LoadDataAsync());
         });
         ShowMyVehiclesCommand = new RelayCommand(_ => {
             CurrentViewModel = MyVehiclesVm;
-            _ = MyVehiclesVm.LoadMyVehiclesAsync();
+            _ = SafeExecuteAsync(() => MyVehiclesVm.LoadMyVehiclesAsync());
         });
         ShowResidencyHistoryCommand = new RelayCommand(_ => {
             CurrentViewModel = ResidencyHistoryVm;
-            _ = ResidencyHistoryVm.LoadHistoryAsync();
+            _ = SafeExecuteAsync(() => ResidencyHistoryVm.LoadHistoryAsync());
         });
 
         // Các tính năng đang phát triển (Hiển thị màn hình thông báo thân thiện)
@@ -252,16 +254,29 @@ public class MainViewModel : ViewModelBase
             onViewApartmentDetail: () =>
             {
                 CurrentViewModel = MyApartmentVm;
-                _ = MyApartmentVm.LoadApartmentDataAsync();
+                _ = SafeExecuteAsync(() => MyApartmentVm.LoadApartmentDataAsync());
             },
             onViewAllHistory: () =>
             {
                 CurrentViewModel = ResidencyHistoryVm;
-                _ = ResidencyHistoryVm.LoadHistoryAsync();
+                _ = SafeExecuteAsync(() => ResidencyHistoryVm.LoadHistoryAsync());
             }
         );
 
         // Command Đăng xuất: gọi callback để đóng MainWindow từ App.xaml.cs
         LogoutCommand = new RelayCommand(_ => onLogout?.Invoke());
+    }
+
+
+    private static async Task SafeExecuteAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandlingService.Handle(ex);
+        }
     }
 }

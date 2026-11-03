@@ -271,6 +271,7 @@ public class FamilyMembersViewModel : ViewModelBase
     private readonly ObservableCollection<AccordionFamilyMemberItem> _allMembers = new();
     private readonly List<MemberRegistrationRequestItemViewModel> _allRequests = new();
 
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
     private readonly ResidenceService? _residenceService;
     private readonly MemberRequestService? _memberRequestService;
 
@@ -709,7 +710,6 @@ public class FamilyMembersViewModel : ViewModelBase
     public void Initialize(UserAccount account)
     {
         _account = account;
-        _ = LoadDataAsync();
     }
 
     public bool ValidateInputs()
@@ -815,13 +815,14 @@ public class FamilyMembersViewModel : ViewModelBase
 
     public async Task LoadDataAsync()
     {
+        if (!await _loadLock.WaitAsync(0)) return;
         IsLoading = true;
         ErrorMessage = string.Empty;
 
         try
         {
-            await LoadFamilyMembersAsync();
-            await LoadRequestsAsync();
+            await LoadFamilyMembersInternalAsync();
+            await LoadRequestsInternalAsync();
         }
         catch (Exception ex)
         {
@@ -830,10 +831,45 @@ public class FamilyMembersViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            _loadLock.Release();
         }
     }
 
     public async Task LoadFamilyMembersAsync()
+    {
+        if (!await _loadLock.WaitAsync(0)) return;
+        try
+        {
+            await LoadFamilyMembersInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi tải thành viên: {ex.Message}";
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
+    }
+
+    public async Task LoadRequestsAsync()
+    {
+        if (!await _loadLock.WaitAsync(0)) return;
+        try
+        {
+            await LoadRequestsInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi tải yêu cầu: {ex.Message}";
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
+    }
+
+    private async Task LoadFamilyMembersInternalAsync()
     {
         _allMembers.Clear();
 
@@ -901,7 +937,7 @@ public class FamilyMembersViewModel : ViewModelBase
         OnPropertyChanged(nameof(TotalMembers));
     }
 
-    public async Task LoadRequestsAsync()
+    private async Task LoadRequestsInternalAsync()
     {
         _allRequests.Clear();
 

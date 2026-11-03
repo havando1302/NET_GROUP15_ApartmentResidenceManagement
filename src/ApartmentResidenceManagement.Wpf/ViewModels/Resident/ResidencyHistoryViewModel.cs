@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -44,6 +44,7 @@ public class ResidencyTimelineEvent
 
 public class ResidencyHistoryViewModel : ViewModelBase
 {
+    private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
     private UserAccount? _account;
     private HistorySessionItem? _selectedSession;
     private bool _isLoading;
@@ -134,11 +135,11 @@ public class ResidencyHistoryViewModel : ViewModelBase
     public void Initialize(UserAccount account)
     {
         _account = account;
-        _ = LoadHistoryAsync();
     }
 
     public async Task LoadHistoryAsync()
     {
+        if (!await _loadLock.WaitAsync(0)) return;
         IsLoading = true;
         ErrorMessage = string.Empty;
 
@@ -225,6 +226,7 @@ public class ResidencyHistoryViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            _loadLock.Release();
         }
     }
 }

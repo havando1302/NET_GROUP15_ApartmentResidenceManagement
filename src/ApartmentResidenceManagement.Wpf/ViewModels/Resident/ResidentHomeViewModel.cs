@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ApartmentResidenceManagement.Domain.Entities;
@@ -8,6 +8,7 @@ namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
 public class ResidentHomeViewModel : ViewModelBase
 {
+    private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
     private UserAccount? _account;
 
     private string _residentName = "Nguyễn Văn Minh";
@@ -149,11 +150,15 @@ public class ResidentHomeViewModel : ViewModelBase
     public void Initialize(UserAccount account)
     {
         _account = account;
-        _ = LoadStatsAsync();
+        if (_account != null)
+        {
+            ResidentName = _account.Resident?.FullName ?? (_account.Username == "admin" ? "Ban quản lý" : _account.Username);
+        }
     }
 
     public async Task LoadStatsAsync()
     {
+        if (!await _loadLock.WaitAsync(0)) return;
         IsLoading = true;
         ErrorMessage = string.Empty;
 
@@ -212,6 +217,7 @@ public class ResidentHomeViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            _loadLock.Release();
         }
     }
 }

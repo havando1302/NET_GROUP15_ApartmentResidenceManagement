@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -30,6 +30,7 @@ public class ApartmentResidentMemberItem
 public class MyApartmentViewModel : ViewModelBase
 {
     private UserAccount? _account;
+    private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
 
     // Thông tin căn hộ
     private string _apartmentNumber = "---";
@@ -194,11 +195,11 @@ public class MyApartmentViewModel : ViewModelBase
     public void Initialize(UserAccount account)
     {
         _account = account;
-        _ = LoadApartmentDataAsync();
     }
 
     public async Task LoadApartmentDataAsync()
     {
+        if (!await _loadLock.WaitAsync(0)) return;
         IsLoading = true;
         ErrorMessage = string.Empty;
 
@@ -286,6 +287,7 @@ public class MyApartmentViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            _loadLock.Release();
         }
     }
 }
