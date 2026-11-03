@@ -177,11 +177,27 @@ public class ResidentService
         existing.PhoneNumber = resident.PhoneNumber;
         existing.HomeTown = resident.HomeTown;
         existing.Email = NormalizeOptional(resident.Email);
+        existing.AvatarPath = resident.AvatarPath;
 
         _unitOfWork.Residents.Update(existing);
         await _unitOfWork.CompleteAsync();
 
         return existing;
+    }
+
+    public async Task<Resident> UpdateAvatarAsync(int residentId, string? avatarPath)
+    {
+        var resident = await _unitOfWork.Residents.GetByIdAsync(residentId);
+        if (resident == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy cư dân cần cập nhật ảnh đại diện.");
+        }
+
+        resident.AvatarPath = avatarPath;
+        _unitOfWork.Residents.Update(resident);
+        await _unitOfWork.CompleteAsync();
+
+        return resident;
     }
 
     public async Task DeleteResidentAsync(int id)

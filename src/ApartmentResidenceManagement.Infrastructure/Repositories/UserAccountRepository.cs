@@ -26,5 +26,14 @@ public class UserAccountRepository : Repository<UserAccount>, IUserAccountReposi
             .AsNoTracking()
             .FirstOrDefaultAsync(ua => ua.ResidentId == residentId);
     }
+
+    public async Task<IEnumerable<UserAccount>> GetAllWithResidentAsync()
+    {
+        return await DbSet
+            .AsNoTracking()
+            .Include(ua => ua.Resident)
+            .OrderBy(ua => ua.Id)
+            .ToListAsync();
+    }
 }
 

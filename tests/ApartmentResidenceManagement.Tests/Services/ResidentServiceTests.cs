@@ -72,4 +72,39 @@ public class ResidentServiceTests
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateResidentAsync(resident));
         Assert.Contains("đã tồn tại trong hệ thống", ex.Message);
     }
+
+    [Fact]
+    public async Task UpdateAvatarAsync_ValidResident_ShouldUpdateAvatarPath()
+    {
+        // Arrange
+        var resident = new Resident
+        {
+            Id = 1,
+            FullName = "Nguyen Van A",
+            DateOfBirth = new DateTime(1990, 1, 1),
+            AvatarPath = "/Assets/resident_avatar.png"
+        };
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(resident);
+        _mockUow.Setup(u => u.CompleteAsync()).ReturnsAsync(1);
+
+        // Act
+        var result = await _service.UpdateAvatarAsync(1, "/Assets/avatar_young_man.png");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("/Assets/avatar_young_man.png", result.AvatarPath);
+        _mockResidentRepo.Verify(r => r.Update(resident), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAvatarAsync_ResidentNotFound_ShouldThrowException()
+    {
+        // Arrange
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Resident?)null);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateAvatarAsync(999, "/Assets/avatar_son.png"));
+        Assert.Contains("Không tìm thấy cư dân", ex.Message);
+    }
 }

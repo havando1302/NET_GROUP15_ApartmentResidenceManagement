@@ -5,7 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="780" d:DesignWidth="1100"
+             d:DesignHeight="950" d:DesignWidth="1180"
              FontFamily="Segoe UI"
              Background="#F8FAFC">
 
@@ -26,7 +26,7 @@
 
         <!-- Readonly Locked Field Box Style -->
         <Style x:Key="LockedFieldBorder" TargetType="Border">
-            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
             <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
@@ -52,172 +52,637 @@
     <Grid Background="#F8FAFC">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="32,24,32,32">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Page Header -->
-                <RowDefinition Height="Auto"/> <!-- Alert Banners -->
-                <RowDefinition Height="Auto"/> <!-- Main 2-column layout -->
-            </Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Page Header -->
+                    <RowDefinition Height="Auto"/> <!-- Alert Banners -->
+                    <RowDefinition Height="Auto"/> <!-- Content: Admin OR Resident -->
+                </Grid.RowDefinitions>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 1. TIÊU ĐỀ TRANG
-            ══════════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="👤" FontSize="22" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Hồ sơ cá nhân" FontSize="22" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                <!-- ══════════════════════════════════════════════════════════
+                     1. TIÊU ĐỀ TRANG
+                ══════════════════════════════════════════════════════════ -->
+                <!-- Cho Quản trị viên (Admin) -->
+                <Grid Grid.Row="0" Margin="0,0,0,18" Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="38" Height="38" CornerRadius="12" Background="#EFF6FF" Margin="0,0,12,0">
+                                <TextBlock Text="🛡️" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Hồ sơ Quản trị viên" FontSize="22" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            <Border Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="8,3" Margin="14,0,0,0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="7" Height="7" Fill="#16A34A" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Root Admin" FontSize="11" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Xem thông tin tài khoản ban quản lý, phạm vi vận hành tòa nhà và thiết lập bảo mật hệ thống."
+                                   FontSize="13" Foreground="#64748B" Margin="50,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Nút Làm mới bên phải -->
+                    <Button Grid.Column="1" Command="{Binding RefreshCommand}" Style="{StaticResource OutlineButton}" VerticalAlignment="Center" Padding="14,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" Margin="0,0,8,0" FontSize="13"/>
+                            <TextBlock Text="Làm mới dữ liệu" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Cho Cư dân (Resident) -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,16" Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="👤" FontSize="22" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hồ sơ cá nhân" FontSize="22" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="Xem và cập nhật thông tin cá nhân, thông tin liên hệ của bạn."
+                               FontSize="13" Foreground="#64748B" Margin="32,3,0,0"/>
                 </StackPanel>
-                <TextBlock Text="Xem và cập nhật thông tin cá nhân, thông tin liên hệ của bạn."
-                           FontSize="13" Foreground="#64748B" Margin="32,3,0,0"/>
-            </StackPanel>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 2. THÔNG BÁO TRẠNG THÁI (SUCCESS / ERROR)
-            ══════════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="1" Margin="0,0,0,14">
-                <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
-                <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"
-                                            Visibility="{Binding IsBackgroundErrorVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-            </StackPanel>
+                <!-- ══════════════════════════════════════════════════════════
+                     2. THÔNG BÁO TRẠNG THÁI (SUCCESS / ERROR)
+                ══════════════════════════════════════════════════════════ -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,16">
+                    <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
+                    <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"
+                                                Visibility="{Binding IsBackgroundErrorVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </StackPanel>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 3. NỘI DUNG 2 CỘT
-            ══════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="290"/>
-                    <ColumnDefinition Width="22"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <!-- ──────────────────────────────────────────────────────────
-                     CỘT TRÁI: THẺ PROFILE AVATAR CƯ DÂN
-                ────────────────────────────────────────────────────────── -->
-                <Border Grid.Column="0" Style="{StaticResource ModernCard}" VerticalAlignment="Top">
-                    <StackPanel HorizontalAlignment="Center">
-                        <!-- Avatar lớn với huy hiệu camera -->
-                        <Grid HorizontalAlignment="Center" Margin="0,10,0,14">
-                            <!-- Hình tròn avatar -->
-                            <Border Width="120" Height="120" CornerRadius="60" ClipToBounds="True" Background="#EFF6FF"
-                                    BorderBrush="#BFDBFE" BorderThickness="2">
-                                <Image Source="{Binding AvatarPath}" Stretch="UniformToFill"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- ══════════════════════════════════════════════════════════
+                     3A. GIAO DIỆN QUẢN TRỊ VIÊN (ROLE ADMIN) - XU HƯỚNG 2026
+                ══════════════════════════════════════════════════════════ -->
+                <Grid Grid.Row="2" Visibility="{Binding IsAdmin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="24"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ──────────────────────────────────────────────────────────
+                         CỘT TRÁI ADMIN: THẺ HỒ SƠ QUẢN TRỊ VIÊN
+                    ────────────────────────────────────────────────────────── -->
+                    <Border Grid.Column="0" Style="{StaticResource ModernCard}" VerticalAlignment="Top">
+                        <StackPanel HorizontalAlignment="Center">
+                            <!-- Avatar Quản trị viên sang trọng với gradient xanh hoàng gia -->
+                            <Grid HorizontalAlignment="Center" Margin="0,8,0,16">
+                                <Border Width="110" Height="110" CornerRadius="55" BorderBrush="#93C5FD" BorderThickness="3.5">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#1E40AF" Offset="0"/>
+                                            <GradientStop Color="#2563EB" Offset="0.5"/>
+                                            <GradientStop Color="#3B82F6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <TextBlock Text="🛡️" FontSize="50" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <!-- Huy hiệu online xanh ở góc -->
+                                <Border Width="18" Height="18" CornerRadius="9" Background="#10B981" BorderBrush="White" BorderThickness="2.5"
+                                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+                            </Grid>
+
+                            <!-- Tên hiển thị & Username -->
+                            <TextBlock Text="{Binding AdminDisplayName}" FontSize="18" FontWeight="Bold" Foreground="#0F172A"
+                                       HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding AdminUsername, StringFormat='@{0}'}" FontSize="13" FontWeight="SemiBold" Foreground="#64748B"
+                                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+                            <!-- Badge: Quản trị viên Cấp cao -->
+                            <Border HorizontalAlignment="Center" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="12" Padding="12,5" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👑" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding AdminRoleName}" FontSize="12" FontWeight="Bold" Foreground="#1D4ED8" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Border>
 
-                            <!-- Nút icon camera xanh dương -->
-                            <Button Command="{Binding UpdatePhotoCommand}"
-                                    Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                    Background="#2563EB" BorderBrush="White" BorderThickness="2.5" Cursor="Hand">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border CornerRadius="18" Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}">
-                                            <TextBlock Text="📷" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <!-- Badge: Đang hoạt động -->
+                            <Border HorizontalAlignment="Center" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="12" Padding="10,4" Margin="0,0,0,18">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="7" Height="7" Fill="#10B981" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding AdminStatusText}" FontSize="11.5" FontWeight="SemiBold" Foreground="#059669" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Divider -->
+                            <Rectangle Height="1" Fill="#F1F5F9" Width="270" Margin="0,0,0,18"/>
+
+                            <!-- Chi tiết tài khoản quản trị -->
+                            <StackPanel Width="270">
+                                <!-- Mã quản trị viên -->
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🆔" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Mã quản trị:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding AdminCode}" FontSize="13" FontWeight="Bold" Foreground="#0F172A"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Cơ quan công tác -->
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Đơn vị:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Ban Quản lý Tòa nhà" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Cấp độ phân quyền -->
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🛡️" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Cấp quyền:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Super Admin (Toàn quyền)" FontSize="12" FontWeight="Bold" Foreground="#1D4ED8"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Ngày kích hoạt -->
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📅" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Ngày cấp:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding AdminCreatedAtText}" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Lần đăng nhập cuối -->
+                                <Grid Margin="0,0,0,18">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🕒" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Đăng nhập cuối:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding AdminLastLoginText}" FontSize="12" FontWeight="SemiBold" Foreground="#475569"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Nút thao tác nhanh Quản trị viên -->
+                            <StackPanel Width="270">
+                                <Button Command="{Binding OpenChangePasswordModalCommand}" Style="{StaticResource PrimaryButton}"
+                                        Height="42" Margin="0,0,0,10" Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="🔑" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Đổi mật khẩu tài khoản" FontWeight="Bold" FontSize="13"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Command="{Binding CheckSecurityCommand}" Style="{StaticResource OutlineButton}"
+                                        Height="40" Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="🛡️" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Kiểm tra an toàn bảo mật" FontWeight="SemiBold" FontSize="13"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ──────────────────────────────────────────────────────────
+                         CỘT PHẢI ADMIN: BENTO GRID QUẢN TRỊ 2026
+                    ────────────────────────────────────────────────────────── -->
+                    <StackPanel Grid.Column="2">
+                        <!-- BENTO CARD 1: KPI THỐNG KÊ QUY MÔ QUẢN TRỊ THỜI GIAN THỰC (LIVE 2026) -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- KPI 1: Căn hộ -->
+                            <Border Grid.Column="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="14" Padding="16,14">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Căn hộ quản lý" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
+                                        <Border Width="28" Height="28" CornerRadius="8" Background="#EFF6FF" HorizontalAlignment="Right">
+                                            <TextBlock Text="🏢" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                        <TextBlock Text="{Binding AdminTotalApartments}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <TextBlock Text=" căn" FontSize="12" Foreground="#64748B" Margin="6,0,0,4" VerticalAlignment="Bottom"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 2: Cư dân -->
+                            <Border Grid.Column="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="14" Padding="16,14">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Cư dân phụ trách" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
+                                        <Border Width="28" Height="28" CornerRadius="8" Background="#F0FDF4" HorizontalAlignment="Right">
+                                            <TextBlock Text="👥" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                        <TextBlock Text="{Binding AdminTotalResidents}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <TextBlock Text=" cư dân" FontSize="12" Foreground="#64748B" Margin="6,0,0,4" VerticalAlignment="Bottom"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 3: Phương tiện -->
+                            <Border Grid.Column="4" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="14" Padding="16,14">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Phương tiện xe" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
+                                        <Border Width="28" Height="28" CornerRadius="8" Background="#FFFBEB" HorizontalAlignment="Right">
+                                            <TextBlock Text="🚗" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                        <TextBlock Text="{Binding AdminTotalVehicles}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <TextBlock Text=" xe" FontSize="12" Foreground="#64748B" Margin="6,0,0,4" VerticalAlignment="Bottom"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 4: Trạng thái hệ thống -->
+                            <Border Grid.Column="6" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="14" Padding="16,14">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Hệ thống CSDL" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
+                                        <Border Width="28" Height="28" CornerRadius="8" Background="#FAF5FF" HorizontalAlignment="Right">
+                                            <TextBlock Text="⚡" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                        <TextBlock Text="{Binding AdminSystemStatus}" FontSize="15" FontWeight="Bold" Foreground="#10B981" Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </Grid>
 
-                        <!-- Họ và tên -->
-                        <TextBlock Text="{Binding FullName}" FontSize="19" FontWeight="Bold" Foreground="#0F172A"
-                                   HorizontalAlignment="Center" Margin="0,0,0,6"/>
-
-                        <!-- Badge: Cư dân -->
-                        <Border HorizontalAlignment="Center" Background="#EFF6FF" CornerRadius="12" Padding="12,4" Margin="0,0,0,14">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="👤" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Cư dân" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- BỘ SƯU TẬP 7 AVATAR GIA ĐÌNH ĐỂ CHỌN NHANH -->
-                        <Border Margin="0,0,0,16" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="10"
-                                Width="250"
-                                Visibility="{Binding IsAvatarPickerOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <!-- BENTO CARD 2: THÔNG TIN LIÊN HỆ & VĂN PHÒNG BAN QUẢN LÝ (CÓ NÚT SỬA) -->
+                        <Border Style="{StaticResource ModernCard}" Margin="0,0,0,20">
                             <StackPanel>
-                                <Grid Margin="0,0,0,8">
-                                    <TextBlock Text="Chọn ảnh đại diện:" FontSize="12" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
-                                    <Button Command="{Binding ToggleAvatarPickerCommand}" Content="✕" FontSize="11" Foreground="#64748B"
-                                            Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand" Padding="4"/>
-                                </Grid>
-                                <ItemsControl ItemsSource="{Binding AvailableAvatars}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding DataContext.SelectAvatarCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    ToolTip="{Binding Name}"
-                                                    Margin="3" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
-                                                <Border Width="42" Height="42" CornerRadius="21" BorderBrush="#CBD5E1" BorderThickness="1.5" ClipToBounds="True">
-                                                    <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🏢" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Thông tin Ban Quản lý Tòa nhà" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Nút Chỉnh sửa thông tin liên hệ BQL -->
+                                    <Button HorizontalAlignment="Right" Command="{Binding OpenEditBqlModalCommand}"
+                                            Background="#2563EB" BorderThickness="0" Padding="14,7" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="✏️" FontSize="12.5" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Cập nhật liên hệ BQL" FontSize="12.5" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                                    </StackPanel>
                                                 </Border>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Banner ghi chú thông tin BQL công khai -->
+                                <Border Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="10"
+                                        Padding="14,10" Margin="0,0,0,18">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📢" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Các thông tin liên hệ chính thức này được công khai trên Cổng thông tin cư dân để người dân liên hệ khi có sự cố, gửi đơn kiến nghị hoặc hỗ trợ tiếp dân."
+                                                   FontSize="12.5" Foreground="#15803D" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Lưới thông tin liên hệ BQL (2 Cột x 2 Hàng) -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="14"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Hàng 0: Hotline hỗ trợ | Email tiếp nhận -->
+                                    <StackPanel Grid.Row="0" Grid.Column="0">
+                                        <TextBlock Text="Hotline Ban Quản lý (Trực 24/7)" Style="{StaticResource FieldLabel}"/>
+                                        <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" MinHeight="42" Padding="12,6">
+                                            <Grid>
+                                                <TextBlock Text="{Binding BqlHotline}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A" Margin="0,0,24,0"/>
+                                                <TextBlock Text="📞" FontSize="14" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="0" Grid.Column="2">
+                                        <TextBlock Text="Hòm thư điện tử (Email tiếp nhận)" Style="{StaticResource FieldLabel}"/>
+                                        <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" MinHeight="42" Padding="12,6">
+                                            <Grid>
+                                                <TextBlock Text="{Binding BqlEmail}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A" Margin="0,0,24,0"/>
+                                                <TextBlock Text="✉️" FontSize="14" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Hàng 2: Địa điểm văn phòng | Giờ làm việc -->
+                                    <StackPanel Grid.Row="2" Grid.Column="0">
+                                        <TextBlock Text="Văn phòng làm việc Ban Quản trị" Style="{StaticResource FieldLabel}"/>
+                                        <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" MinHeight="42" Padding="12,6">
+                                            <Grid>
+                                                <TextBlock Text="{Binding BqlOffice}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A" Margin="0,0,24,0"/>
+                                                <TextBlock Text="📍" FontSize="14" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Grid.Column="2">
+                                        <TextBlock Text="Thời gian tiếp dân &amp; vận hành" Style="{StaticResource FieldLabel}"/>
+                                        <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" MinHeight="42" Padding="12,6">
+                                            <Grid>
+                                                <TextBlock Text="{Binding BqlWorkingHours}" Style="{StaticResource LockedFieldText}" Foreground="#0F172A" Margin="0,0,24,0"/>
+                                                <TextBlock Text="⏰" FontSize="14" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
-                        <!-- Divider mờ -->
-                        <Rectangle Height="1" Fill="#F1F5F9" Width="240" Margin="0,0,0,18"/>
+                        <!-- BENTO CARD 3: DANH MỤC PHÂN QUYỀN HỆ THỐNG (RBAC PRIVILEGES 2026) -->
+                        <Border Style="{StaticResource ModernCard}" Margin="0,0,0,20">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🛡️" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Đặc quyền &amp; Trách nhiệm Quản trị viên" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Border HorizontalAlignment="Right" Background="#F1F5F9" CornerRadius="6" Padding="8,4">
+                                        <TextBlock Text="Role-based Access Control (RBAC)" FontSize="11" FontWeight="SemiBold" Foreground="#475569"/>
+                                    </Border>
+                                </Grid>
 
-                        <!-- Thông tin tóm tắt căn hộ -->
-                        <StackPanel Width="240">
-                            <!-- Căn hộ -->
-                            <Grid Margin="0,0,0,12">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Căn hộ:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <TextBlock Text="{Binding ApartmentNumber}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"
-                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
+                                <!-- 6 Khối quyền hạn hệ thống -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="10"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="10"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                            <!-- Tòa | Tầng -->
-                            <Grid Margin="0,0,0,12">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Tòa: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding BuildingBlock}" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <TextBlock Text="Tầng: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding FloorNumber}" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Grid>
+                                    <!-- Quyền 1: Căn hộ -->
+                                    <Border Grid.Row="0" Grid.Column="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="✅" FontSize="14" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Quản lý Căn hộ" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                <TextBlock Text="Thêm, sửa diện tích, tầng và tình trạng cư trú căn hộ toàn khu." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
 
-                            <!-- Ngày tham gia -->
+                                    <!-- Quyền 2: Cư dân -->
+                                    <Border Grid.Row="0" Grid.Column="2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="✅" FontSize="14" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Quản lý Cư dân &amp; Nhân khẩu" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                <TextBlock Text="Lập hồ sơ nhân khẩu, số hóa CCCD và ảnh đại diện cư dân." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Quyền 3: Cư trú & Duyệt đơn -->
+                                    <Border Grid.Row="2" Grid.Column="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="✅" FontSize="14" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Quản lý Cư trú &amp; Phê duyệt" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                <TextBlock Text="Phê duyệt/từ chối đơn đăng ký thêm thành viên, chuyển căn hộ." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Quyền 4: Quản lý Tài khoản -->
+                                    <Border Grid.Row="2" Grid.Column="2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="✅" FontSize="14" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Quản lý Tài khoản &amp; Bảo mật" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                <TextBlock Text="Cấp phát tài khoản cư dân, khóa/mở khóa và đặt lại mật khẩu." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Quyền 5: Phương tiện -->
+                                    <Border Grid.Row="4" Grid.Column="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="✅" FontSize="14" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Quản lý Phương tiện &amp; Vé xe" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                <TextBlock Text="Đăng ký biển số, quản lý vé xe ô tô, xe máy và bãi đỗ xe." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Quyền 6: Báo cáo Thống kê -->
+                                    <Border Grid.Row="4" Grid.Column="2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="✅" FontSize="14" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Báo cáo Thống kê Vận hành" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                <TextBlock Text="Xem biểu đồ phân tích dữ liệu cư trú và xuất báo cáo vận hành." FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- BENTO CARD 4: TRUNG TÂM BẢO MẬT & PHIÊN LÀM VIỆC (SECURITY & AUDIT 2026) -->
+                        <Border Style="{StaticResource ModernCard}">
                             <Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📅" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Ngày tham gia:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="12" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,16,0">
+                                    <TextBlock Text="🔒" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="Chuẩn mã hóa mật khẩu: BCrypt Hashing (Salt 11 rounds)" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <TextBlock Text="Phiên làm việc Quản trị viên được giám sát bảo mật chống giả mạo, đáp ứng tiêu chuẩn an toàn thông tin chung cư 2026."
+                                               FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
-                                <TextBlock Text="{Binding JoinDate}" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"
-                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <Border Grid.Column="2" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                                    <TextBlock Text="OWASP 2026 Ready" FontSize="11.5" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                </Border>
                             </Grid>
-                        </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
+                </Grid>
 
-                <!-- ──────────────────────────────────────────────────────────
-                     CỘT PHẢI: CARD THÔNG TIN CÁ NHÂN (CHỈNH SỬA BẰNG MODAL)
-                ────────────────────────────────────────────────────────── -->
-                <StackPanel Grid.Column="2">
-                    <!-- CARD 1: THÔNG TIN CÁ NHÂN (VỚI NÚT CHỈNH SỬA Ở GÓC TRÊN BÊN PHẢI) -->
-                    <Border Style="{StaticResource ModernCard}">
+                <!-- ══════════════════════════════════════════════════════════
+                     3B. GIAO DIỆN CƯ DÂN (ROLE RESIDENT) - NGUYÊN BẢN CƯ DÂN
+                ══════════════════════════════════════════════════════════ -->
+                <Grid Grid.Row="2" Visibility="{Binding IsResident, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="290"/>
+                        <ColumnDefinition Width="22"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- CỘT TRÁI CƯ DÂN: PROFILE AVATAR GIA ĐÌNH -->
+                    <Border Grid.Column="0" Style="{StaticResource ModernCard}" VerticalAlignment="Top">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Grid HorizontalAlignment="Center" Margin="0,10,0,14">
+                                <Border Width="120" Height="120" CornerRadius="60" ClipToBounds="True" Background="#EFF6FF"
+                                        BorderBrush="#BFDBFE" BorderThickness="2">
+                                    <Image Source="{Binding AvatarPath}" Stretch="UniformToFill"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <Button Command="{Binding UpdatePhotoCommand}"
+                                        Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                        Background="#2563EB" BorderBrush="White" BorderThickness="2.5" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="18" Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                <TextBlock Text="📷" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+
+                            <TextBlock Text="{Binding FullName}" FontSize="19" FontWeight="Bold" Foreground="#0F172A"
+                                       HorizontalAlignment="Center" Margin="0,0,0,6"/>
+
+                            <Border HorizontalAlignment="Center" Background="#EFF6FF" CornerRadius="12" Padding="12,4" Margin="0,0,0,14">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👤" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Cư dân" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- AVATAR PICKER -->
+                            <Border Margin="0,0,0,16" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="10"
+                                    Width="250"
+                                    Visibility="{Binding IsAvatarPickerOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Chọn ảnh đại diện:" FontSize="12" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                        <Button Command="{Binding ToggleAvatarPickerCommand}" Content="✕" FontSize="11" Foreground="#64748B"
+                                                Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand" Padding="4"/>
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding AvailableAvatars}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding DataContext.SelectAvatarCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip="{Binding Name}"
+                                                        Margin="3" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                                    <Border Width="42" Height="42" CornerRadius="21" BorderBrush="#CBD5E1" BorderThickness="1.5" ClipToBounds="True">
+                                                        <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Rectangle Height="1" Fill="#F1F5F9" Width="240" Margin="0,0,0,18"/>
+
+                            <!-- Thông tin tóm tắt căn hộ -->
+                            <StackPanel Width="240">
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Căn hộ:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding ApartmentNumber}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🏢" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Tòa: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BuildingBlock}" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <TextBlock Text="Tầng: " FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FloorNumber}" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📅" Margin="0,0,8,0" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Ngày tham gia:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding JoinDate}" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- CỘT PHẢI CƯ DÂN: THÔNG TIN ĐỊNH DANH PHÁP LÝ & SĐT, EMAIL -->
+                    <Border Grid.Column="2" Style="{StaticResource ModernCard}">
                         <StackPanel>
-                            <!-- Header Card 1: Tiêu đề + Nút Chỉnh sửa thông tin (icon bút) -->
                             <Grid Margin="0,0,0,16">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="📄" FontSize="17" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Thông tin cá nhân" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                 </StackPanel>
 
-                                <!-- Nút Chỉnh sửa ở góc trên bên phải khung -->
                                 <Button HorizontalAlignment="Right" Command="{Binding OpenEditModalCommand}"
                                         Background="#2563EB" BorderThickness="0" Padding="14,7" Cursor="Hand">
                                     <Button.Template>
@@ -233,7 +698,6 @@
                                 </Button>
                             </Grid>
 
-                            <!-- Banner thông báo thông tin định danh không thể sửa -->
                             <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="10"
                                     Padding="14,10" Margin="0,0,0,20">
                                 <StackPanel Orientation="Horizontal">
@@ -243,7 +707,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Lưới 8 trường thông tin (2 Cột x 4 Hàng) -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -260,7 +723,7 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Hàng 0: Họ và tên (Khóa) | Quê quán (Khóa định danh) -->
+                                <!-- Họ tên & Quê quán -->
                                 <StackPanel Grid.Row="0" Grid.Column="0">
                                     <TextBlock Text="Họ và tên" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
@@ -281,7 +744,7 @@
                                     </Border>
                                 </StackPanel>
 
-                                <!-- Hàng 2: Ngày sinh (Khóa) | Số điện thoại (Sửa được) -->
+                                <!-- Ngày sinh & Số điện thoại -->
                                 <StackPanel Grid.Row="2" Grid.Column="0">
                                     <TextBlock Text="Ngày sinh" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
@@ -307,7 +770,7 @@
                                     </Border>
                                 </StackPanel>
 
-                                <!-- Hàng 4: Số CCCD (Khóa) | Email (Sửa được) -->
+                                <!-- CCCD & Email -->
                                 <StackPanel Grid.Row="4" Grid.Column="0">
                                     <TextBlock Text="Số CCCD" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
@@ -334,7 +797,7 @@
                                     </Border>
                                 </StackPanel>
 
-                                <!-- Hàng 6: Giới tính (Khóa) | Địa chỉ thường trú (Khóa) -->
+                                <!-- Giới tính & Địa chỉ thường trú -->
                                 <StackPanel Grid.Row="6" Grid.Column="0">
                                     <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
                                     <Border Style="{StaticResource LockedFieldBorder}">
@@ -358,152 +821,421 @@
                             </Grid>
                         </StackPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
             </Grid>
-        </Grid>
-    </ScrollViewer>
+        </ScrollViewer>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         MODAL OVERLAY: DIALOG CHỈNH SỬA THÔNG TIN LIÊN HỆ (SĐT, EMAIL)
-    ══════════════════════════════════════════════════════════════════ -->
-    <Grid Visibility="{Binding IsEditModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
-          Panel.ZIndex="200">
-        <!-- Backdrop tối mờ khi mở modal -->
-        <Border Background="#88000000">
-            <Border.InputBindings>
-                <MouseBinding MouseAction="LeftClick" Command="{Binding CloseEditModalCommand}"/>
-            </Border.InputBindings>
-        </Border>
+        <!-- ══════════════════════════════════════════════════════════════════
+             MODAL 1: ĐỔI MẬT KHẨU TÀI KHOẢN QUẢN TRỊ VIÊN (ADMIN)
+        ══════════════════════════════════════════════════════════════════ -->
+        <Grid Visibility="{Binding IsChangePasswordModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Panel.ZIndex="300">
+            <!-- Backdrop tối mờ -->
+            <Border Background="#88000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseChangePasswordModalCommand}"/>
+                </Border.InputBindings>
+            </Border>
 
-        <!-- Hộp Modal nổi bật ở giữa màn hình -->
-        <Border Width="490" Background="White" CornerRadius="18" Padding="28"
-                HorizontalAlignment="Center" VerticalAlignment="Center"
-                BorderBrush="#E2E8F0" BorderThickness="1">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="30" Direction="270" ShadowDepth="8" Color="#000000" Opacity="0.28"/>
-            </Border.Effect>
+            <!-- Hộp Modal nổi bật ở giữa màn hình -->
+            <Border Width="480" Background="White" CornerRadius="18" Padding="28"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BorderBrush="#E2E8F0" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" Direction="270" ShadowDepth="8" Color="#000000" Opacity="0.25"/>
+                </Border.Effect>
 
-            <StackPanel>
-                <!-- Header Modal: Tiêu đề + Nút đóng ✕ -->
-                <Grid Margin="0,0,0,14">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="36" Height="36" CornerRadius="18" Background="#EFF6FF" Margin="0,0,10,0">
-                            <TextBlock Text="✏️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Chỉnh sửa thông tin liên hệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
-                            <TextBlock Text="Cập nhật số điện thoại và email liên hệ của bạn" FontSize="12" Foreground="#64748B"/>
+                <StackPanel>
+                    <!-- Header Modal -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#EFF6FF" Margin="0,0,12,0">
+                                <TextBlock Text="🔑" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Đổi mật khẩu Quản trị viên" FontSize="17" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Cập nhật mật khẩu mới cho tài khoản quản trị hệ thống" FontSize="12" Foreground="#64748B"/>
+                            </StackPanel>
                         </StackPanel>
+
+                        <!-- Nút đóng ✕ -->
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Command="{Binding CloseChangePasswordModalCommand}"
+                                Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="15" Background="{TemplateBinding Background}">
+                                        <TextBlock Text="✕" FontSize="13" FontWeight="Bold" Foreground="#64748B"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,18"/>
+
+                    <!-- Thông báo lỗi (nếu có) -->
+                    <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
+                            Padding="12,10" Margin="0,0,0,16"
+                            Visibility="{Binding HasChangePasswordError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ChangePasswordError}" Foreground="#DC2626" FontSize="12.5" FontWeight="SemiBold"
+                                       TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Mật khẩu hiện tại -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Mật khẩu hiện tại *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔒" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding OldPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                         VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
-                    <!-- Nút đóng ✕ -->
-                    <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                            Command="{Binding CloseEditModalCommand}"
-                            Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border CornerRadius="15" Background="{TemplateBinding Background}">
-                                    <TextBlock Text="✕" FontSize="13" FontWeight="Bold" Foreground="#64748B"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
+                    <!-- Mật khẩu mới -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Mật khẩu mới (tối thiểu 6 ký tự) *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔑" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                         VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
 
-                <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,18"/>
+                    <!-- Xác nhận mật khẩu mới -->
+                    <StackPanel Margin="0,0,0,22">
+                        <TextBlock Text="Xác nhận mật khẩu mới *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="✓" FontSize="14" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding ConfirmNewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                         VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
 
-                <!-- Thông báo lỗi (nếu có) hiển thị trực tiếp trong Modal -->
-                <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
-                        Padding="12,10" Margin="0,0,0,16"
-                        Visibility="{Binding HasModalError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <!-- Nút thao tác Modal -->
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="{Binding ModalErrorMessage}" Foreground="#DC2626" FontSize="12.5" FontWeight="SemiBold"
-                                   TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,0,0,0"/>
+
+                        <Button Grid.Column="0" Command="{Binding CloseChangePasswordModalCommand}"
+                                Height="42" Background="#F1F5F9" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="9" Background="{TemplateBinding Background}">
+                                        <TextBlock Text="Hủy bỏ" FontSize="13.5" FontWeight="SemiBold" Foreground="#475569"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Grid.Column="2" Command="{Binding ConfirmChangePasswordCommand}"
+                                Height="42" Background="#2563EB" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="9" Background="{TemplateBinding Background}">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Lưu mật khẩu mới" FontSize="13.5" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
                     </Grid>
-                </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
 
-                <!-- Trường 1: Số điện thoại -->
-                <StackPanel Margin="0,0,0,14">
-                    <TextBlock Text="Số điện thoại liên hệ *" Style="{StaticResource FieldLabel}"/>
-                    <Border Background="#F8FAFC" BorderBrush="{Binding PhoneBorderBrush}" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="26"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="📞" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding EditPhoneNumber, UpdateSourceTrigger=PropertyChanged}"
+        <!-- ══════════════════════════════════════════════════════════════════
+             MODAL 2: CẬP NHẬT THÔNG TIN BAN QUẢN LÝ (ADMIN)
+        ══════════════════════════════════════════════════════════════════ -->
+        <Grid Visibility="{Binding IsEditBqlModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Panel.ZIndex="300">
+            <Border Background="#88000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseEditBqlModalCommand}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <Border Width="520" Background="White" CornerRadius="18" Padding="28"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BorderBrush="#E2E8F0" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" Direction="270" ShadowDepth="8" Color="#000000" Opacity="0.25"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#F0FDF4" Margin="0,0,12,0">
+                                <TextBlock Text="🏢" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Cập nhật liên hệ Ban Quản lý" FontSize="17" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Thông tin công khai hỗ trợ cư dân toàn tòa nhà" FontSize="12" Foreground="#64748B"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Command="{Binding CloseEditBqlModalCommand}"
+                                Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="15" Background="{TemplateBinding Background}">
+                                        <TextBlock Text="✕" FontSize="13" FontWeight="Bold" Foreground="#64748B"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,18"/>
+
+                    <!-- Hotline -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Hotline Ban Quản lý (Trực 24/7) *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <TextBox Text="{Binding EditBqlHotline, UpdateSourceTrigger=PropertyChanged}"
                                      BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
                                      VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-                    <TextBlock Text="{Binding EditPhoneError}" Foreground="#EF4444" FontSize="11.5" FontWeight="SemiBold" Margin="4,4,0,0"
-                               Visibility="{Binding HasPhoneError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                </StackPanel>
+                        </Border>
+                    </StackPanel>
 
-                <!-- Trường 2: Email -->
-                <StackPanel Margin="0,0,0,22">
-                    <TextBlock Text="Email liên hệ *" Style="{StaticResource FieldLabel}"/>
-                    <Border Background="#F8FAFC" BorderBrush="{Binding EmailBorderBrush}" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="26"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="✉️" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding EditEmail, UpdateSourceTrigger=PropertyChanged}"
+                    <!-- Email -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Hòm thư điện tử (Email tiếp nhận) *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <TextBox Text="{Binding EditBqlEmail, UpdateSourceTrigger=PropertyChanged}"
                                      BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
                                      VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Địa điểm văn phòng -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Văn phòng làm việc Ban Quản trị *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <TextBox Text="{Binding EditBqlOffice, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                     VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Thời gian làm việc -->
+                    <StackPanel Margin="0,0,0,22">
+                        <TextBlock Text="Thời gian làm việc &amp; trực vận hành *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="12,0">
+                            <TextBox Text="{Binding EditBqlWorkingHours, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                     VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Nút thao tác Modal -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Command="{Binding CloseEditBqlModalCommand}"
+                                Height="42" Background="#F1F5F9" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="9" Background="{TemplateBinding Background}">
+                                        <TextBlock Text="Hủy bỏ" FontSize="13.5" FontWeight="SemiBold" Foreground="#475569"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Grid.Column="2" Command="{Binding SaveBqlContactCommand}"
+                                Height="42" Background="#2563EB" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="9" Background="{TemplateBinding Background}">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Lưu thay đổi" FontSize="13.5" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             MODAL 3: DIALOG CHỈNH SỬA THÔNG TIN LIÊN HỆ CƯ DÂN (RESIDENT)
+        ══════════════════════════════════════════════════════════════════ -->
+        <Grid Visibility="{Binding IsEditModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Panel.ZIndex="200">
+            <Border Background="#88000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseEditModalCommand}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <Border Width="490" Background="White" CornerRadius="18" Padding="28"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BorderBrush="#E2E8F0" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" Direction="270" ShadowDepth="8" Color="#000000" Opacity="0.28"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="36" Height="36" CornerRadius="18" Background="#EFF6FF" Margin="0,0,10,0">
+                                <TextBlock Text="✏️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Chỉnh sửa thông tin liên hệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Cập nhật số điện thoại và email liên hệ của bạn" FontSize="12" Foreground="#64748B"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Command="{Binding CloseEditModalCommand}"
+                                Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="15" Background="{TemplateBinding Background}">
+                                        <TextBlock Text="✕" FontSize="13" FontWeight="Bold" Foreground="#64748B"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,18"/>
+
+                    <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
+                            Padding="12,10" Margin="0,0,0,16"
+                            Visibility="{Binding HasModalError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ModalErrorMessage}" Foreground="#DC2626" FontSize="12.5" FontWeight="SemiBold"
+                                       TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,0,0,0"/>
                         </Grid>
                     </Border>
-                    <TextBlock Text="{Binding EditEmailError}" Foreground="#EF4444" FontSize="11.5" FontWeight="SemiBold" Margin="4,4,0,0"
-                               Visibility="{Binding HasEmailError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                    <!-- Số điện thoại -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Số điện thoại liên hệ *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="{Binding PhoneBorderBrush}" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="📞" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding EditPhoneNumber, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                         VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="{Binding EditPhoneError}" Foreground="#EF4444" FontSize="11.5" FontWeight="SemiBold" Margin="4,4,0,0"
+                                   Visibility="{Binding HasPhoneError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </StackPanel>
+
+                    <!-- Email -->
+                    <StackPanel Margin="0,0,0,22">
+                        <TextBlock Text="Email liên hệ *" Style="{StaticResource FieldLabel}"/>
+                        <Border Background="#F8FAFC" BorderBrush="{Binding EmailBorderBrush}" BorderThickness="1.5" CornerRadius="9" Height="42" Padding="10,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="✉️" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding EditEmail, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent" FontSize="13.5" FontWeight="SemiBold"
+                                         VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="{Binding EditEmailError}" Foreground="#EF4444" FontSize="11.5" FontWeight="SemiBold" Margin="4,4,0,0"
+                                   Visibility="{Binding HasEmailError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </StackPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Command="{Binding CloseEditModalCommand}"
+                                Height="42" Background="#F1F5F9" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="9" Background="{TemplateBinding Background}">
+                                        <TextBlock Text="Hủy bỏ" FontSize="13.5" FontWeight="SemiBold" Foreground="#475569"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Grid.Column="2" Command="{Binding SaveProfileCommand}"
+                                Height="42" Background="#2563EB" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="9" Background="{TemplateBinding Background}">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Lưu thay đổi" FontSize="13.5" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
                 </StackPanel>
-
-                <!-- Nút thao tác dưới cùng -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Nút Hủy -->
-                    <Button Grid.Column="0" Command="{Binding CloseEditModalCommand}"
-                            Height="42" Background="#F1F5F9" BorderThickness="0" Cursor="Hand">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border CornerRadius="9" Background="{TemplateBinding Background}">
-                                    <TextBlock Text="Hủy bỏ" FontSize="13.5" FontWeight="SemiBold" Foreground="#475569"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-
-                    <!-- Nút Lưu thay đổi -->
-                    <Button Grid.Column="2" Command="{Binding SaveProfileCommand}"
-                            Height="42" Background="#2563EB" BorderThickness="0" Cursor="Hand">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border CornerRadius="9" Background="{TemplateBinding Background}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="💾" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Lưu thay đổi" FontSize="13.5" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
-            </StackPanel>
-        </Border>
+            </Border>
+        </Grid>
     </Grid>
-</Grid>
 </UserControl>

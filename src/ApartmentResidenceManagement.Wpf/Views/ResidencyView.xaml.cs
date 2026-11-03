@@ -1,6 +1,8 @@
 using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using ApartmentResidenceManagement.Wpf.ViewModels;
 
 namespace ApartmentResidenceManagement.Wpf.Views;
@@ -12,6 +14,34 @@ public partial class ResidencyView : UserControl
     public ResidencyView()
     {
         InitializeComponent();
+    }
+
+    private void OnRequestRowPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        // Bỏ qua nếu người dùng bấm trực tiếp vào Button thao tác (Duyệt/Từ chối)
+        if (e.OriginalSource is DependencyObject dep && FindVisualParent<Button>(dep) != null)
+        {
+            return;
+        }
+
+        if (sender is DataGridRow row && row.Item is MemberRegistrationRequestItemViewModel item)
+        {
+            if (DataContext is ResidencyViewModel vm)
+            {
+                vm.OpenRequestDetailCommand.Execute(item);
+            }
+        }
+    }
+
+    private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
+    {
+        while (child != null)
+        {
+            if (child is T parent)
+                return parent;
+            child = VisualTreeHelper.GetParent(child);
+        }
+        return null;
     }
 
     private void OnDataGridPreviewMouseWheel(object sender, MouseWheelEventArgs e)

@@ -185,4 +185,47 @@ public class AccountServiceTests
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "resident123"));
         Assert.Contains("Không thể kết nối cơ sở dữ liệu", ex.Message);
     }
+
+    [Fact]
+    public async Task ResetPassword_WithValidPassword_ShouldUpdatePasswordHash()
+    {
+        // Arrange
+        int accountId = 5;
+        string newPassword = "newPassword123";
+        var account = new UserAccount { Id = accountId, Username = "user5", PasswordHash = "old_hash" };
+
+        _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
+        _mockHasher.Setup(h => h.HashPassword(newPassword)).Returns("new_hash_123");
+
+        // Act
+        await _service.ResetPasswordAsync(accountId, newPassword);
+
+        // Assert
+        Assert.Equal("new_hash_123", account.PasswordHash);
+        _mockAccountRepo.Verify(r => r.Update(account), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetPassword_WithShortPassword_ShouldThrowBusinessRuleException()
+    {
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.ResetPasswordAsync(1, "12345"));
+        Assert.Contains("phải có ít nhất 6 ký tự", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateAccount_DuplicateUsername_ShouldThrowBusinessRuleException()
+    {
+        // Arrange
+        string username = "existing_user";
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username))
+            .ReturnsAsync(new UserAccount { Username = username });
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.CreateAccountAsync(username, "pass123456", Domain.Enums.UserRole.Admin, null));
+        Assert.Contains("đã được sử dụng", ex.Message);
+    }
 }

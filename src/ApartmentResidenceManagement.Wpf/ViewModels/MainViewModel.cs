@@ -18,6 +18,7 @@ public class MainViewModel : ViewModelBase
     public ResidencyViewModel ResidencyVm { get; }
     public VehicleViewModel VehicleVm { get; }
     public StatisticsViewModel StatisticsVm { get; }
+    public AccountManagementViewModel AccountManagementVm { get; }
 
     // Các ViewModels con được tiêm vào (Resident)
     public ResidentHomeViewModel ResidentHomeVm { get; }
@@ -49,6 +50,7 @@ public class MainViewModel : ViewModelBase
     public string ResidentGreeting { get; }
     public bool IsAdmin => _account.Role == UserRole.Admin;
     public bool IsResident => !IsAdmin;
+    public string PortalSubtitle => IsAdmin ? "Cổng quản trị viên" : "Cổng thông tin cư dân";
 
     // Navigation Commands (Admin)
     public ICommand ShowDashboardCommand { get; }
@@ -57,6 +59,7 @@ public class MainViewModel : ViewModelBase
     public ICommand ShowResidencyCommand { get; }
     public ICommand ShowVehicleCommand { get; }
     public ICommand ShowStatisticsCommand { get; }
+    public ICommand ShowAccountManagementCommand { get; }
 
     // Navigation Commands (Resident)
     public ICommand ShowResidentHomeCommand { get; }
@@ -82,6 +85,7 @@ public class MainViewModel : ViewModelBase
         ResidencyViewModel residencyVm,
         VehicleViewModel vehicleVm,
         StatisticsViewModel statisticsVm,
+        AccountManagementViewModel accountManagementVm,
         ResidentHomeViewModel residentHomeVm,
         MyProfileViewModel myProfileVm,
         MyApartmentViewModel myApartmentVm,
@@ -98,6 +102,7 @@ public class MainViewModel : ViewModelBase
         ResidencyVm = residencyVm;
         VehicleVm = vehicleVm;
         StatisticsVm = statisticsVm;
+        AccountManagementVm = accountManagementVm;
 
         ResidentHomeVm = residentHomeVm;
         MyProfileVm = myProfileVm;
@@ -167,6 +172,10 @@ public class MainViewModel : ViewModelBase
         ShowStatisticsCommand = new RelayCommand(_ => {
             CurrentViewModel = StatisticsVm;
             _ = StatisticsVm.LoadStatisticsAsync();
+        });
+        ShowAccountManagementCommand = new RelayCommand(_ => {
+            CurrentViewModel = AccountManagementVm;
+            _ = AccountManagementVm.LoadDataAsync();
         });
 
         // Khởi tạo các command điều hướng Resident

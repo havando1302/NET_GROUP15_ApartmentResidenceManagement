@@ -96,12 +96,12 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.Property<int>("RelationshipType")
                         .HasColumnType("int");
 
+                    b.Property<int>("RequesterResidentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SpecificRelationship")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<int>("RequesterResidentId")
-                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -181,6 +181,10 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AvatarPath")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime(6)");
 
@@ -233,6 +237,9 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

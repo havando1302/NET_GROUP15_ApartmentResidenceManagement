@@ -72,6 +72,10 @@ public class AccountService
             throw new BusinessRuleException("Tên đăng nhập hoặc mật khẩu không chính xác.");
         }
 
+        account.LastLoginAt = DateTime.Now;
+        _unitOfWork.UserAccounts.Update(account);
+        await _unitOfWork.CompleteAsync();
+
         return account;
     }
 
@@ -177,5 +181,92 @@ public class AccountService
     public async Task<UserAccount?> GetAccountByResidentIdAsync(int residentId)
     {
         return await _unitOfWork.UserAccounts.GetByResidentIdAsync(residentId);
+    }
+
+    // 6. LẤY TẤT CẢ TÀI KHOẢN KÈM THÔNG TIN CƯ DÂN
+    public async Task<System.Collections.Generic.IEnumerable<UserAccount>> GetAllAccountsWithResidentAsync()
+    {
+        return await _unitOfWork.UserAccounts.GetAllWithResidentAsync();
+    }
+
+    // 7. ADMIN ĐẶT LẠI MẬT KHẨU
+    public async Task ResetPasswordAsync(int accountId, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        {
+            throw new BusinessRuleException("Mật khẩu mới phải có ít nhất 6 ký tự.");
+        }
+
+        var account = await _unitOfWork.UserAccounts.GetByIdAsync(accountId);
+        if (account == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy tài khoản cần đặt lại mật khẩu.");
+        }
+
+        account.PasswordHash = _passwordHasher.HashPassword(newPassword);
+        _unitOfWork.UserAccounts.Update(account);
+        await _unitOfWork.CompleteAsync();
+    }
+
+    // 8. TẠO TÀI KHOẢN TỔNG QUÁT (ADMIN HOẶC CƯ DÂN)
+    public async Task<UserAccount> CreateAccountAsync(string username, string password, UserRole role, int? residentId)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new BusinessRuleException("Tên đăng nhập không được để trống.");
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        {
+            throw new BusinessRuleException("Mật khẩu không được để trống và phải có ít nhất 6 ký tự.");
+        }
+
+        username = username.Trim();
+        if (username.Length > 50)
+        {
+            throw new BusinessRuleException("Tên đăng nhập không được vượt quá 50 ký tự.");
+        }
+
+        // Kiểm tra Username trùng lặp
+        var duplicateUsername = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        if (duplicateUsername != null)
+        {
+            throw new BusinessRuleException($"Tên đăng nhập '{username}' đã được sử dụng. Vui lòng chọn tên khác.");
+        }
+
+        if (role == UserRole.Resident)
+        {
+            if (!residentId.HasValue)
+            {
+                throw new BusinessRuleException("Vui lòng chọn cư dân liên kết với tài khoản này.");
+            }
+
+            var resident = await _unitOfWork.Residents.GetByIdAsync(residentId.Value);
+            if (resident == null)
+            {
+                throw new BusinessRuleException("Không tìm thấy thông tin cư dân được chọn.");
+            }
+
+            var existingAccount = await _unitOfWork.UserAccounts.GetByResidentIdAsync(residentId.Value);
+            if (existingAccount != null)
+            {
+                throw new BusinessRuleException($"Cư dân '{resident.FullName}' đã có tài khoản trên hệ thống.");
+            }
+        }
+
+        var account = new UserAccount
+        {
+            Username = username,
+            PasswordHash = _passwordHasher.HashPassword(password),
+            Role = role,
+            ResidentId = role == UserRole.Resident ? residentId : null,
+            IsActive = true,
+            CreatedAt = DateTime.Now
+        };
+
+        await _unitOfWork.UserAccounts.AddAsync(account);
+        await _unitOfWork.CompleteAsync();
+
+        return account;
     }
 }
