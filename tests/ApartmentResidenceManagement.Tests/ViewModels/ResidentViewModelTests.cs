@@ -311,3 +311,4 @@ public class ResidentViewModelTests
         Assert.Equal(1, vm.SelectedResidentItem?.Id);
     }
 }
+
