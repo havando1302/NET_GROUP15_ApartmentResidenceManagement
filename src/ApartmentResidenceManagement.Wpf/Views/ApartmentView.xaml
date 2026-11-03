@@ -62,7 +62,45 @@
             </Setter>
         </Style>
 
-        <!-- DataGrid Row Styling -->
+        <!-- Override System Highlight to prevent harsh dark blue & black selection borders -->
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#E0F2FE"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#0F172A"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#E0F2FE"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#0F172A"/>
+
+        <!-- DataGrid Cell Style (Loại bỏ hoàn toàn viền đen xung quanh mỗi ô và giữ nền trong suốt khi chọn dòng) -->
+        <Style x:Key="ModernDataGridCell" TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#0F172A"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                </Trigger>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- DataGrid Row Styling (Nền xanh dịu mắt giống Quản lý Cư trú, chữ sắc nét) -->
         <Style x:Key="ModernRowStyle" TargetType="DataGridRow">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Height" Value="46"/>
@@ -70,13 +108,16 @@
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F8FAFC"/>
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#EFF6FF"/>
-                    <Setter Property="Foreground" Value="#1E3A8A"/>
+                    <!-- Màu xanh ngọc nhạt #E0F2FE: chữ #0F172A tương phản rất rõ, thông tin sáng sủa không bị chìm -->
+                    <Setter Property="Background" Value="#E0F2FE"/>
+                    <Setter Property="Foreground" Value="#0F172A"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -401,10 +442,19 @@
 
                         <DataGrid ItemsSource="{Binding PagedApartments}" SelectedItem="{Binding SelectedApartmentItem, Mode=TwoWay}"
                                   behaviors:DataGridRowNumbers.IsEnabled="True"
-                                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserResizeRows="False"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserResizeRows="False"
+                                  IsReadOnly="True"
+                                  SelectionMode="Single"
+                                  SelectionUnit="FullRow"
+                                  FocusVisualStyle="{x:Null}"
                                   HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9"
                                   Background="White" BorderThickness="0"
-                                  RowStyle="{StaticResource ModernRowStyle}" ColumnHeaderStyle="{StaticResource ModernHeaderStyle}">
+                                  CellStyle="{StaticResource ModernDataGridCell}"
+                                  RowStyle="{StaticResource ModernRowStyle}"
+                                  ColumnHeaderStyle="{StaticResource ModernHeaderStyle}">
                             <DataGrid.Columns>
                                 <!-- Cột #: Số thứ tự -->
                                 <DataGridTemplateColumn Header="#" Width="50">
