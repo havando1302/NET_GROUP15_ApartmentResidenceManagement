@@ -270,11 +270,13 @@ public class StatisticsViewModel : ViewModelBase
 
     public int PermanentResidents { get => _permanentResidents; set => SetProperty(ref _permanentResidents, value); }
     public double PermanentRate { get => _permanentRate; set => SetProperty(ref _permanentRate, value); }
-    public string PermanentRateDisplay => $"{PermanentRate:N1}%".Replace('.', ',');
+    private string _permanentRateDisplay = "0%";
+    public string PermanentRateDisplay { get => _permanentRateDisplay; set => SetProperty(ref _permanentRateDisplay, value); }
 
     public int TemporaryResidents { get => _temporaryResidents; set => SetProperty(ref _temporaryResidents, value); }
     public double TemporaryRate { get => _temporaryRate; set => SetProperty(ref _temporaryRate, value); }
-    public string TemporaryRateDisplay => $"{TemporaryRate:N1}%".Replace('.', ',');
+    private string _temporaryRateDisplay = "0%";
+    public string TemporaryRateDisplay { get => _temporaryRateDisplay; set => SetProperty(ref _temporaryRateDisplay, value); }
 
     public ObservableCollection<BarCategoryGroup> ResidenceFluctuationBars { get => _residenceFluctuationBars; set => SetProperty(ref _residenceFluctuationBars, value); }
     public ObservableCollection<DonutSliceItem> ResidenceStructureSlices { get => _residenceStructureSlices; set => SetProperty(ref _residenceStructureSlices, value); }
@@ -286,8 +288,10 @@ public class StatisticsViewModel : ViewModelBase
     public int AptOccupied { get => _aptOccupied; set => SetProperty(ref _aptOccupied, value); }
     public int AptVacant { get => _aptVacant; set => SetProperty(ref _aptVacant, value); }
     public double AptOccupancyRate { get => _aptOccupancyRate; set => SetProperty(ref _aptOccupancyRate, value); }
-    public string AptOccupancyRateDisplay => $"{AptOccupancyRate:N1}%".Replace('.', ',');
-    public string AptVacantRateDisplay => $"{Math.Max(0, 100.0 - AptOccupancyRate):N1}%".Replace('.', ',');
+    private string _aptOccupancyRateDisplay = "0%";
+    public string AptOccupancyRateDisplay { get => _aptOccupancyRateDisplay; set => SetProperty(ref _aptOccupancyRateDisplay, value); }
+    private string _aptVacantRateDisplay = "0%";
+    public string AptVacantRateDisplay { get => _aptVacantRateDisplay; set => SetProperty(ref _aptVacantRateDisplay, value); }
 
     public ObservableCollection<BarCategoryGroup> AptFloorDistributionBars { get => _aptFloorDistributionBars; set => SetProperty(ref _aptFloorDistributionBars, value); }
     public ObservableCollection<DonutSliceItem> AptOccupancySlices { get => _aptOccupancySlices; set => SetProperty(ref _aptOccupancySlices, value); }
@@ -300,9 +304,14 @@ public class StatisticsViewModel : ViewModelBase
     public int VehPending { get => _vehPending; set => SetProperty(ref _vehPending, value); }
     public int VehRejected { get => _vehRejected; set => SetProperty(ref _vehRejected, value); }
 
-    public string VehApprovedRateDisplay => VehTotal == 0 ? "0%" : $"{Math.Round(VehApproved * 100.0 / VehTotal, 1):N1}%".Replace('.', ',');
-    public string VehPendingRateDisplay => VehTotal == 0 ? "0%" : $"{Math.Round(VehPending * 100.0 / VehTotal, 1):N1}%".Replace('.', ',');
-    public string VehRejectedRateDisplay => VehTotal == 0 ? "0%" : $"{Math.Round(VehRejected * 100.0 / VehTotal, 1):N1}%".Replace('.', ',');
+    private string _vehApprovedRateDisplay = "0%";
+    public string VehApprovedRateDisplay { get => _vehApprovedRateDisplay; set => SetProperty(ref _vehApprovedRateDisplay, value); }
+
+    private string _vehPendingRateDisplay = "0%";
+    public string VehPendingRateDisplay { get => _vehPendingRateDisplay; set => SetProperty(ref _vehPendingRateDisplay, value); }
+
+    private string _vehRejectedRateDisplay = "0%";
+    public string VehRejectedRateDisplay { get => _vehRejectedRateDisplay; set => SetProperty(ref _vehRejectedRateDisplay, value); }
 
     public ObservableCollection<BarCategoryGroup> VehTypeDistributionBars { get => _vehTypeDistributionBars; set => SetProperty(ref _vehTypeDistributionBars, value); }
     public ObservableCollection<DonutSliceItem> VehStatusSlices { get => _vehStatusSlices; set => SetProperty(ref _vehStatusSlices, value); }
@@ -544,8 +553,10 @@ public class StatisticsViewModel : ViewModelBase
         // 2. Cơ cấu cư trú
         PermanentResidents = report.PermanentResidents;
         PermanentRate = report.PermanentRate;
+        PermanentRateDisplay = $"{report.PermanentRate:N1}%".Replace('.', ',');
         TemporaryResidents = report.TemporaryResidents;
         TemporaryRate = report.TemporaryRate;
+        TemporaryRateDisplay = $"{report.TemporaryRate:N1}%".Replace('.', ',');
 
         // 3. Biểu đồ tròn đặc (Pie Chart) Cơ cấu cư trú
         var donutSlices = new ObservableCollection<DonutSliceItem>
@@ -605,6 +616,8 @@ public class StatisticsViewModel : ViewModelBase
         AptOccupied = report.OccupiedApartments;
         AptVacant = report.VacantApartments;
         AptOccupancyRate = report.OccupancyRate;
+        AptOccupancyRateDisplay = $"{report.OccupancyRate:N1}%".Replace('.', ',');
+        AptVacantRateDisplay = $"{Math.Max(0, 100.0 - report.OccupancyRate):N1}%".Replace('.', ',');
 
         // 2. Biểu đồ tròn đặc (Pie Chart) Tình trạng căn hộ
         var slices = new ObservableCollection<DonutSliceItem>
@@ -675,6 +688,11 @@ public class StatisticsViewModel : ViewModelBase
         VehApproved = report.ApprovedVehicles;
         VehPending = report.PendingVehicles;
         VehRejected = report.RejectedVehicles;
+
+        // Tính tỷ lệ phần trăm chuẩn theo dữ liệu thực
+        VehApprovedRateDisplay = report.TotalVehicles == 0 ? "0%" : $"{Math.Round(report.ApprovedVehicles * 100.0 / report.TotalVehicles, 1):N1}%".Replace('.', ',');
+        VehPendingRateDisplay = report.TotalVehicles == 0 ? "0%" : $"{Math.Round(report.PendingVehicles * 100.0 / report.TotalVehicles, 1):N1}%".Replace('.', ',');
+        VehRejectedRateDisplay = report.TotalVehicles == 0 ? "0%" : $"{Math.Round(report.RejectedVehicles * 100.0 / report.TotalVehicles, 1):N1}%".Replace('.', ',');
 
         // 2. Biểu đồ tròn đặc (Pie Chart) Tỷ lệ phương tiện theo trạng thái
         var slices = new ObservableCollection<DonutSliceItem>

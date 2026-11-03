@@ -87,14 +87,14 @@ public partial class ModernBarChart : UserControl
 
         TxtEmpty.Visibility = Visibility.Collapsed;
 
-        // Xác định thang đo trục Y tròn trịa (0, 2, 4, 6... hoặc 5, 10, 15...)
-        int step = maxRaw <= 6 ? 2 : (maxRaw <= 15 ? 3 : (maxRaw <= 30 ? 5 : 10));
+        // Xác định thang đo trục Y tròn trịa chuẩn hóa theo dữ liệu thực
+        int step = maxRaw <= 4 ? 1 : (maxRaw <= 8 ? 2 : (maxRaw <= 16 ? 4 : (maxRaw <= 30 ? 5 : (maxRaw <= 60 ? 10 : 20))));
         int maxAxis = (int)Math.Ceiling(maxRaw / step) * step;
         if (maxAxis < 4) maxAxis = 4;
 
-        double leftPad = 28;
-        double rightPad = 12;
-        double topPad = 20;
+        double leftPad = 36;
+        double rightPad = 14;
+        double topPad = 22;
         double bottomPad = 28;
 
         double plotWidth = width - leftPad - rightPad;

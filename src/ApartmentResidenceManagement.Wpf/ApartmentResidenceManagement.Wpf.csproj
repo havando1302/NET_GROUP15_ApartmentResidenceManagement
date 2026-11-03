@@ -23,6 +23,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <NoWarn>$(NoWarn);NU1902;NU1903;MSB3277</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
