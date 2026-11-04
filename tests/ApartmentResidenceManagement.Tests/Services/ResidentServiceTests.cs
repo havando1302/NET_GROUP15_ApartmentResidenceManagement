@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Exceptions;
@@ -106,5 +107,81 @@ public class ResidentServiceTests
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateAvatarAsync(999, "/Assets/avatar_son.png"));
         Assert.Contains("Không tìm thấy cư dân", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteResident_WithActiveResidence_ThrowsBusinessRuleException()
+    {
+        var resident = new Resident { Id = 10, FullName = "Nguyễn Văn A" };
+        var mockHistRepo = new Mock<IResidenceHistoryRepository>();
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(resident);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockHistRepo.Object);
+        mockHistRepo.Setup(r => r.GetActiveByResidentIdAsync(10))
+            .ReturnsAsync(new ResidenceHistory { Id = 1, ResidentId = 10, IsActive = true });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteResidentAsync(10));
+        Assert.Contains("đang có hồ sơ cư trú hoạt động", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteResident_WithPastHistory_ThrowsBusinessRuleException()
+    {
+        var resident = new Resident { Id = 10, FullName = "Nguyễn Văn A" };
+        var mockHistRepo = new Mock<IResidenceHistoryRepository>();
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(resident);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockHistRepo.Object);
+        mockHistRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+        mockHistRepo.Setup(r => r.GetHistoryByResidentIdAsync(10))
+            .ReturnsAsync(new List<ResidenceHistory> { new ResidenceHistory { Id = 1, ResidentId = 10, IsActive = false } });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteResidentAsync(10));
+        Assert.Contains("đã có dữ liệu lịch sử cư trú", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteResident_WithVehicles_ThrowsBusinessRuleException()
+    {
+        var resident = new Resident { Id = 10, FullName = "Nguyễn Văn A" };
+        var mockHistRepo = new Mock<IResidenceHistoryRepository>();
+        var mockVehRepo = new Mock<IVehicleRepository>();
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(resident);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockHistRepo.Object);
+        _mockUow.Setup(u => u.Vehicles).Returns(mockVehRepo.Object);
+        mockHistRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+        mockHistRepo.Setup(r => r.GetHistoryByResidentIdAsync(10)).ReturnsAsync(new List<ResidenceHistory>());
+        mockVehRepo.Setup(r => r.GetVehiclesByOwnerIdAsync(10))
+            .ReturnsAsync(new List<Vehicle> { new Vehicle { Id = 5, OwnerId = 10, LicensePlate = "29A1-12345" } });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteResidentAsync(10));
+        Assert.Contains("đang có phương tiện đăng ký", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteResident_NoHistoryOrDependencies_DeletesSuccessfully()
+    {
+        var resident = new Resident { Id = 10, FullName = "Nguyễn Văn A" };
+        var mockHistRepo = new Mock<IResidenceHistoryRepository>();
+        var mockVehRepo = new Mock<IVehicleRepository>();
+        var mockAccRepo = new Mock<IUserAccountRepository>();
+        var mockReqRepo = new Mock<IMemberRegistrationRequestRepository>();
+
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(resident);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockHistRepo.Object);
+        _mockUow.Setup(u => u.Vehicles).Returns(mockVehRepo.Object);
+        _mockUow.Setup(u => u.UserAccounts).Returns(mockAccRepo.Object);
+        _mockUow.Setup(u => u.MemberRegistrationRequests).Returns(mockReqRepo.Object);
+        _mockUow.Setup(u => u.CompleteAsync()).ReturnsAsync(1);
+
+        mockHistRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
+        mockHistRepo.Setup(r => r.GetHistoryByResidentIdAsync(10)).ReturnsAsync(new List<ResidenceHistory>());
+        mockVehRepo.Setup(r => r.GetVehiclesByOwnerIdAsync(10)).ReturnsAsync(new List<Vehicle>());
+        mockReqRepo.Setup(r => r.GetByRequesterResidentIdAsync(10)).ReturnsAsync(new List<MemberRegistrationRequest>());
+        mockAccRepo.Setup(r => r.GetByResidentIdAsync(10)).ReturnsAsync(new UserAccount { Id = 20, ResidentId = 10 });
+
+        await _service.DeleteResidentAsync(10);
+
+        _mockResidentRepo.Verify(r => r.Delete(resident), Times.Once);
+        mockAccRepo.Verify(r => r.Delete(It.Is<UserAccount>(a => a.Id == 20)), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
 }

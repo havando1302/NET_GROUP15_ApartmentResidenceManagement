@@ -133,6 +133,46 @@ public class MemberRequestService
         {
             await _unitOfWork.MemberRegistrationRequests.AddAsync(request);
             await _unitOfWork.CompleteAsync();
+
+            // Gửi thông báo đơn duyệt cho Admin
+            if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+            {
+                try
+                {
+                    var adminAccounts = (await _unitOfWork.UserAccounts.GetAllAsync())
+                        .Where(u => u.Role == UserRole.Admin && u.IsActive)
+                        .ToList();
+
+                    if (adminAccounts.Count > 0)
+                    {
+                        var notif = new Notification
+                        {
+                            Title = $"Yêu cầu thêm thành viên mới: {request.FullName}",
+                            Content = $"Cư dân <b>{requester.FullName}</b> gửi yêu cầu đăng ký thêm thành viên <color=#059669><b>{request.FullName}</b></color> vào căn hộ {apartment.ApartmentNumber}. Vui lòng xem xét hồ sơ.",
+                            Type = NotificationType.ApprovalRequest,
+                            Priority = NotificationPriority.Normal,
+                            TargetAudience = TargetAudienceType.SystemAdmin,
+                            SenderId = requester.UserAccount?.Id,
+                            RelatedEntityType = "MemberRegistrationRequest",
+                            RelatedEntityId = request.Id,
+                            CreatedAt = DateTime.Now
+                        };
+                        foreach (var admin in adminAccounts)
+                        {
+                            notif.Recipients.Add(new NotificationRecipient
+                            {
+                                UserAccountId = admin.Id,
+                                IsRead = false,
+                                CreatedAt = notif.CreatedAt
+                            });
+                        }
+                        await _unitOfWork.Notifications.AddAsync(notif);
+                        await _unitOfWork.CompleteAsync();
+                    }
+                }
+                catch { }
+            }
+
             return OperationResult<MemberRegistrationRequest>.Success(request);
         }
         catch (Exception ex)
@@ -183,14 +223,16 @@ public class MemberRequestService
 
                 if (resident == null)
                 {
+                    var gender = ResidentProfileHelper.DetermineGender(request.FullName, request.RelationshipType, request.SpecificRelationship);
                     resident = new Resident
                     {
                         FullName = request.FullName,
                         DateOfBirth = request.DateOfBirth,
-                        Gender = GenderType.Male,
+                        Gender = gender,
                         IdentityCard = request.IdentityCard,
                         PhoneNumber = request.PhoneNumber,
-                        Email = request.Email
+                        Email = request.Email,
+                        AvatarPath = ResidentProfileHelper.GetDefaultAvatar(request.FullName, gender, new Random().Next(1, 100))
                     };
                     await _unitOfWork.Residents.AddAsync(resident);
                     await _unitOfWork.CompleteAsync();
@@ -201,8 +243,42 @@ public class MemberRequestService
                         resident.PhoneNumber = request.PhoneNumber;
                     if (string.IsNullOrWhiteSpace(resident.Email) && !string.IsNullOrWhiteSpace(request.Email))
                         resident.Email = request.Email;
+                    if (string.IsNullOrWhiteSpace(resident.AvatarPath))
+                        resident.AvatarPath = ResidentProfileHelper.GetDefaultAvatar(resident.FullName, resident.Gender, resident.Id);
                     _unitOfWork.Residents.Update(resident);
                     await _unitOfWork.CompleteAsync();
+                }
+
+                // Tự động cấp tài khoản UserAccount nếu cư dân chưa có
+                if (_unitOfWork.UserAccounts != null)
+                {
+                    try
+                    {
+                        var existingAcc = await _unitOfWork.UserAccounts.GetByResidentIdAsync(resident.Id);
+                        if (existingAcc == null)
+                        {
+                            string baseUsername = ResidentProfileHelper.GenerateUsernameFromName(resident.FullName);
+                            string username = baseUsername;
+                            int suffix = 1;
+                            while (await _unitOfWork.UserAccounts.GetByUsernameAsync(username) != null)
+                            {
+                                username = $"{baseUsername}{suffix++}";
+                            }
+
+                            var newAccount = new UserAccount
+                            {
+                                Username = username,
+                                PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                                Role = UserRole.Resident,
+                                ResidentId = resident.Id,
+                                IsActive = true,
+                                CreatedAt = DateTime.Now
+                            };
+                            await _unitOfWork.UserAccounts.AddAsync(newAccount);
+                            await _unitOfWork.CompleteAsync();
+                        }
+                    }
+                    catch { }
                 }
 
                 var regResult = await _residenceService.RegisterResidenceAsync(
@@ -220,6 +296,38 @@ public class MemberRequestService
                 request.ProcessedAt = DateTime.Now;
                 _unitOfWork.MemberRegistrationRequests.Update(request);
                 await _unitOfWork.CompleteAsync();
+
+                // Gửi thông báo kết quả duyệt về cho cư dân yêu cầu
+                if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+                {
+                    try
+                    {
+                        var requesterAcc = await _unitOfWork.UserAccounts.GetByResidentIdAsync(request.RequesterResidentId);
+                        if (requesterAcc != null && requesterAcc.IsActive)
+                        {
+                            var notif = new Notification
+                            {
+                                Title = "Yêu cầu thêm thành viên đã được phê duyệt",
+                                Content = $"Yêu cầu đăng ký thành viên <b>{request.FullName}</b> vào căn hộ đã được Ban quản lý phê duyệt thành công.",
+                                Type = NotificationType.ApprovalResult,
+                                Priority = NotificationPriority.Normal,
+                                TargetAudience = TargetAudienceType.SpecificResidents,
+                                RelatedEntityType = "MemberRegistrationRequest",
+                                RelatedEntityId = request.Id,
+                                CreatedAt = DateTime.Now
+                            };
+                            notif.Recipients.Add(new NotificationRecipient
+                            {
+                                UserAccountId = requesterAcc.Id,
+                                IsRead = false,
+                                CreatedAt = notif.CreatedAt
+                            });
+                            await _unitOfWork.Notifications.AddAsync(notif);
+                            await _unitOfWork.CompleteAsync();
+                        }
+                    }
+                    catch { }
+                }
 
                 return OperationResult.Success();
             });
@@ -245,6 +353,38 @@ public class MemberRequestService
 
         _unitOfWork.MemberRegistrationRequests.Update(request);
         await _unitOfWork.CompleteAsync();
+
+        // Gửi thông báo kết quả từ chối về cho cư dân yêu cầu
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var requesterAcc = await _unitOfWork.UserAccounts.GetByResidentIdAsync(request.RequesterResidentId);
+                if (requesterAcc != null && requesterAcc.IsActive)
+                {
+                    var notif = new Notification
+                    {
+                        Title = "Yêu cầu thêm thành viên bị từ chối",
+                        Content = $"Yêu cầu đăng ký thành viên <b>{request.FullName}</b> vào căn hộ đã bị từ chối. Lý do: <color=#DC2626><b>{request.RejectReason}</b></color>.",
+                        Type = NotificationType.ApprovalResult,
+                        Priority = NotificationPriority.Important,
+                        TargetAudience = TargetAudienceType.SpecificResidents,
+                        RelatedEntityType = "MemberRegistrationRequest",
+                        RelatedEntityId = request.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    notif.Recipients.Add(new NotificationRecipient
+                    {
+                        UserAccountId = requesterAcc.Id,
+                        IsRead = false,
+                        CreatedAt = notif.CreatedAt
+                    });
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
 
         return OperationResult.Success();
     }

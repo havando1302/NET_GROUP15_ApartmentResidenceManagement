@@ -7,6 +7,7 @@ namespace ApartmentResidenceManagement.Domain.Interfaces;
 public interface IResidenceHistoryRepository : IRepository<ResidenceHistory>
 {
     Task<IEnumerable<ResidenceHistory>> GetActiveByApartmentIdAsync(int apartmentId);
+    Task<IEnumerable<ResidenceHistory>> GetHistoryByApartmentIdAsync(int apartmentId);
     Task<ResidenceHistory?> GetActiveByResidentIdAsync(int residentId);
     Task<IEnumerable<ResidenceHistory>> GetHistoryByResidentIdAsync(int residentId);
     Task<IEnumerable<ResidenceHistory>> GetAllWithDetailsAsync();

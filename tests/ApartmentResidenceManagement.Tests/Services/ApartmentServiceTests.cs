@@ -159,6 +159,51 @@ public class ApartmentServiceTests
     }
 
     [Fact]
+    public async Task UpdateApartment_SetEmptyWhenOccupied_ThrowsBusinessRuleException()
+    {
+        var existing = new Apartment { Id = 1, ApartmentNumber = "101", Floor = 1, Area = 50, Status = ApartmentStatus.Occupied };
+        var update = new Apartment { Id = 1, ApartmentNumber = "101", Floor = 1, Area = 50, Status = ApartmentStatus.Empty };
+
+        var mockResHistoryRepo = new Mock<IResidenceHistoryRepository>();
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockResHistoryRepo.Object);
+        mockResHistoryRepo.Setup(r => r.GetActiveByApartmentIdAsync(1))
+            .ReturnsAsync(new List<ResidenceHistory> { new ResidenceHistory { ApartmentId = 1, ResidentId = 10, IsActive = true } });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateApartmentAsync(update));
+        Assert.Contains("vẫn còn cư dân đang cư trú", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteApartment_WithActiveResidents_ThrowsBusinessRuleException()
+    {
+        var apt = new Apartment { Id = 1, ApartmentNumber = "101" };
+        var mockResHistoryRepo = new Mock<IResidenceHistoryRepository>();
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(apt);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockResHistoryRepo.Object);
+        mockResHistoryRepo.Setup(r => r.GetActiveByApartmentIdAsync(1))
+            .ReturnsAsync(new List<ResidenceHistory> { new ResidenceHistory { ApartmentId = 1, ResidentId = 10, IsActive = true } });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteApartmentAsync(1));
+        Assert.Contains("đang có cư dân cư trú", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteApartment_WithResidenceHistory_ThrowsBusinessRuleException()
+    {
+        var apt = new Apartment { Id = 1, ApartmentNumber = "101" };
+        var mockResHistoryRepo = new Mock<IResidenceHistoryRepository>();
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(apt);
+        _mockUow.Setup(u => u.ResidenceHistories).Returns(mockResHistoryRepo.Object);
+        mockResHistoryRepo.Setup(r => r.GetActiveByApartmentIdAsync(1)).ReturnsAsync(new List<ResidenceHistory>());
+        mockResHistoryRepo.Setup(r => r.GetHistoryByApartmentIdAsync(1))
+            .ReturnsAsync(new List<ResidenceHistory> { new ResidenceHistory { ApartmentId = 1, ResidentId = 10, IsActive = false } });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteApartmentAsync(1));
+        Assert.Contains("đã có dữ liệu lịch sử cư trú", ex.Message);
+    }
+
+    [Fact]
     public async Task DeleteApartment_NonExisting_ShouldThrowBusinessRuleException()
     {
         _mockApartmentRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Apartment?)null);

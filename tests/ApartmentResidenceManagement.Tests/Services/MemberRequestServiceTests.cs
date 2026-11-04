@@ -155,6 +155,54 @@ public class MemberRequestServiceTests
     }
 
     [Fact]
+    public async Task ApproveRequestAsync_FemaleName_SetsGenderFemaleAndCreatesUserAccount()
+    {
+        int reqId = 6;
+        int aptId = 101;
+        var req = new MemberRegistrationRequest
+        {
+            Id = reqId,
+            ApartmentId = aptId,
+            RequesterResidentId = 1,
+            FullName = "Nguyễn Thị Hoa",
+            DateOfBirth = new DateTime(2000, 1, 1),
+            IdentityCard = "079205009988",
+            PhoneNumber = "0901234567",
+            RelationshipType = RelationshipType.FamilyMember,
+            SpecificRelationship = "Vợ",
+            Status = RequestStatus.Pending
+        };
+
+        var apartment = new Apartment { Id = aptId, ApartmentNumber = "101", Status = ApartmentStatus.Occupied };
+        var mockAccountRepo = new Mock<IUserAccountRepository>();
+        _mockUow.Setup(u => u.UserAccounts).Returns(mockAccountRepo.Object);
+
+        _mockRequestRepo.Setup(r => r.GetByIdAsync(reqId)).ReturnsAsync(req);
+        _mockResidentRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<Resident, bool>>>()))
+            .ReturnsAsync(new List<Resident>());
+        Resident? addedResident = null;
+        _mockResidentRepo.Setup(r => r.AddAsync(It.IsAny<Resident>()))
+            .Callback<Resident>(r => { r.Id = 12; addedResident = r; });
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(12))
+            .ReturnsAsync(() => addedResident);
+        _mockApartmentRepo.Setup(r => r.GetByIdAsync(aptId)).ReturnsAsync(apartment);
+        _mockResidenceHistoryRepo.Setup(r => r.GetActiveByResidentIdAsync(It.IsAny<int>()))
+            .ReturnsAsync((ResidenceHistory?)null);
+        _mockResidenceHistoryRepo.Setup(r => r.GetHistoryByResidentIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<ResidenceHistory>());
+
+        mockAccountRepo.Setup(r => r.GetByResidentIdAsync(12)).ReturnsAsync((UserAccount?)null);
+        mockAccountRepo.Setup(r => r.GetByUsernameAsync(It.IsAny<string>())).ReturnsAsync((UserAccount?)null);
+
+        var result = await _service.ApproveRequestAsync(reqId);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(addedResident);
+        Assert.Equal(GenderType.Female, addedResident.Gender);
+        mockAccountRepo.Verify(r => r.AddAsync(It.Is<UserAccount>(a => a.ResidentId == 12 && a.Role == UserRole.Resident)), Times.Once);
+    }
+
+    [Fact]
     public async Task RejectRequestAsync_WhenPending_SetsStatusRejectedAndReason()
     {
         // Arrange

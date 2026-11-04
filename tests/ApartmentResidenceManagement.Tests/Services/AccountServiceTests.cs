@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
+using ApartmentResidenceManagement.Domain.Enums;
 using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Domain.Interfaces;
 using ApartmentResidenceManagement.Application.Security;
@@ -161,6 +163,19 @@ public class AccountServiceTests
     }
 
     [Fact]
+    public async Task ToggleAccountStatus_SoleActiveAdmin_ThrowsBusinessRuleException()
+    {
+        int accountId = 2;
+        var adminAccount = new UserAccount { Id = accountId, Username = "admin_super", Role = UserRole.Admin, IsActive = true };
+
+        _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(adminAccount);
+        _mockAccountRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<UserAccount> { adminAccount });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ToggleAccountStatusAsync(accountId));
+        Assert.Contains("duy nhất của hệ thống", ex.Message);
+    }
+
+    [Fact]
     public async Task Login_AccountDeactivated_ThrowsBusinessRuleException_Regression()
     {
         // Regression test for QA: Tai khoan bi vo hieu hoa phai chan dang nhap va bao loi
@@ -225,7 +240,7 @@ public class AccountServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.CreateAccountAsync(username, "pass123456", Domain.Enums.UserRole.Admin, null));
+            _service.CreateAccountAsync(username, "pass123456", UserRole.Admin, null));
         Assert.Contains("đã được sử dụng", ex.Message);
     }
 }

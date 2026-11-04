@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
@@ -116,6 +117,16 @@ public class ApartmentService
             throw new BusinessRuleException("Diện tích căn hộ phải lớn hơn 0.");
         }
 
+        // Ràng buộc tính nhất quán thực tế: Nếu căn hộ đang có cư dân cư trú, không được chuyển sang trạng thái "Trống"
+        if (apartment.Status == ApartmentStatus.Empty && _unitOfWork.ResidenceHistories != null)
+        {
+            var activeResidences = await _unitOfWork.ResidenceHistories.GetActiveByApartmentIdAsync(existing.Id);
+            if (activeResidences != null && activeResidences.Any())
+            {
+                throw new BusinessRuleException($"Không thể đổi trạng thái căn hộ '{existing.ApartmentNumber}' thành 'Trống' khi vẫn còn cư dân đang cư trú.");
+            }
+        }
+
         existing.ApartmentNumber = apartment.ApartmentNumber;
         existing.Floor = apartment.Floor;
         existing.Area = apartment.Area;
@@ -131,6 +142,30 @@ public class ApartmentService
         if (apartment == null)
         {
             throw new BusinessRuleException("Không tìm thấy căn hộ cần xóa.");
+        }
+
+        if (_unitOfWork.ResidenceHistories != null)
+        {
+            var activeResidences = await _unitOfWork.ResidenceHistories.GetActiveByApartmentIdAsync(id);
+            if (activeResidences != null && activeResidences.Any())
+            {
+                throw new BusinessRuleException($"Không thể xóa căn hộ '{apartment.ApartmentNumber}' vì đang có cư dân cư trú.");
+            }
+
+            var allHistories = await _unitOfWork.ResidenceHistories.GetHistoryByApartmentIdAsync(id);
+            if (allHistories != null && allHistories.Any())
+            {
+                throw new BusinessRuleException($"Không thể xóa căn hộ '{apartment.ApartmentNumber}' vì đã có dữ liệu lịch sử cư trú.");
+            }
+        }
+
+        if (_unitOfWork.MemberRegistrationRequests != null)
+        {
+            var requests = await _unitOfWork.MemberRegistrationRequests.GetByApartmentIdAsync(id);
+            if (requests != null && requests.Any())
+            {
+                throw new BusinessRuleException($"Không thể xóa căn hộ '{apartment.ApartmentNumber}' vì có các yêu cầu cư trú liên kết.");
+            }
         }
 
         _unitOfWork.Apartments.Delete(apartment);

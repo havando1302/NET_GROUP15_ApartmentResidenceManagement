@@ -23,6 +23,16 @@ public class ResidenceHistoryRepository : Repository<ResidenceHistory>, IResiden
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<ResidenceHistory>> GetHistoryByApartmentIdAsync(int apartmentId)
+    {
+        return await DbSet
+            .AsNoTracking()
+            .Include(rh => rh.Resident)
+            .Where(rh => rh.ApartmentId == apartmentId)
+            .OrderByDescending(rh => rh.StartDate)
+            .ToListAsync();
+    }
+
     public async Task<ResidenceHistory?> GetActiveByResidentIdAsync(int residentId)
     {
         return await DbSet

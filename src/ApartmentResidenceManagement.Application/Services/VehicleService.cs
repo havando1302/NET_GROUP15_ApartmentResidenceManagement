@@ -41,7 +41,49 @@ public class VehicleService
 
     public async Task<Vehicle> SubmitVehicleRegistrationAsync(Vehicle vehicle)
     {
-        return await CreateVehicleCoreAsync(vehicle, VehicleRegistrationStatus.Pending);
+        var result = await CreateVehicleCoreAsync(vehicle, VehicleRegistrationStatus.Pending);
+
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var adminAccounts = (await _unitOfWork.UserAccounts.GetAllAsync())
+                    .Where(u => u.Role == UserRole.Admin && u.IsActive)
+                    .ToList();
+
+                var owner = await _unitOfWork.Residents.GetByIdAsync(vehicle.OwnerId);
+                string ownerName = owner?.FullName ?? "Cư dân";
+
+                if (adminAccounts.Count > 0)
+                {
+                    var notif = new Notification
+                    {
+                        Title = $"Đơn đăng ký phương tiện mới: {vehicle.LicensePlate}",
+                        Content = $"Cư dân <b>{ownerName}</b> đã gửi yêu cầu đăng ký phương tiện mới với biển số <color=#2563EB><b>{vehicle.LicensePlate}</b></color> ({vehicle.Brand} - {vehicle.Color}). Vui lòng kiểm tra và phê duyệt.",
+                        Type = NotificationType.ApprovalRequest,
+                        Priority = NotificationPriority.Important,
+                        TargetAudience = TargetAudienceType.SystemAdmin,
+                        RelatedEntityType = "Vehicle",
+                        RelatedEntityId = vehicle.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    foreach (var admin in adminAccounts)
+                    {
+                        notif.Recipients.Add(new NotificationRecipient
+                        {
+                            UserAccountId = admin.Id,
+                            IsRead = false,
+                            CreatedAt = notif.CreatedAt
+                        });
+                    }
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
+
+        return result;
     }
 
     public async Task UpdateVehicleAsync(Vehicle vehicle)
@@ -119,12 +161,47 @@ public class VehicleService
         }
         else if (status == VehicleRegistrationStatus.Rejected)
         {
-            vehicle.RejectReason = rejectReason;
+            vehicle.RejectReason = string.IsNullOrWhiteSpace(rejectReason) ? "Không đủ điều kiện phê duyệt" : rejectReason.Trim();
         }
 
         vehicle.RegistrationStatus = status;
         _unitOfWork.Vehicles.Update(vehicle);
         await _unitOfWork.CompleteAsync();
+
+        // Gửi thông báo kết quả phê duyệt cho chủ sở hữu xe
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var ownerAcc = await _unitOfWork.UserAccounts.GetByResidentIdAsync(vehicle.OwnerId);
+                if (ownerAcc != null && ownerAcc.IsActive)
+                {
+                    bool isApproved = status == VehicleRegistrationStatus.Approved;
+                    var notif = new Notification
+                    {
+                        Title = isApproved ? $"Phương tiện {vehicle.LicensePlate} đã được phê duyệt" : $"Đăng ký phương tiện {vehicle.LicensePlate} bị từ chối",
+                        Content = isApproved
+                            ? $"Phương tiện biển số <color=#2563EB><b>{vehicle.LicensePlate}</b></color> ({vehicle.Brand} - {vehicle.Color}) đã được Ban quản lý phê duyệt cấp phép đỗ xe."
+                            : $"Yêu cầu đăng ký phương tiện biển số <b>{vehicle.LicensePlate}</b> đã bị từ chối. Lý do: <color=#DC2626><b>{vehicle.RejectReason}</b></color>.",
+                        Type = NotificationType.ApprovalResult,
+                        Priority = isApproved ? NotificationPriority.Normal : NotificationPriority.Important,
+                        TargetAudience = TargetAudienceType.SpecificResidents,
+                        RelatedEntityType = "Vehicle",
+                        RelatedEntityId = vehicle.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    notif.Recipients.Add(new NotificationRecipient
+                    {
+                        UserAccountId = ownerAcc.Id,
+                        IsRead = false,
+                        CreatedAt = notif.CreatedAt
+                    });
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
     }
 
     public async Task DeleteVehicleAsync(int id)

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
@@ -148,6 +149,17 @@ public class AccountService
             throw new BusinessRuleException("Không được phép vô hiệu hóa tài khoản quản trị viên mặc định.");
         }
 
+        // An toàn thông tin: Không cho phép vô hiệu hóa tài khoản admin hoạt động duy nhất
+        if (account.Role == UserRole.Admin && account.IsActive)
+        {
+            var allAccounts = await _unitOfWork.UserAccounts.GetAllAsync();
+            var activeAdmins = allAccounts.Count(u => u.Role == UserRole.Admin && u.IsActive && u.Id != account.Id);
+            if (activeAdmins == 0)
+            {
+                throw new BusinessRuleException("Không được phép vô hiệu hóa tài khoản quản trị viên đang hoạt động duy nhất của hệ thống.");
+            }
+        }
+
         account.IsActive = !account.IsActive;
         _unitOfWork.UserAccounts.Update(account);
         await _unitOfWork.CompleteAsync();
@@ -252,6 +264,10 @@ public class AccountService
             {
                 throw new BusinessRuleException($"Cư dân '{resident.FullName}' đã có tài khoản trên hệ thống.");
             }
+        }
+        else if (role == UserRole.Admin)
+        {
+            residentId = null;
         }
 
         var account = new UserAccount

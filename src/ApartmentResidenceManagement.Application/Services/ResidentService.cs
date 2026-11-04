@@ -6,6 +6,7 @@ using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Domain.Interfaces;
 using ApartmentResidenceManagement.Application.Validators;
+using ApartmentResidenceManagement.Application.Common;
 
 namespace ApartmentResidenceManagement.Application.Services;
 
@@ -126,6 +127,11 @@ public class ResidentService
             }
         }
 
+        if (string.IsNullOrWhiteSpace(resident.AvatarPath))
+        {
+            resident.AvatarPath = ResidentProfileHelper.GetDefaultAvatar(resident.FullName, resident.Gender, resident.Id);
+        }
+
         await _unitOfWork.Residents.AddAsync(resident);
         await _unitOfWork.CompleteAsync();
 
@@ -221,6 +227,39 @@ public class ResidentService
             if (activeResidence != null)
             {
                 throw new BusinessRuleException("Không thể xóa cư dân đang có hồ sơ cư trú hoạt động.");
+            }
+
+            var allHistories = await _unitOfWork.ResidenceHistories.GetHistoryByResidentIdAsync(id);
+            if (allHistories != null && allHistories.Any())
+            {
+                throw new BusinessRuleException("Không thể xóa cư dân đã có dữ liệu lịch sử cư trú trong hệ thống. Vui lòng lưu trữ hồ sơ.");
+            }
+        }
+
+        if (_unitOfWork.MemberRegistrationRequests != null)
+        {
+            var requests = await _unitOfWork.MemberRegistrationRequests.GetByRequesterResidentIdAsync(id);
+            if (requests != null && requests.Any())
+            {
+                throw new BusinessRuleException("Không thể xóa cư dân đã phát sinh các yêu cầu thành viên.");
+            }
+        }
+
+        if (_unitOfWork.Vehicles != null)
+        {
+            var vehicles = await _unitOfWork.Vehicles.GetVehiclesByOwnerIdAsync(id);
+            if (vehicles != null && vehicles.Any())
+            {
+                throw new BusinessRuleException("Không thể xóa cư dân đang có phương tiện đăng ký trên hệ thống.");
+            }
+        }
+
+        if (_unitOfWork.UserAccounts != null)
+        {
+            var account = await _unitOfWork.UserAccounts.GetByResidentIdAsync(id);
+            if (account != null)
+            {
+                _unitOfWork.UserAccounts.Delete(account);
             }
         }
 

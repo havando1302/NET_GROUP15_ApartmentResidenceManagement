@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ApartmentResidenceManagement.Application.Common;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -380,46 +381,12 @@ public static class DatabaseInitializer
 
     public static string GetDefaultAvatar(string? fullName, GenderType gender, int id)
     {
-        bool isFemale = gender == GenderType.Female ||
-                        (fullName != null && (
-                            fullName.Contains("Thị") ||
-                            fullName.Contains("Thúy") ||
-                            fullName.Contains("Lan") ||
-                            fullName.Contains("Hoa") ||
-                            fullName.Contains("Hương") ||
-                            fullName.Contains("Mai") ||
-                            fullName.EndsWith(" B") ||
-                            fullName.EndsWith(" Y")));
-
-        if (isFemale)
-        {
-            return (id % 2 == 0) ? "/Assets/avatar_daughter.png" : "/Assets/avatar_young_woman.png";
-        }
-        else
-        {
-            if (id % 4 == 0) return "/Assets/avatar_young_man.png";
-            if (id % 4 == 1) return "/Assets/avatar_toddler_boy.png";
-            return "/Assets/avatar_son.png";
-        }
+        return ResidentProfileHelper.GetDefaultAvatar(fullName, gender, id);
     }
 
     private static string GenerateUsernameFromName(string fullName)
     {
-        if (string.IsNullOrWhiteSpace(fullName)) return "user";
-
-        string normalized = fullName.Normalize(System.Text.NormalizationForm.FormD);
-        var sb = new System.Text.StringBuilder();
-        foreach (char c in normalized)
-        {
-            var category = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
-            if (category != System.Globalization.UnicodeCategory.NonSpacingMark)
-            {
-                if (c == 'đ' || c == 'Đ') sb.Append('d');
-                else if (char.IsLetterOrDigit(c)) sb.Append(char.ToLowerInvariant(c));
-            }
-        }
-        string result = sb.ToString();
-        return string.IsNullOrWhiteSpace(result) ? "user" : result;
+        return ResidentProfileHelper.GenerateUsernameFromName(fullName);
     }
 
     public static async Task SeedNotificationsIfMissingAsync(AppDbContext context)
