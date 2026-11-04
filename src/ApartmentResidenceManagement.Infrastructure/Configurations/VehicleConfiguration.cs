@@ -23,6 +23,16 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.Property(v => v.Brand)
             .HasMaxLength(50);
 
+        builder.Property(v => v.Color)
+            .HasMaxLength(30);
+
+        builder.Property(v => v.RegistrationDate)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        builder.Property(v => v.ImagePath)
+            .HasMaxLength(255);
+
         builder.Property(v => v.VehicleType)
             .IsRequired()
             .HasConversion<int>();

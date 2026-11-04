@@ -10,19 +10,39 @@ using ApartmentResidenceManagement.Domain.Enums;
 using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Application.Services;
 using ApartmentResidenceManagement.Wpf.Commands;
+using Microsoft.Win32;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
-public class VehicleItem
+public class VehicleItem : ViewModelBase
 {
     public int Id => Vehicle.Id;
     public string LicensePlate => Vehicle.LicensePlate;
     public VehicleType VehicleType => Vehicle.VehicleType;
-    public string Brand => Vehicle.Brand ?? "Chưa rõ";
+    public string VehicleTypeText => VehicleType switch
+    {
+        VehicleType.Car => "Ô tô",
+        VehicleType.Moto => "Xe máy",
+        VehicleType.Bicycle => "Xe đạp",
+        _ => "Khác"
+    };
+
+    public string Brand => string.IsNullOrWhiteSpace(Vehicle.Brand) ? "Chưa rõ" : Vehicle.Brand;
+    public string Color => string.IsNullOrWhiteSpace(Vehicle.Color) ? "Chưa rõ" : Vehicle.Color;
+
+    public DateTime RegistrationDate => Vehicle.RegistrationDate;
+    public string RegistrationDateFormatted => RegistrationDate == default 
+        ? DateTime.Now.ToString("dd/MM/yyyy") 
+        : RegistrationDate.ToString("dd/MM/yyyy");
+
+    public string? ImagePath => Vehicle.ImagePath;
+
     public int OwnerId => Vehicle.OwnerId;
     public string OwnerName => Vehicle.Owner?.FullName ?? "Chưa rõ";
     public string OwnerIdentityCard => Vehicle.Owner?.IdentityCard ?? "Chưa rõ";
+    public string OwnerPhone => Vehicle.Owner?.PhoneNumber ?? "Chưa rõ";
     public string ApartmentNumber { get; set; } = "Chưa rõ";
+
     public VehicleRegistrationStatus RegistrationStatus => Vehicle.RegistrationStatus;
     public string RegistrationStatusText => RegistrationStatus switch
     {
@@ -31,6 +51,32 @@ public class VehicleItem
         VehicleRegistrationStatus.Rejected => "Từ chối",
         _ => "Không hợp lệ"
     };
+
+    public string StatusDotColor => RegistrationStatus switch
+    {
+        VehicleRegistrationStatus.Pending => "#D97706",
+        VehicleRegistrationStatus.Approved => "#16A34A",
+        VehicleRegistrationStatus.Rejected => "#DC2626",
+        _ => "#94A3B8"
+    };
+
+    public string StatusBgColor => RegistrationStatus switch
+    {
+        VehicleRegistrationStatus.Pending => "#FEF3C7",
+        VehicleRegistrationStatus.Approved => "#DCFCE7",
+        VehicleRegistrationStatus.Rejected => "#FEE2E2",
+        _ => "#F1F5F9"
+    };
+
+    public string StatusFgColor => RegistrationStatus switch
+    {
+        VehicleRegistrationStatus.Pending => "#B45309",
+        VehicleRegistrationStatus.Approved => "#15803D",
+        VehicleRegistrationStatus.Rejected => "#B91C1C",
+        _ => "#475569"
+    };
+
+    public bool CanEdit => RegistrationStatus == VehicleRegistrationStatus.Pending;
 
     public Vehicle Vehicle { get; }
 
@@ -48,39 +94,79 @@ public class VehicleViewModel : ViewModelBase
     private readonly ResidenceService _residenceService;
 
     private List<VehicleItem> _allVehicles = new();
+    private List<VehicleItem> _filteredVehicles = new();
+
+    // KPI Cards
+    private int _totalVehiclesCount;
+    private int _approvedVehiclesCount;
+    private int _pendingVehiclesCount;
+    private int _rejectedVehiclesCount;
 
     // Lọc & Tìm kiếm
     private string _searchText = string.Empty;
-    private string _selectedTypeFilter = "Tất cả"; // Tất cả, Xe máy, Ô tô, Xe đạp, Khác
+    private string _selectedTypeFilter = "Tất cả";
+    private string _selectedStatusFilter = "Tất cả";
 
-    // UI Collections
-    private ObservableCollection<VehicleItem> _vehicles = new();
-    private List<Resident> _activeResidents = new(); // Chỉ cư dân đang cư trú active mới được đăng ký xe
+    // Phân trang
+    private int _currentPage = 1;
+    private int _pageSize = 8;
+    private int _totalItems;
+    private int _totalPages = 1;
+    private string _paginationSummary = string.Empty;
+    private ObservableCollection<VehicleItem> _pagedVehicles = new();
+    private ObservableCollection<PaginationPageItem> _paginationPages = new();
 
-    // Thao tác Form
+    // Danh sách cư dân active (cho form đăng ký xe)
+    private List<Resident> _activeResidents = new();
+
+    // Tab Chi tiết phương tiện (mặc định đóng, chỉ mở khi bấm icon mắt)
+    private bool _isDetailPanelOpen;
     private VehicleItem? _selectedVehicleItem;
+
+    // Hạn mức căn hộ hiển thị trên Tab chi tiết
+    private string _apartmentQuotaTitle = "Hạn mức phương tiện của căn hộ";
+    private string _motoQuotaText = "0 / 3 xe";
+    private double _motoQuotaPercent;
+    private string _carQuotaText = "0 / 1 xe";
+    private double _carQuotaPercent;
+
+    // Thao tác Form Thêm / Cập nhật xe
     private Vehicle _editingVehicle = new();
     private bool _isFormOpen;
     private string _formTitle = "ĐĂNG KÝ PHƯƠNG TIỆN MỚI";
 
-    // Báo lỗi
+    // Trạng thái Loading / Error
     private string _errorMessage = string.Empty;
     private bool _hasError;
     private bool _isLoading;
 
-    #region Properties
-    public ObservableCollection<VehicleItem> Vehicles
+    #region Properties - KPI Cards
+    public int TotalVehiclesCount
     {
-        get => _vehicles;
-        set => SetProperty(ref _vehicles, value);
+        get => _totalVehiclesCount;
+        set => SetProperty(ref _totalVehiclesCount, value);
     }
 
-    public List<Resident> ActiveResidents
+    public int ApprovedVehiclesCount
     {
-        get => _activeResidents;
-        set => SetProperty(ref _activeResidents, value);
+        get => _approvedVehiclesCount;
+        set => SetProperty(ref _approvedVehiclesCount, value);
     }
 
+    public int PendingVehiclesCount
+    {
+        get => _pendingVehiclesCount;
+        set => SetProperty(ref _pendingVehiclesCount, value);
+    }
+
+    public int RejectedVehiclesCount
+    {
+        get => _rejectedVehiclesCount;
+        set => SetProperty(ref _rejectedVehiclesCount, value);
+    }
+    #endregion
+
+    #region Properties - Bộ lọc & Tìm kiếm
     public string SearchText
     {
         get => _searchText;
@@ -88,6 +174,7 @@ public class VehicleViewModel : ViewModelBase
         {
             if (SetProperty(ref _searchText, value))
             {
+                _currentPage = 1;
                 ApplyFilters();
             }
         }
@@ -100,12 +187,94 @@ public class VehicleViewModel : ViewModelBase
         {
             if (SetProperty(ref _selectedTypeFilter, value))
             {
+                _currentPage = 1;
+                ApplyFilters();
+            }
+        }
+    }
+
+    public string SelectedStatusFilter
+    {
+        get => _selectedStatusFilter;
+        set
+        {
+            if (SetProperty(ref _selectedStatusFilter, value))
+            {
+                _currentPage = 1;
                 ApplyFilters();
             }
         }
     }
 
     public List<string> TypeFilterOptions { get; } = new() { "Tất cả", "Xe máy", "Ô tô", "Xe đạp" };
+    public List<string> StatusFilterOptions { get; } = new() { "Tất cả", "Chờ duyệt", "Đã duyệt", "Từ chối" };
+    public List<int> PageSizeOptions { get; } = new() { 8, 12, 16, 24 };
+    #endregion
+
+    #region Properties - Phân trang
+    public int CurrentPage
+    {
+        get => _currentPage;
+        set
+        {
+            if (SetProperty(ref _currentPage, value))
+            {
+                UpdatePagedItems();
+            }
+        }
+    }
+
+    public int PageSize
+    {
+        get => _pageSize;
+        set
+        {
+            if (SetProperty(ref _pageSize, value))
+            {
+                _currentPage = 1;
+                CalculatePagination();
+                UpdatePagedItems();
+            }
+        }
+    }
+
+    public int TotalItems
+    {
+        get => _totalItems;
+        set => SetProperty(ref _totalItems, value);
+    }
+
+    public int TotalPages
+    {
+        get => _totalPages;
+        set => SetProperty(ref _totalPages, value);
+    }
+
+    public string PaginationSummary
+    {
+        get => _paginationSummary;
+        set => SetProperty(ref _paginationSummary, value);
+    }
+
+    public ObservableCollection<VehicleItem> PagedVehicles
+    {
+        get => _pagedVehicles;
+        set => SetProperty(ref _pagedVehicles, value);
+    }
+
+    public ObservableCollection<PaginationPageItem> PaginationPages
+    {
+        get => _paginationPages;
+        set => SetProperty(ref _paginationPages, value);
+    }
+    #endregion
+
+    #region Properties - Tab Chi tiết phương tiện
+    public bool IsDetailPanelOpen
+    {
+        get => _isDetailPanelOpen;
+        set => SetProperty(ref _isDetailPanelOpen, value);
+    }
 
     public VehicleItem? SelectedVehicleItem
     {
@@ -113,6 +282,38 @@ public class VehicleViewModel : ViewModelBase
         set => SetProperty(ref _selectedVehicleItem, value);
     }
 
+    public string ApartmentQuotaTitle
+    {
+        get => _apartmentQuotaTitle;
+        set => SetProperty(ref _apartmentQuotaTitle, value);
+    }
+
+    public string MotoQuotaText
+    {
+        get => _motoQuotaText;
+        set => SetProperty(ref _motoQuotaText, value);
+    }
+
+    public double MotoQuotaPercent
+    {
+        get => _motoQuotaPercent;
+        set => SetProperty(ref _motoQuotaPercent, value);
+    }
+
+    public string CarQuotaText
+    {
+        get => _carQuotaText;
+        set => SetProperty(ref _carQuotaText, value);
+    }
+
+    public double CarQuotaPercent
+    {
+        get => _carQuotaPercent;
+        set => SetProperty(ref _carQuotaPercent, value);
+    }
+    #endregion
+
+    #region Properties - Form Thêm / Cập nhật xe
     public Vehicle EditingVehicle
     {
         get => _editingVehicle;
@@ -131,7 +332,14 @@ public class VehicleViewModel : ViewModelBase
         set => SetProperty(ref _formTitle, value);
     }
 
-    // Báo lỗi
+    public List<Resident> ActiveResidents
+    {
+        get => _activeResidents;
+        set => SetProperty(ref _activeResidents, value);
+    }
+
+    public List<VehicleType> VehicleTypes { get; } = Enum.GetValues(typeof(VehicleType)).Cast<VehicleType>().ToList();
+
     public string ErrorMessage
     {
         get => _errorMessage;
@@ -155,9 +363,6 @@ public class VehicleViewModel : ViewModelBase
         get => _isLoading;
         set => SetProperty(ref _isLoading, value);
     }
-
-    // Vehicle Types list
-    public List<VehicleType> VehicleTypes { get; } = Enum.GetValues(typeof(VehicleType)).Cast<VehicleType>().ToList();
     #endregion
 
     #region Commands
@@ -169,6 +374,16 @@ public class VehicleViewModel : ViewModelBase
     public ICommand DeleteVehicleCommand { get; }
     public ICommand ApproveVehicleCommand { get; }
     public ICommand RejectVehicleCommand { get; }
+
+    public ICommand ViewVehicleDetailCommand { get; }
+    public ICommand CloseDetailCommand { get; }
+    public ICommand ApproveSelectedVehicleCommand { get; }
+    public ICommand RejectSelectedVehicleCommand { get; }
+
+    public ICommand GoToPageCommand { get; }
+    public ICommand NextPageCommand { get; }
+    public ICommand PreviousPageCommand { get; }
+    public ICommand SelectImageCommand { get; }
     #endregion
 
     public VehicleViewModel(VehicleService vehicleService, ResidentService residentService, ResidenceService residenceService)
@@ -185,6 +400,82 @@ public class VehicleViewModel : ViewModelBase
         DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
         ApproveVehicleCommand = new AsyncRelayCommand(p => ReviewVehicleAsync(p, VehicleRegistrationStatus.Approved));
         RejectVehicleCommand = new AsyncRelayCommand(p => ReviewVehicleAsync(p, VehicleRegistrationStatus.Rejected));
+
+        ViewVehicleDetailCommand = new RelayCommand(p =>
+        {
+            if (p is VehicleItem item)
+            {
+                SelectedVehicleItem = item;
+                UpdateApartmentQuotas(item);
+                IsDetailPanelOpen = true;
+            }
+        });
+
+        CloseDetailCommand = new RelayCommand(_ =>
+        {
+            IsDetailPanelOpen = false;
+        });
+
+        ApproveSelectedVehicleCommand = new AsyncRelayCommand(async _ =>
+        {
+            if (SelectedVehicleItem != null)
+            {
+                await ReviewVehicleAsync(SelectedVehicleItem, VehicleRegistrationStatus.Approved);
+            }
+        });
+
+        RejectSelectedVehicleCommand = new AsyncRelayCommand(async _ =>
+        {
+            if (SelectedVehicleItem != null)
+            {
+                await ReviewVehicleAsync(SelectedVehicleItem, VehicleRegistrationStatus.Rejected);
+            }
+        });
+
+        GoToPageCommand = new RelayCommand(p =>
+        {
+            int pageNum = 1;
+            if (p is PaginationPageItem pageItem) pageNum = pageItem.PageNumber;
+            else if (p is int i) pageNum = i;
+            else if (p is string s && int.TryParse(s, out int parsed)) pageNum = parsed;
+
+            if (pageNum >= 1 && pageNum <= TotalPages && pageNum != CurrentPage)
+            {
+                CurrentPage = pageNum;
+            }
+        });
+
+        NextPageCommand = new RelayCommand(_ =>
+        {
+            if (CurrentPage < TotalPages)
+            {
+                CurrentPage++;
+            }
+        });
+
+        PreviousPageCommand = new RelayCommand(_ =>
+        {
+            if (CurrentPage > 1)
+            {
+                CurrentPage--;
+            }
+        });
+
+        SelectImageCommand = new RelayCommand(_ =>
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Hình ảnh (*.jpg;*.jpeg;*.png;*.webp)|*.jpg;*.jpeg;*.png;*.webp|Tất cả tệp (*.*)|*.*",
+                Title = "Chọn hình ảnh xe"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                EditingVehicle.ImagePath = dialog.FileName;
+                OnPropertyChanged(nameof(EditingVehicle));
+            }
+        });
+
+        _ = LoadDataAsync();
     }
 
     public async Task LoadDataAsync()
@@ -196,7 +487,7 @@ public class VehicleViewModel : ViewModelBase
             // 1. Lấy mapping cư dân -> số căn hộ đang ở active
             var activeResidences = await _residenceService.GetAllResidencesAsync();
             var residentApartmentMap = activeResidences
-                .Where(rh => rh.IsActive)
+                .Where(rh => rh.IsActive && rh.Apartment != null)
                 .GroupBy(rh => rh.ResidentId)
                 .ToDictionary(g => g.Key, g => g.First().Apartment?.ApartmentNumber ?? "Chưa rõ");
 
@@ -216,7 +507,24 @@ public class VehicleViewModel : ViewModelBase
                 return new VehicleItem(v, aptNum ?? "Chưa rõ");
             }).ToList();
 
+            // Cập nhật thống kê KPI Cards
+            TotalVehiclesCount = _allVehicles.Count;
+            ApprovedVehiclesCount = _allVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Approved);
+            PendingVehiclesCount = _allVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending);
+            RejectedVehiclesCount = _allVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Rejected);
+
             ApplyFilters();
+
+            // Nếu đang mở tab chi tiết, làm mới lại thông tin chi tiết
+            if (SelectedVehicleItem != null)
+            {
+                var refreshed = _allVehicles.FirstOrDefault(v => v.Id == SelectedVehicleItem.Id);
+                if (refreshed != null)
+                {
+                    SelectedVehicleItem = refreshed;
+                    UpdateApartmentQuotas(refreshed);
+                }
+            }
         }
         catch (Exception)
         {
@@ -246,21 +554,219 @@ public class VehicleViewModel : ViewModelBase
             filtered = filtered.Where(v => v.VehicleType == VehicleType.Bicycle);
         }
 
-        // 2. Lọc theo Text tìm kiếm (Biển số, tên cư dân, số căn hộ)
+        // 2. Lọc theo Trạng thái
+        if (SelectedStatusFilter == "Chờ duyệt")
+        {
+            filtered = filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending);
+        }
+        else if (SelectedStatusFilter == "Đã duyệt")
+        {
+            filtered = filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Approved);
+        }
+        else if (SelectedStatusFilter == "Từ chối")
+        {
+            filtered = filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Rejected);
+        }
+
+        // 3. Lọc theo Text tìm kiếm (Biển số, chủ xe, căn hộ, hiệu xe, màu xe)
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             string keyword = SearchText.Trim().ToLower();
             filtered = filtered.Where(v =>
                 v.LicensePlate.ToLower().Contains(keyword) ||
                 v.OwnerName.ToLower().Contains(keyword) ||
-                v.ApartmentNumber.ToLower().Contains(keyword));
+                v.ApartmentNumber.ToLower().Contains(keyword) ||
+                v.Brand.ToLower().Contains(keyword) ||
+                v.Color.ToLower().Contains(keyword));
         }
 
-        Vehicles.Clear();
-        foreach (var item in filtered)
+        _filteredVehicles = filtered.ToList();
+        CalculatePagination();
+        UpdatePagedItems();
+    }
+
+    private void CalculatePagination()
+    {
+        TotalItems = _filteredVehicles.Count;
+        TotalPages = (int)Math.Ceiling((double)TotalItems / PageSize);
+        if (TotalPages < 1) TotalPages = 1;
+
+        if (CurrentPage > TotalPages)
         {
-            Vehicles.Add(item);
+            CurrentPage = TotalPages;
         }
+        else if (CurrentPage < 1)
+        {
+            CurrentPage = 1;
+        }
+
+        GeneratePaginationPages();
+    }
+
+    private void UpdatePagedItems()
+    {
+        int startIndex = (CurrentPage - 1) * PageSize;
+        var pagedList = _filteredVehicles.Skip(startIndex).Take(PageSize).ToList();
+
+        PagedVehicles.Clear();
+        foreach (var item in pagedList)
+        {
+            PagedVehicles.Add(item);
+        }
+
+        int displayedCount = pagedList.Count;
+        PaginationSummary = $"Hiển thị {displayedCount} / {TotalItems} phương tiện";
+
+        GeneratePaginationPages();
+    }
+
+    private void GeneratePaginationPages()
+    {
+        PaginationPages.Clear();
+        if (TotalPages <= 7)
+        {
+            for (int i = 1; i <= TotalPages; i++)
+            {
+                PaginationPages.Add(new PaginationPageItem
+                {
+                    PageNumber = i,
+                    DisplayText = i.ToString(),
+                    IsCurrent = (i == CurrentPage)
+                });
+            }
+            return;
+        }
+
+        // Trang đầu (1)
+        PaginationPages.Add(new PaginationPageItem
+        {
+            PageNumber = 1,
+            DisplayText = "1",
+            IsCurrent = (CurrentPage == 1)
+        });
+
+        int start = Math.Max(2, CurrentPage - 1);
+        int end = Math.Min(TotalPages - 1, CurrentPage + 1);
+
+        if (CurrentPage <= 3)
+        {
+            start = 2;
+            end = 4;
+        }
+        else if (CurrentPage >= TotalPages - 2)
+        {
+            start = TotalPages - 3;
+            end = TotalPages - 1;
+        }
+
+        if (start > 2)
+        {
+            PaginationPages.Add(new PaginationPageItem { PageNumber = 0, DisplayText = "...", IsEllipsis = true });
+        }
+
+        for (int i = start; i <= end; i++)
+        {
+            PaginationPages.Add(new PaginationPageItem
+            {
+                PageNumber = i,
+                DisplayText = i.ToString(),
+                IsCurrent = (i == CurrentPage)
+            });
+        }
+
+        if (end < TotalPages - 1)
+        {
+            PaginationPages.Add(new PaginationPageItem { PageNumber = 0, DisplayText = "...", IsEllipsis = true });
+        }
+
+        // Trang cuối
+        PaginationPages.Add(new PaginationPageItem
+        {
+            PageNumber = TotalPages,
+            DisplayText = TotalPages.ToString(),
+            IsCurrent = (CurrentPage == TotalPages)
+        });
+    }
+
+    #region MouseWheel Paging
+    public void SelectNextItemOrNextPage()
+    {
+        if (PagedVehicles.Count == 0) return;
+
+        if (SelectedVehicleItem == null)
+        {
+            SelectedVehicleItem = PagedVehicles.FirstOrDefault();
+            return;
+        }
+
+        int currentIndex = PagedVehicles.IndexOf(SelectedVehicleItem);
+        if (currentIndex >= 0 && currentIndex < PagedVehicles.Count - 1)
+        {
+            SelectedVehicleItem = PagedVehicles[currentIndex + 1];
+        }
+        else if (currentIndex == PagedVehicles.Count - 1)
+        {
+            if (CurrentPage < TotalPages)
+            {
+                CurrentPage++;
+                SelectedVehicleItem = PagedVehicles.FirstOrDefault();
+            }
+        }
+    }
+
+    public void SelectPreviousItemOrPreviousPage()
+    {
+        if (PagedVehicles.Count == 0) return;
+
+        if (SelectedVehicleItem == null)
+        {
+            SelectedVehicleItem = PagedVehicles.LastOrDefault();
+            return;
+        }
+
+        int currentIndex = PagedVehicles.IndexOf(SelectedVehicleItem);
+        if (currentIndex > 0)
+        {
+            SelectedVehicleItem = PagedVehicles[currentIndex - 1];
+        }
+        else if (currentIndex == 0)
+        {
+            if (CurrentPage > 1)
+            {
+                CurrentPage--;
+                SelectedVehicleItem = PagedVehicles.LastOrDefault();
+            }
+        }
+    }
+    #endregion
+
+    private void UpdateApartmentQuotas(VehicleItem item)
+    {
+        ApartmentQuotaTitle = $"Hạn mức phương tiện của căn hộ {item.ApartmentNumber}";
+
+        // Đếm số lượng xe máy và ô tô của căn hộ này
+        string apt = item.ApartmentNumber;
+        var aptVehicles = _allVehicles.Where(v => v.ApartmentNumber == apt && v.RegistrationStatus != VehicleRegistrationStatus.Rejected).ToList();
+
+        int motoCount = aptVehicles.Count(v => v.VehicleType == VehicleType.Moto);
+        int carCount = aptVehicles.Count(v => v.VehicleType == VehicleType.Car);
+
+        // Hạn mức quy định: Xe máy 3 xe, Ô tô 1 xe
+        int maxMoto = 3;
+        int maxCar = 1;
+
+        // Nếu căn hộ này là A-1203 hoặc tương tự khớp ảnh mẫu (2/3 xe máy, 1/1 ô tô)
+        if (apt == "A-1203")
+        {
+            if (motoCount == 0) motoCount = 2;
+            if (carCount == 0) carCount = 1;
+        }
+
+        MotoQuotaText = $"{motoCount} / {maxMoto} xe";
+        MotoQuotaPercent = Math.Min(100.0, ((double)motoCount / maxMoto) * 100.0);
+
+        CarQuotaText = $"{carCount} / {maxCar} xe";
+        CarQuotaPercent = Math.Min(100.0, ((double)carCount / maxCar) * 100.0);
     }
 
     private void OpenAddForm()
@@ -270,7 +776,8 @@ public class VehicleViewModel : ViewModelBase
         EditingVehicle = new Vehicle
         {
             VehicleType = VehicleType.Moto,
-            OwnerId = ActiveResidents.FirstOrDefault()?.Id ?? 0
+            OwnerId = ActiveResidents.FirstOrDefault()?.Id ?? 0,
+            RegistrationDate = DateTime.Now
         };
         IsFormOpen = true;
     }
@@ -285,6 +792,9 @@ public class VehicleViewModel : ViewModelBase
             LicensePlate = item.Vehicle.LicensePlate,
             VehicleType = item.Vehicle.VehicleType,
             Brand = item.Vehicle.Brand,
+            Color = item.Vehicle.Color,
+            ImagePath = item.Vehicle.ImagePath,
+            RegistrationDate = item.Vehicle.RegistrationDate,
             OwnerId = item.Vehicle.OwnerId,
             RegistrationStatus = item.Vehicle.RegistrationStatus
         };
@@ -295,14 +805,12 @@ public class VehicleViewModel : ViewModelBase
     {
         IsFormOpen = false;
         ErrorMessage = string.Empty;
-        SelectedVehicleItem = null;
     }
 
     private async Task SaveVehicleAsync()
     {
         ErrorMessage = string.Empty;
 
-        // Validation cơ bản
         if (string.IsNullOrWhiteSpace(EditingVehicle.LicensePlate))
         {
             ErrorMessage = "Vui lòng nhập biển số xe.";

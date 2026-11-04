@@ -34,6 +34,8 @@ public class VehicleRepository : Repository<Vehicle>, IVehicleRepository
         return await DbSet
             .AsNoTracking()
             .Include(v => v.Owner)
+                .ThenInclude(o => o.ResidenceHistories)
+                    .ThenInclude(rh => rh.Apartment)
             .ToListAsync();
     }
 }

@@ -56,6 +56,8 @@ public class VehicleService
         existing.LicensePlate = vehicle.LicensePlate;
         existing.VehicleType = vehicle.VehicleType;
         existing.Brand = vehicle.Brand;
+        existing.Color = vehicle.Color;
+        existing.ImagePath = vehicle.ImagePath;
         existing.OwnerId = vehicle.OwnerId;
 
         _unitOfWork.Vehicles.Update(existing);
@@ -79,6 +81,8 @@ public class VehicleService
         existing.LicensePlate = vehicle.LicensePlate;
         existing.VehicleType = vehicle.VehicleType;
         existing.Brand = vehicle.Brand;
+        existing.Color = vehicle.Color;
+        existing.ImagePath = vehicle.ImagePath;
         existing.RegistrationStatus = VehicleRegistrationStatus.Pending;
 
         _unitOfWork.Vehicles.Update(existing);
@@ -150,6 +154,10 @@ public class VehicleService
     {
         await ValidateVehicleDataAsync(vehicle);
         vehicle.RegistrationStatus = status;
+        if (vehicle.RegistrationDate == default)
+        {
+            vehicle.RegistrationDate = DateTime.Now;
+        }
 
         await _unitOfWork.Vehicles.AddAsync(vehicle);
         await _unitOfWork.CompleteAsync();
@@ -166,6 +174,8 @@ public class VehicleService
 
         vehicle.LicensePlate = vehicle.LicensePlate.Replace(" ", "").ToUpperInvariant();
         vehicle.Brand = string.IsNullOrWhiteSpace(vehicle.Brand) ? null : vehicle.Brand.Trim();
+        vehicle.Color = string.IsNullOrWhiteSpace(vehicle.Color) ? null : vehicle.Color.Trim();
+        vehicle.ImagePath = string.IsNullOrWhiteSpace(vehicle.ImagePath) ? null : vehicle.ImagePath.Trim();
 
         if (!Enum.IsDefined(vehicle.VehicleType))
         {
@@ -182,6 +192,11 @@ public class VehicleService
             throw new BusinessRuleException("Nhãn hiệu phương tiện không được vượt quá 50 ký tự.");
         }
 
+        if (vehicle.Color?.Length > 30)
+        {
+            throw new BusinessRuleException("Màu xe không được vượt quá 30 ký tự.");
+        }
+
         var duplicate = await _unitOfWork.Vehicles.GetByLicensePlateAsync(vehicle.LicensePlate);
         if (duplicate != null && duplicate.Id != currentVehicleId)
         {
@@ -196,6 +211,7 @@ public class VehicleService
 
         await EnsureActiveResidenceAsync(vehicle.OwnerId);
     }
+
     private async Task EnsureActiveResidenceAsync(int ownerId)
     {
         var residence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(ownerId);

@@ -156,4 +156,68 @@ public class VehicleServiceTests
         Assert.Equal(VehicleRegistrationStatus.Approved, vehicle.RegistrationStatus);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task CreateVehicle_WithColorAndImagePath_ShouldSucceed()
+    {
+        int ownerId = 10;
+        var vehicle = new Vehicle 
+        { 
+            LicensePlate = "29A-123.45", 
+            OwnerId = ownerId, 
+            VehicleType = VehicleType.Moto, 
+            Brand = "Honda", 
+            Color = "Đen", 
+            ImagePath = "/Assets/car.png" 
+        };
+
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
+        _mockVehicleRepo.Setup(r => r.GetByLicensePlateAsync(It.IsAny<string>())).ReturnsAsync((Vehicle?)null);
+
+        var created = await _service.CreateVehicleAsync(vehicle);
+
+        Assert.Equal("29A-123.45", created.LicensePlate);
+        Assert.Equal("Đen", created.Color);
+        Assert.Equal("/Assets/car.png", created.ImagePath);
+        Assert.NotEqual(default, created.RegistrationDate);
+        _mockVehicleRepo.Verify(r => r.AddAsync(vehicle), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateVehicle_WithColorAndImagePath_ShouldUpdateExistingFields()
+    {
+        int vehicleId = 7;
+        var existing = new Vehicle 
+        { 
+            Id = vehicleId, 
+            LicensePlate = "30G-456.78", 
+            OwnerId = 10, 
+            VehicleType = VehicleType.Car, 
+            Brand = "Toyota", 
+            Color = "Trắng" 
+        };
+
+        var updated = new Vehicle 
+        { 
+            Id = vehicleId, 
+            LicensePlate = "30G-456.78", 
+            OwnerId = 10, 
+            VehicleType = VehicleType.Car, 
+            Brand = "Toyota", 
+            Color = "Đen", 
+            ImagePath = "/Assets/new_car.png" 
+        };
+
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(vehicleId)).ReturnsAsync(existing);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+        _mockVehicleRepo.Setup(r => r.GetByLicensePlateAsync("30G-456.78")).ReturnsAsync(existing);
+
+        await _service.UpdateVehicleAsync(updated);
+
+        Assert.Equal("Đen", existing.Color);
+        Assert.Equal("/Assets/new_car.png", existing.ImagePath);
+        _mockVehicleRepo.Verify(r => r.Update(existing), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
 }

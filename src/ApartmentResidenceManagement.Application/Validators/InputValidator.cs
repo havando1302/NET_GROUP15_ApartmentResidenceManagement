@@ -25,7 +25,7 @@ public static class InputValidator
     public static bool ValidateLicensePlate(string? licensePlate)
     {
         if (string.IsNullOrWhiteSpace(licensePlate)) return false;
-        var cleaned = licensePlate.Replace(" ", "").ToUpper();
+        var cleaned = licensePlate.Replace(" ", "").Replace(".", "").ToUpper();
         return LicensePlateRegex.IsMatch(cleaned);
     }
 

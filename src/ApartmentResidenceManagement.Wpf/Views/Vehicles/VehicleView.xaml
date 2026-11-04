@@ -7,60 +7,69 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:enums="clr-namespace:ApartmentResidenceManagement.Domain.Enums;assembly=ApartmentResidenceManagement.Domain"
              mc:Ignorable="d"
-             d:DesignHeight="700" d:DesignWidth="1100"
-             Background="{StaticResource PageBgBrush}">
+             d:DesignHeight="850" d:DesignWidth="1280"
+             Background="#F8FAFC">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- DataGrid Header — Green Admin -->
+        <!-- Override System Highlight để loại bỏ viền đen mặc định của WPF DataGrid -->
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#EFF6FF"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#0F172A"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#F1F5F9"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#0F172A"/>
+
+        <!-- DataGrid Header Style -->
         <Style x:Key="AdminGridHeader" TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#F4F7F6"/>
-            <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#64748B"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="BorderThickness" Value="0,0,0,2"/>
-            <Setter Property="BorderBrush" Value="#C8E6C9"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,12"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
         </Style>
 
-        <!-- DataGrid Row -->
+        <!-- DataGrid Row Style -->
         <Style x:Key="AdminGridRow" TargetType="DataGridRow">
-            <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
+            <Setter Property="Background" Value="White"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="BorderBrush" Value="#F1F1F1"/>
+            <Setter Property="BorderBrush" Value="#F1F5F9"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Height" Value="42"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F0FAF6"/>
+                    <Setter Property="Background" Value="#F8FAFC"/>
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#C8EAD8"/>
-                    <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+                    <Setter Property="Background" Value="#EFF6FF"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <!-- Form TextBox -->
-        <Style x:Key="FormTextBox" TargetType="TextBox">
+        <!-- Form / Toolbar TextBox Style -->
+        <Style x:Key="SearchTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{StaticResource TextDarkBrush}"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="border" CornerRadius="6" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                        <Border x:Name="border" CornerRadius="8" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
                             <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource BorderHoverBrush}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="#CBD5E1"/>
                             </Trigger>
                             <Trigger Property="IsFocused" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="#2563EB"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -68,76 +77,62 @@
             </Setter>
         </Style>
 
-        <!-- Form ComboBox -->
-        <Style x:Key="FormComboBox" TargetType="ComboBox">
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="13"/>
+        <!-- Pagination Page Button -->
+        <Style x:Key="PageNavBtnStyle" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F1F5F9"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#CBD5E1"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2563EB"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsEllipsis}" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="Transparent"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="0"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                                <Setter Property="Foreground" Value="#94A3B8"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <!-- Nút chính Admin Green -->
-        <Style x:Key="AdminPrimaryBtn" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+        <!-- Nút icon nhỏ thao tác trong DataGrid -->
+        <Style x:Key="GridIconButton" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="2,0"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource TextDarkBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.5"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Nút phụ (Refresh, Hủy) -->
-        <Style x:Key="SecondaryBtn" TargetType="Button">
-            <Setter Property="Background" Value="#ECEFF1"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#CFD8DC"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Nút hành động trong DataGrid (nhỏ) -->
-        <Style x:Key="GridActionBtn" TargetType="Button">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -151,417 +146,813 @@
 
     </UserControl.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
+    <Grid Margin="24,20,24,20">
+        <!-- Main Grid Layout -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- 0. Header -->
+            <RowDefinition Height="Auto"/>  <!-- 1. KPI Stat Cards -->
+            <RowDefinition Height="*"/>     <!-- 2. Khối chính: Bảng danh sách + Tab Chi tiết -->
+        </Grid.RowDefinitions>
 
-        <!-- ===== CỘT TRÁI: DANH SÁCH ===== -->
-        <Grid Grid.Column="0" Margin="24,20,12,20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>  <!-- Header -->
-                <RowDefinition Height="Auto"/>  <!-- Toolbar -->
-                <RowDefinition Height="0"/>  <!-- Error chuyển thành Floating Toast -->
-                <RowDefinition Height="*"/>     <!-- DataGrid -->
-            </Grid.RowDefinitions>
-
-            <!-- HEADER -->
-            <Grid Grid.Row="0" Margin="0,0,0,16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Quản lý Phương tiện" FontSize="22" FontWeight="Bold"
-                               Foreground="{StaticResource TextDarkBrush}"/>
-                    <TextBlock Text="Quản lý phương tiện đăng ký cư trú của cư dân trong chung cư."
-                               FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
-                </StackPanel>
-                <!-- Tổng số bản ghi -->
-                <Border Grid.Column="1" CornerRadius="20" Padding="12,4"
-                        Background="#E8F5E9" VerticalAlignment="Center">
-                    <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextDarkBrush}">
-                        <Run Text="Tổng: "/>
-                        <Run Text="{Binding Vehicles.Count, Mode=OneWay}"/>
-                        <Run Text=" xe"/>
-                    </TextBlock>
+        <!-- ================= 0. HEADER TRANG ================= -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Icon ô tô tròn xanh dương -->
+                <Border Width="44" Height="44" CornerRadius="22" Background="#EFF6FF" Margin="0,0,14,0" VerticalAlignment="Center">
+                    <TextBlock Text="🚗" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-            </Grid>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Quản lý Phương tiện cá nhân" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="Tiếp nhận, kiểm tra hạn mức và phê duyệt đăng ký phương tiện của cư dân."
+                               FontSize="13" Foreground="#64748B" Margin="0,3,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
 
-            <!-- TOOLBAR: Search | Filter | Nút -->
-            <Border Grid.Row="1" Background="White" CornerRadius="10" Padding="16,12" Margin="0,0,0,12">
+        <!-- ================= 1. 4 STAT CARDS KPI ================= -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Card 1: Tổng phương tiện (48) -->
+            <Border Grid.Column="0" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="16,14">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="6" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="160"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-                    <!-- Tìm kiếm -->
-                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                        <TextBlock Text="Tìm kiếm" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
-                        <TextBox Style="{StaticResource FormTextBox}"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Tag="Tìm kiếm theo Biển số, Chủ xe, Số căn hộ..." Height="36"/>
-                    </StackPanel>
-
-                    <!-- Lọc Loại xe -->
-                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                        <TextBlock Text="Loại phương tiện" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
-                        <ComboBox Style="{StaticResource FormComboBox}"
-                                  ItemsSource="{Binding TypeFilterOptions}"
-                                  SelectedItem="{Binding SelectedTypeFilter}" Height="36"/>
-                    </StackPanel>
-
-                    <!-- Nút Làm mới -->
-                    <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                        <TextBlock Text=" " FontSize="11" Margin="0,0,0,4"/>
-                        <Button Style="{StaticResource SecondaryBtn}"
-                                Content="↻  Làm mới" Height="36"
-                                Command="{Binding LoadVehiclesCommand}"/>
-                    </StackPanel>
-
-                    <!-- Nút Thêm xe -->
-                    <StackPanel Grid.Column="3">
-                        <TextBlock Text=" " FontSize="11" Margin="0,0,0,4"/>
-                        <Button Style="{StaticResource AdminPrimaryBtn}"
-                                Content="＋  Đăng ký xe" Height="36"
-                                Command="{Binding OpenAddFormCommand}"/>
+                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#EFF6FF" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="🚗" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding TotalVehiclesCount, Mode=OneWay}" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Tổng phương tiện" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
-
-
-            <!-- DATA GRID CONTAINER -->
-            <Border Grid.Row="3" Background="White" CornerRadius="10" ClipToBounds="True">
+            <!-- Card 2: Đã duyệt (39) -->
+            <Border Grid.Column="2" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="16,14">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="6" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                 </Border.Effect>
                 <Grid>
-                    <!-- Loading State -->
-                    <Border Background="White" CornerRadius="10" Panel.ZIndex="10"
-                            Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock Text="⏳" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                            <TextBlock Text="Đang tải dữ liệu..." FontSize="14"
-                                       Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
-                        </StackPanel>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#DCFCE7" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="✅" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ApprovedVehiclesCount, Mode=OneWay}" FontSize="22" FontWeight="Bold" Foreground="#15803D"/>
+                        <TextBlock Text="Đã duyệt" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-                    <!-- Empty State -->
-                    <Border Background="White" CornerRadius="10" Panel.ZIndex="5">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsLoading}" Value="False"/>
-                                            <Condition Binding="{Binding HasError}" Value="False"/>
-                                            <Condition Binding="{Binding Vehicles.Count}" Value="0"/>
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Vehicles.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
+            <!-- Card 3: Chờ duyệt (6) -->
+            <Border Grid.Column="4" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="16,14">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#FEF3C7" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="🕒" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding PendingVehiclesCount, Mode=OneWay}" FontSize="22" FontWeight="Bold" Foreground="#B45309"/>
+                        <TextBlock Text="Chờ duyệt" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Card 4: Từ chối (3) -->
+            <Border Grid.Column="6" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="16,14">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#FEE2E2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="❌" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RejectedVehiclesCount, Mode=OneWay}" FontSize="22" FontWeight="Bold" Foreground="#B91C1C"/>
+                        <TextBlock Text="Từ chối" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= 2. KHỐI CHÍNH (CỘT TRÁI: BẢNG + CỘT PHẢI: CHI TIẾT) ================= -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <!-- Cột trái tự bung 100% khi tab chi tiết đóng -->
+                <ColumnDefinition Width="*"/>
+                <!-- Cột phải tự co thành 0 khi đóng -->
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== CỘT TRÁI: DANH SÁCH PHƯƠNG TIỆN ===== -->
+            <Border Grid.Column="0" Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18"
+                    VerticalAlignment="Stretch">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Color="#000000" Opacity="0.03"/>
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Tiêu đề Card + Nút Thêm mới -->
+                        <RowDefinition Height="Auto"/> <!-- Thanh công cụ tìm kiếm & lọc -->
+                        <RowDefinition Height="*"/>    <!-- Bảng DataGrid -->
+                        <RowDefinition Height="Auto"/> <!-- Thanh phân trang cố định ở đáy -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Tiêu đề Card + Nút + Thêm phương tiện -->
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📑" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Danh sách phương tiện" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Nút + Thêm phương tiện xanh dương nổi bật -->
+                        <Button Grid.Column="1" Height="36" Padding="16,0"
+                                Background="#2563EB" Foreground="White"
+                                FontWeight="SemiBold" FontSize="13"
+                                BorderThickness="0" Cursor="Hand"
+                                Command="{Binding OpenAddFormCommand}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
                                 </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="🚗" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                            <TextBlock Text="Không tìm thấy phương tiện nào" FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Hãy nhấn nút Đăng ký xe hoặc làm mới bộ lọc." FontSize="13"
-                                       Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="＋" FontSize="14" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Thêm phương tiện" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Thanh công cụ tìm kiếm & bộ lọc -->
+                    <Grid Grid.Row="1" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Ô tìm kiếm -->
+                        <TextBox Grid.Column="0" Style="{StaticResource SearchTextBoxStyle}"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="36" Margin="0,0,10,0" Tag="Tìm theo biển số, chủ phương tiện, căn hộ..."/>
+
+                        <!-- Lọc theo Loại xe -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <TextBlock Text="Loại xe:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox ItemsSource="{Binding TypeFilterOptions}"
+                                      SelectedItem="{Binding SelectedTypeFilter}"
+                                      Width="105" Height="36" FontSize="13"
+                                      VerticalContentAlignment="Center"/>
                         </StackPanel>
+
+                        <!-- Lọc theo Trạng thái -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <TextBlock Text="Trạng thái:" FontSize="13" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox ItemsSource="{Binding StatusFilterOptions}"
+                                      SelectedItem="{Binding SelectedStatusFilter}"
+                                      Width="115" Height="36" FontSize="13"
+                                      VerticalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Nút Làm mới -->
+                        <Button Grid.Column="3" Height="36" Padding="12,0"
+                                Background="#F1F5F9" Foreground="#475569"
+                                BorderBrush="#E2E8F0" BorderThickness="1"
+                                Cursor="Hand" Command="{Binding LoadVehiclesCommand}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🔄" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Làm mới" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Khung bảng DataGrid + Loading / Empty State -->
+                    <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" ClipToBounds="True">
+                        <Grid>
+                            <!-- Loading State -->
+                            <Border Background="White" Panel.ZIndex="10"
+                                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="⏳" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                    <TextBlock Text="Đang tải dữ liệu phương tiện..." FontSize="14" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Empty State -->
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,40"
+                                        Visibility="{Binding PagedVehicles.Count, Converter={StaticResource BoolToVis}}">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PagedVehicles.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="🚗" FontSize="44" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                <TextBlock Text="Không tìm thấy phương tiện nào" FontSize="16" FontWeight="SemiBold" Foreground="#475569" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Thử tìm kiếm với từ khóa khác hoặc bấm Làm mới." FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- DATAGRID PHƯƠNG TIỆN CHÍNH (HỖ TRỢ LĂN CHUỘT TỰ ĐỘNG CHUYỂN DÒNG / CHUYỂN TRANG) -->
+                            <DataGrid x:Name="VehiclesDataGrid"
+                                      ItemsSource="{Binding PagedVehicles}"
+                                      SelectedItem="{Binding SelectedVehicleItem}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      ColumnHeaderStyle="{StaticResource AdminGridHeader}"
+                                      RowStyle="{StaticResource AdminGridRow}"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#F1F5F9"
+                                      BorderThickness="0"
+                                      Background="Transparent"
+                                      SelectionMode="Single"
+                                      behaviors:DataGridRowNumbers.IsEnabled="True"
+                                      PreviewMouseWheel="OnVehiclesDataGridPreviewMouseWheel"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+                                <DataGrid.Columns>
+                                    <!-- Cột 1: STT -->
+                                    <DataGridTemplateColumn Header="#" Width="45">
+                                        <DataGridTemplateColumn.HeaderStyle>
+                                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTemplateColumn.HeaderStyle>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Path=(behaviors:DataGridRowNumbers.RowNumber), RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#64748B" FontSize="12.5"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Cột 2: Biển số (chữ đậm màu xanh dương #1D4ED8) -->
+                                    <DataGridTextColumn Header="Biển số" Binding="{Binding LicensePlate}" Width="1.2*" MinWidth="105">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Padding" Value="10,0"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                <Setter Property="Foreground" Value="#1D4ED8"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Cột 3: Loại xe -->
+                                    <DataGridTextColumn Header="Loại xe" Binding="{Binding VehicleTypeText}" Width="1*" MinWidth="85">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Padding" Value="10,0"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Cột 4: Hãng xe -->
+                                    <DataGridTextColumn Header="Hãng xe" Binding="{Binding Brand}" Width="1.1*" MinWidth="85">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Padding" Value="10,0"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Cột 5: Màu xe -->
+                                    <DataGridTextColumn Header="Màu xe" Binding="{Binding Color}" Width="1*" MinWidth="75">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Padding" Value="10,0"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Cột 6: Chủ phương tiện -->
+                                    <DataGridTextColumn Header="Chủ phương tiện" Binding="{Binding OwnerName}" Width="1.6*" MinWidth="130">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Padding" Value="10,0"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="FontWeight" Value="Medium"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Cột 7: Căn hộ -->
+                                    <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="0.9*" MinWidth="75">
+                                        <DataGridTextColumn.HeaderStyle>
+                                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTextColumn.HeaderStyle>
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="Foreground" Value="#0F172A"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+
+                                    <!-- Cột 8: Trạng thái (Badge bo tròn kèm chấm màu) -->
+                                    <DataGridTemplateColumn Header="Trạng thái" Width="1.2*" MinWidth="110">
+                                        <DataGridTemplateColumn.HeaderStyle>
+                                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTemplateColumn.HeaderStyle>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="12" Padding="10,4" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        Background="{Binding StatusBgColor}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Border Width="6" Height="6" CornerRadius="3"
+                                                                Background="{Binding StatusDotColor}"
+                                                                Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding RegistrationStatusText}"
+                                                                   Foreground="{Binding StatusFgColor}"
+                                                                   FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Cột 9: Thao tác (Icon mắt 👁 và icon bút chì ✏️) -->
+                                    <DataGridTemplateColumn Header="Thao tác" Width="90" MinWidth="85">
+                                        <DataGridTemplateColumn.HeaderStyle>
+                                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTemplateColumn.HeaderStyle>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <!-- Nút Xem chi tiết (Icon mắt 👁 xanh dương) -->
+                                                    <Button Style="{StaticResource GridIconButton}"
+                                                            Background="#EFF6FF"
+                                                            Command="{Binding DataContext.ViewVehicleDetailCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Xem chi tiết phương tiện">
+                                                        <TextBlock Text="👁" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+
+                                                    <!-- Nút Sửa (Icon bút chì ✏️ cam) -->
+                                                    <Button Style="{StaticResource GridIconButton}"
+                                                            Background="#FEF3C7"
+                                                            Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Cập nhật phương tiện">
+                                                        <TextBlock Text="✏️" FontSize="12" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </Border>
 
-                    <!-- DataGrid -->
-                    <DataGrid behaviors:DataGridRowNumbers.IsEnabled="True" ItemsSource="{Binding Vehicles}"
-                              SelectedItem="{Binding SelectedVehicleItem}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              IsReadOnly="True"
-                              HeadersVisibility="Column"
-                              ColumnHeaderStyle="{StaticResource AdminGridHeader}"
-                              RowStyle="{StaticResource AdminGridRow}"
-                              GridLinesVisibility="None"
-                              BorderThickness="0"
-                              Background="Transparent"
-                              SelectionMode="Single"
-                              VirtualizingPanel.IsVirtualizing="True"
-                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                              ScrollViewer.VerticalScrollBarVisibility="Auto">
-                        <DataGrid.Columns>
+                    <!-- THANH PHÂN TRANG (CỐ ĐỊNH Ở ĐÁY CARD) -->
+                    <Grid Grid.Row="3" Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                            <!-- STT -->
-                            <DataGridTemplateColumn Header="#" Width="50">
-                                <DataGridTemplateColumn.HeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTemplateColumn.HeaderStyle>
-                                <DataGridTemplateColumn.CellTemplate>
+                        <!-- Text hiển thị: Hiển thị 8 / 48 phương tiện -->
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12.5" Foreground="#64748B">
+                            <Run Text="Hiển thị "/>
+                            <Run Text="{Binding PagedVehicles.Count, Mode=OneWay}" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            <Run Text=" / "/>
+                            <Run Text="{Binding TotalItems, Mode=OneWay}" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            <Run Text=" phương tiện"/>
+                        </TextBlock>
+
+                        <!-- Dãy nút chuyển trang: < 1 2 3 ... 6 > -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <!-- Nút < -->
+                            <Button Style="{StaticResource PageNavBtnStyle}" Content="‹"
+                                    Command="{Binding PreviousPageCommand}"
+                                    ToolTip="Trang trước"/>
+
+                            <!-- Danh sách số trang -->
+                            <ItemsControl ItemsSource="{Binding PaginationPages}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Path=(behaviors:DataGridRowNumbers.RowNumber), RelativeSource={RelativeSource AncestorType=DataGridRow}}"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Style="{StaticResource PageNavBtnStyle}"
+                                                Content="{Binding DisplayText}"
+                                                Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                            <!-- Biển Số Xe (Căn giữa) -->
-                            <DataGridTextColumn Header="Biển số xe" Binding="{Binding LicensePlate}" Width="1.5*">
-                                <DataGridTextColumn.HeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.HeaderStyle>
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
+                            <!-- Nút > -->
+                            <Button Style="{StaticResource PageNavBtnStyle}" Content="›"
+                                    Command="{Binding NextPageCommand}"
+                                    ToolTip="Trang kế tiếp"/>
+                        </StackPanel>
 
-                            <!-- Loại Xe (Căn giữa - Badge) -->
-                            <DataGridTemplateColumn Header="Loại xe" Width="1.2*">
-                                <DataGridTemplateColumn.HeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTemplateColumn.HeaderStyle>
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Car}">
-                                                            <Setter Property="Background" Value="#E3F2FD"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Moto}">
-                                                            <Setter Property="Background" Value="#E8F5E9"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Bicycle}">
-                                                            <Setter Property="Background" Value="#FFF3E0"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock FontWeight="SemiBold" FontSize="12">
+                        <!-- Chọn số dòng mỗi trang: Số dòng/trang: [ 8 ▾ ] -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Số dòng/trang:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox ItemsSource="{Binding PageSizeOptions}"
+                                      SelectedItem="{Binding PageSize}"
+                                      Width="68" Height="32"
+                                      FontSize="12.5"
+                                      VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- ===== CỘT PHẢI: CHI TIẾT PHƯƠNG TIỆN (CHỈ HIỂN THỊ KHI BẤM ICON 👁 XEM CHI TIẾT, CÓ DẤU X TẮT TAB) ===== -->
+            <Border Grid.Column="1" Width="370" Margin="16,0,0,0"
+                    Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18,16"
+                    VerticalAlignment="Stretch"
+                    Visibility="{Binding IsDetailPanelOpen, Converter={StaticResource BoolToVis}}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Color="#000000" Opacity="0.03"/>
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Header + Nút X tắt tab -->
+                        <RowDefinition Height="*"/>    <!-- Scrollable Detail Body -->
+                        <RowDefinition Height="Auto"/> <!-- Nút hành động phê duyệt / từ chối ở đáy -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Header: ⓘ Chi tiết phương tiện + Nút ✕ Tắt tab -->
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="26" Height="26" CornerRadius="13" Background="#EFF6FF" Margin="0,0,8,0">
+                                <TextBlock Text="ⓘ" FontSize="14" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Chi tiết phương tiện" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Nút ✕ Đóng tab chi tiết -->
+                        <Button Command="{Binding CloseDetailCommand}"
+                                HorizontalAlignment="Right" Background="Transparent" BorderThickness="0"
+                                Cursor="Hand" Padding="6,2" ToolTip="Đóng tab chi tiết">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bdClose" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <TextBlock x:Name="txtClose" Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bdClose" Property="Background" Value="#F1F5F9"/>
+                                            <Setter TargetName="txtClose" Property="Foreground" Value="#0F172A"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <!-- Body chi tiết: Hỗ trợ lăn chuột mượt mà -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  PreviewMouseWheel="OnDetailPreviewMouseWheel">
+                        <StackPanel Margin="0,0,4,0">
+                            <!-- Card Hero: Ảnh / Icon minh họa + Biển số + Loại • Hãng • Màu + Trạng thái -->
+                            <Border Background="#EFF6FF" CornerRadius="14" Padding="14" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Hình ảnh xe hoặc Icon vector minh họa -->
+                                    <Border Grid.Column="0" Width="72" Height="72" CornerRadius="12" Background="White"
+                                            BorderBrush="#DBEAFE" BorderThickness="1" Margin="0,0,12,0" VerticalAlignment="Center" ClipToBounds="True">
+                                        <Grid>
+                                            <!-- Nếu có ImagePath -->
+                                            <Image Source="{Binding SelectedVehicleItem.ImagePath}" Stretch="UniformToFill"
+                                                   Visibility="{Binding SelectedVehicleItem.ImagePath, Converter={StaticResource BoolToVis}}"/>
+                                            <!-- Nếu không có ImagePath -> Hiển thị icon theo loại xe -->
+                                            <TextBlock Text="🛵" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Car}">
-                                                                <Setter Property="Text" Value="🚗 Ô tô"/>
-                                                                <Setter Property="Foreground" Value="#0D47A1"/>
+                                                            <DataTrigger Binding="{Binding SelectedVehicleItem.VehicleType}" Value="{x:Static enums:VehicleType.Car}">
+                                                                <Setter Property="Text" Value="🚗"/>
                                                             </DataTrigger>
-                                                            <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Moto}">
-                                                                <Setter Property="Text" Value="🏍 Xe máy"/>
-                                                                <Setter Property="Foreground" Value="#1B8A5A"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Bicycle}">
-                                                                <Setter Property="Text" Value="🚲 Xe đạp"/>
-                                                                <Setter Property="Foreground" Value="#D17A00"/>
+                                                            <DataTrigger Binding="{Binding SelectedVehicleItem.VehicleType}" Value="{x:Static enums:VehicleType.Bicycle}">
+                                                                <Setter Property="Text" Value="🚲"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Thông tin tóm tắt bên phải Hero Card -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <!-- Biển số to đậm -->
+                                        <TextBlock Text="{Binding SelectedVehicleItem.LicensePlate, Mode=OneWay}"
+                                                   FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+
+                                        <!-- Dòng phụ: Loại xe • Hãng • Màu -->
+                                        <TextBlock FontSize="12.5" Foreground="#64748B" Margin="0,3,0,6">
+                                            <Run Text="{Binding SelectedVehicleItem.VehicleTypeText, Mode=OneWay}"/>
+                                            <Run Text=" • "/>
+                                            <Run Text="{Binding SelectedVehicleItem.Brand, Mode=OneWay}"/>
+                                            <Run Text=" • "/>
+                                            <Run Text="{Binding SelectedVehicleItem.Color, Mode=OneWay}"/>
+                                        </TextBlock>
+
+                                        <!-- Badge trạng thái -->
+                                        <Border HorizontalAlignment="Left" CornerRadius="10" Padding="8,3"
+                                                Background="{Binding SelectedVehicleItem.StatusBgColor}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Border Width="5" Height="5" CornerRadius="2.5"
+                                                        Background="{Binding SelectedVehicleItem.StatusDotColor}"
+                                                        Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SelectedVehicleItem.RegistrationStatusText}"
+                                                           Foreground="{Binding SelectedVehicleItem.StatusFgColor}"
+                                                           FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </Border>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
 
-                            <!-- Hiệu xe (Căn trái) -->
-                            <DataGridTextColumn Header="Hiệu xe" Binding="{Binding Brand}" Width="1.2*">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Padding" Value="12,0"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Chủ sở hữu (Căn trái) -->
-                            <DataGridTextColumn Header="Chủ sở hữu" Binding="{Binding OwnerName}" Width="1.8*">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Padding" Value="12,0"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Căn hộ (Căn giữa) -->
-                            <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="1.1*">
-                                <DataGridTextColumn.HeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.HeaderStyle>
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Trạng thái phê duyệt -->
-                            <DataGridTemplateColumn Header="Trạng thái" Width="1.2*">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Center">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="#FFF3E0"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Approved}">
-                                                            <Setter Property="Background" Value="#E8F5E9"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
-                                                            <Setter Property="Background" Value="#FFEBEE"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="{Binding RegistrationStatusText}" FontSize="12" FontWeight="SemiBold"/>
-                                        </Border>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <!-- Thao tác (Căn giữa) -->
-                            <DataGridTemplateColumn Header="Thao tác" Width="2.5*">
-                                <DataGridTemplateColumn.HeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
-                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTemplateColumn.HeaderStyle>
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Button Style="{StaticResource GridActionBtn}"
-                                                    Background="#E8F5E9" Foreground="{StaticResource SuccessBrush}"
-                                                    Content="Duyệt" Margin="0,0,6,0"
-                                                    Command="{Binding DataContext.ApproveVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
-                                            <Button Style="{StaticResource GridActionBtn}"
-                                                    Background="#FFEBEE" Foreground="{StaticResource ErrorBrush}"
-                                                    Content="Từ chối" Margin="0,0,6,0"
-                                                    Command="{Binding DataContext.RejectVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
-                                            <!-- Sửa -->
-                                            <Button Style="{StaticResource GridActionBtn}"
-                                                    Background="#FFF3E0" Foreground="#E65100"
-                                                    Content="Sửa" Margin="0,0,6,0"
-                                                    Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
-                                            <!-- Xóa -->
-                                            <Button Style="{StaticResource GridActionBtn}"
-                                                    Background="#FFEBEE" Foreground="{StaticResource ErrorBrush}"
-                                                    Content="Xóa"
-                                                    Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
+                            <!-- Khối: Thông tin đăng ký -->
+                            <TextBlock Text="Thông tin đăng ký" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,10"/>
+                            <Border Background="#F8FAFC" CornerRadius="12" Padding="12,10" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <!-- Chủ phương tiện -->
+                                    <Grid Margin="0,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="👤" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
+                                            <TextBlock Text="Chủ phương tiện:" FontSize="12.5" Foreground="#64748B"/>
                                         </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                                        <TextBlock Text="{Binding SelectedVehicleItem.OwnerName}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    </Grid>
 
-                        </DataGrid.Columns>
-                    </DataGrid>
+                                    <!-- Căn hộ -->
+                                    <Grid Margin="0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🏠" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
+                                            <TextBlock Text="Căn hộ:" FontSize="12.5" Foreground="#64748B"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedVehicleItem.ApartmentNumber}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    </Grid>
+
+                                    <!-- Loại xe -->
+                                    <Grid Margin="0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🪪" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
+                                            <TextBlock Text="Loại xe:" FontSize="12.5" Foreground="#64748B"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedVehicleItem.VehicleTypeText}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    </Grid>
+
+                                    <!-- Hãng xe -->
+                                    <Grid Margin="0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🏷" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
+                                            <TextBlock Text="Hãng xe:" FontSize="12.5" Foreground="#64748B"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedVehicleItem.Brand}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    </Grid>
+
+                                    <!-- Màu xe -->
+                                    <Grid Margin="0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🎨" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
+                                            <TextBlock Text="Màu xe:" FontSize="12.5" Foreground="#64748B"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedVehicleItem.Color}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    </Grid>
+
+                                    <!-- Ngày đăng ký -->
+                                    <Grid Margin="0,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📅" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
+                                            <TextBlock Text="Ngày đăng ký:" FontSize="12.5" Foreground="#64748B"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedVehicleItem.RegistrationDateFormatted}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Khối: Hạn mức phương tiện của căn hộ -->
+                            <TextBlock Text="{Binding ApartmentQuotaTitle}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,10"/>
+                            <Border Background="#F8FAFC" CornerRadius="12" Padding="12,12" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <!-- Hạn mức Xe máy -->
+                                    <Grid Margin="0,0,0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🛵" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Xe máy:" FontSize="12.5" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding MotoQuotaText}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <!-- ProgressBar Xe máy (xanh lá #16A34A) -->
+                                    <ProgressBar Height="6" Value="{Binding MotoQuotaPercent, Mode=OneWay}"
+                                                 Foreground="#16A34A" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,12"/>
+
+                                    <!-- Hạn mức Ô tô -->
+                                    <Grid Margin="0,0,0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🚗" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Ô tô:" FontSize="12.5" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding CarQuotaText}" HorizontalAlignment="Right"
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <!-- ProgressBar Ô tô (vàng cam #EAB308) -->
+                                    <ProgressBar Height="6" Value="{Binding CarQuotaPercent, Mode=OneWay}"
+                                                 Foreground="#EAB308" Background="#E2E8F0" BorderThickness="0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Chân tab: 2 Nút Phê duyệt / Từ chối -->
+                    <Grid Grid.Row="2" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Nút ✓ Phê duyệt -->
+                        <Button Grid.Column="0" Height="38" Background="#16A34A" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                                Command="{Binding ApproveSelectedVehicleCommand}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="✓" FontSize="13" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Phê duyệt" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Nút ✕ Từ chối -->
+                        <Button Grid.Column="2" Height="38" Background="#FFF1F2" Foreground="#DC2626"
+                                BorderBrush="#FECDD3" BorderThickness="1" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                                Command="{Binding RejectSelectedVehicleCommand}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="✕" FontSize="12" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Từ chối" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- ===== CỘT PHẢI: FORM MODAL OVERLAY ===== -->
-        <!-- Đứng đè lên toàn màn hình (Grid ColumnSpan=2) che phủ cả sidebar và content -->
-        <Grid Grid.Column="0" Grid.ColumnSpan="2" Panel.ZIndex="200"
-              Visibility="{Binding IsFormOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <!-- ===== MODAL OVERLAY: FORM ĐĂNG KÝ / CẬP NHẬT PHƯƠNG TIỆN ===== -->
+        <Grid Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="300"
+              Visibility="{Binding IsFormOpen, Converter={StaticResource BoolToVis}}">
 
-            <!-- Lớp phủ mờ xám nhẹ nhạt phía sau -->
-            <Border Background="#66000000" InputScope="Default">
+            <!-- Lớp phủ mờ xám nhẹ phía sau -->
+            <Border Background="#66000000">
                 <Border.InputBindings>
-                    <!-- Click overlay để cancel đóng modal -->
                     <MouseBinding MouseAction="LeftClick" Command="{Binding CancelFormCommand}"/>
                 </Border.InputBindings>
             </Border>
 
             <!-- Card Dialog nổi ở trung tâm -->
-            <Border MaxWidth="440" Margin="16,24"
-                    Background="White" CornerRadius="10" Padding="24"
+            <Border MaxWidth="460" Margin="16,24"
+                    Background="White" CornerRadius="16" Padding="24"
                     HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="15" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.15"/>
+                    <DropShadowEffect BlurRadius="20" Direction="0" ShadowDepth="2" Color="#000000" Opacity="0.15"/>
                 </Border.Effect>
+
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                        <Border Width="40" Height="4" CornerRadius="2"
-                                Background="{StaticResource PrimaryBrush}"
-                                HorizontalAlignment="Left" Margin="0,0,0,10"/>
-                        <TextBlock Text="{Binding FormTitle}" FontSize="15" FontWeight="Bold"
-                                   Foreground="{StaticResource TextDarkBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                    <!-- Header Form -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel>
+                            <Border Width="40" Height="4" CornerRadius="2"
+                                    Background="#2563EB" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+                            <TextBlock Text="{Binding FormTitle}" FontSize="16" FontWeight="Bold"
+                                       Foreground="#0F172A" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Command="{Binding CancelFormCommand}"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4">
+                            <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
+                        </Button>
+                    </Grid>
 
-                    <!-- Body -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="450">
+                    <!-- Body Form -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="480">
                         <StackPanel>
                             <!-- Biển số xe -->
-                            <StackPanel Margin="0,0,0,14">
-                                <TextBlock Text="Biển số xe (Ví dụ: 29A1-12345)" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                                <TextBox Style="{StaticResource FormTextBox}"
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Biển số xe (Ví dụ: 29A-123.45) *" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#475569" Margin="0,0,0,5"/>
+                                <TextBox Style="{StaticResource SearchTextBoxStyle}"
                                          Text="{Binding EditingVehicle.LicensePlate, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
 
-                            <!-- Loại xe -->
-                            <StackPanel Margin="0,0,0,14">
-                                <TextBlock Text="Loại phương tiện" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                                <ComboBox Style="{StaticResource FormComboBox}"
-                                          ItemsSource="{Binding VehicleTypes}"
-                                          SelectedItem="{Binding EditingVehicle.VehicleType}">
+                            <!-- Loại phương tiện -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Loại phương tiện *" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#475569" Margin="0,0,0,5"/>
+                                <ComboBox ItemsSource="{Binding VehicleTypes}"
+                                          SelectedItem="{Binding EditingVehicle.VehicleType}"
+                                          Height="36" FontSize="13" VerticalContentAlignment="Center">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock>
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding}" Value="{x:Static enums:VehicleType.Moto}">
-                                                                <Setter Property="Text" Value="Xe Máy"/>
-                                                            </DataTrigger>
                                                             <DataTrigger Binding="{Binding}" Value="{x:Static enums:VehicleType.Car}">
-                                                                <Setter Property="Text" Value="Ô Tô"/>
+                                                                <Setter Property="Text" Value="🚗 Ô tô"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding}" Value="{x:Static enums:VehicleType.Moto}">
+                                                                <Setter Property="Text" Value="🏍 Xe máy"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding}" Value="{x:Static enums:VehicleType.Bicycle}">
-                                                                <Setter Property="Text" Value="Xe Đạp"/>
+                                                                <Setter Property="Text" Value="🚲 Xe đạp"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -572,44 +963,90 @@
                                 </ComboBox>
                             </StackPanel>
 
-                            <!-- Hiệu xe -->
-                            <StackPanel Margin="0,0,0,14">
-                                <TextBlock Text="Hiệu xe (Ví dụ: Honda, Yamaha, Toyota)" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                                <TextBox Style="{StaticResource FormTextBox}"
+                            <!-- Hãng xe -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Hãng xe (Ví dụ: Honda, Toyota, Yamaha)" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#475569" Margin="0,0,0,5"/>
+                                <TextBox Style="{StaticResource SearchTextBoxStyle}"
                                          Text="{Binding EditingVehicle.Brand, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
 
-                            <!-- Chủ sở hữu xe -->
-                            <StackPanel Margin="0,0,0,4">
-                                <TextBlock Text="Chủ sở hữu (Cư dân có cư trú)" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                                <ComboBox Style="{StaticResource FormComboBox}"
-                                          ItemsSource="{Binding ActiveResidents}"
+                            <!-- Màu xe -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Màu xe (Ví dụ: Đen, Trắng, Xanh, Đỏ, Xám)" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#475569" Margin="0,0,0,5"/>
+                                <TextBox Style="{StaticResource SearchTextBoxStyle}"
+                                         Text="{Binding EditingVehicle.Color, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <!-- Chủ sở hữu (Cư dân đang cư trú) -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Chủ phương tiện (Cư dân đang cư trú) *" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#475569" Margin="0,0,0,5"/>
+                                <ComboBox ItemsSource="{Binding ActiveResidents}"
                                           SelectedValue="{Binding EditingVehicle.OwnerId}"
                                           SelectedValuePath="Id"
-                                          DisplayMemberPath="FullName"/>
+                                          DisplayMemberPath="FullName"
+                                          Height="36" FontSize="13" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Hình ảnh phương tiện -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Hình ảnh phương tiện" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#475569" Margin="0,0,0,5"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Style="{StaticResource SearchTextBoxStyle}"
+                                             Text="{Binding EditingVehicle.ImagePath, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="36" Margin="0,0,8,0" Tag="Đường dẫn ảnh xe..."/>
+                                    <Button Grid.Column="1" Height="36" Padding="12,0" Background="#EFF6FF" Foreground="#2563EB"
+                                            BorderBrush="#DBEAFE" BorderThickness="1" FontWeight="Medium" Cursor="Hand"
+                                            Command="{Binding SelectImageCommand}">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="8"/>
+                                            </Style>
+                                        </Button.Resources>
+                                        <TextBlock Text="Chọn tệp..."/>
+                                    </Button>
+                                </Grid>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Nút bấm ở chân -->
-
-                    <Grid Grid.Row="3" Margin="0,12,0,0">
+                    <!-- Nút bấm ở chân Form -->
+                    <Grid Grid.Row="2" Margin="0,16,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Hủy" Style="{StaticResource SecondaryBtn}" Margin="0,0,6,0"
-                                Command="{Binding CancelFormCommand}"/>
-                        <Button Grid.Column="1" Content="Lưu" Style="{StaticResource AdminPrimaryBtn}" Margin="6,0,0,0"
-                                Command="{Binding SaveVehicleCommand}"/>
+                        <Button Grid.Column="0" Content="Hủy" Height="38" Background="#F1F5F9" Foreground="#475569"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Command="{Binding CancelFormCommand}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        <Button Grid.Column="2" Content="Lưu thông tin" Height="38" Background="#2563EB" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Command="{Binding SaveVehicleCommand}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </Grid>
                 </Grid>
             </Border>
         </Grid>
+
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
-        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+        <StackPanel Grid.Row="0" Grid.RowSpan="3" HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
             <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
         </StackPanel>

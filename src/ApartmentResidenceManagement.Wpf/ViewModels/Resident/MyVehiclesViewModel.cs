@@ -1,4 +1,4 @@
-﻿using ApartmentResidenceManagement.Wpf.Services;
+using ApartmentResidenceManagement.Wpf.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,6 +10,7 @@ using ApartmentResidenceManagement.Domain.Enums;
 using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Application.Services;
 using ApartmentResidenceManagement.Wpf.Commands;
+using Microsoft.Win32;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
 
@@ -31,7 +32,7 @@ public class MyVehiclesViewModel : ViewModelBase
     private Vehicle? _selectedVehicle;
     private Vehicle _editingVehicle = new();
     private bool _isFormOpen;
-    private string _formTitle = "ĐĂNG KÝ XE CỦA TÔI";
+    private string _formTitle = "ĐĂNG KÝ PHƯƠNG TIỆN MỚI";
 
     // Báo lỗi/Thành công
     private string _errorMessage = string.Empty;
@@ -136,6 +137,7 @@ public class MyVehiclesViewModel : ViewModelBase
     public ICommand SaveVehicleCommand { get; }
     public ICommand CancelFormCommand { get; }
     public ICommand DeleteVehicleCommand { get; }
+    public ICommand SelectImageCommand { get; }
     #endregion
 
     public MyVehiclesViewModel(VehicleService vehicleService, ResidenceService residenceService)
@@ -148,6 +150,20 @@ public class MyVehiclesViewModel : ViewModelBase
         SaveVehicleCommand = new AsyncRelayCommand(_ => SaveVehicleAsync());
         CancelFormCommand = new RelayCommand(_ => CloseForm());
         DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
+
+        SelectImageCommand = new RelayCommand(_ =>
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Hình ảnh (*.jpg;*.jpeg;*.png;*.webp)|*.jpg;*.jpeg;*.png;*.webp|Tất cả tệp (*.*)|*.*",
+                Title = "Chọn hình ảnh xe"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                EditingVehicle.ImagePath = dialog.FileName;
+                OnPropertyChanged(nameof(EditingVehicle));
+            }
+        });
     }
 
     public void Initialize(UserAccount account)
@@ -215,7 +231,8 @@ public class MyVehiclesViewModel : ViewModelBase
             string keyword = SearchText.Trim().ToLower();
             filtered = filtered.Where(v =>
                 v.LicensePlate.ToLower().Contains(keyword) ||
-                (v.Brand != null && v.Brand.ToLower().Contains(keyword)));
+                (v.Brand != null && v.Brand.ToLower().Contains(keyword)) ||
+                (v.Color != null && v.Color.ToLower().Contains(keyword)));
         }
 
         Vehicles.Clear();
@@ -232,7 +249,8 @@ public class MyVehiclesViewModel : ViewModelBase
         EditingVehicle = new Vehicle
         {
             VehicleType = VehicleType.Moto,
-            OwnerId = _account?.Resident?.Id ?? 0
+            OwnerId = _account?.Resident?.Id ?? 0,
+            RegistrationDate = DateTime.Now
         };
         IsFormOpen = true;
     }
@@ -247,7 +265,11 @@ public class MyVehiclesViewModel : ViewModelBase
             LicensePlate = vehicle.LicensePlate,
             VehicleType = vehicle.VehicleType,
             Brand = vehicle.Brand,
-            OwnerId = vehicle.OwnerId
+            Color = vehicle.Color,
+            ImagePath = vehicle.ImagePath,
+            RegistrationDate = vehicle.RegistrationDate,
+            OwnerId = vehicle.OwnerId,
+            RegistrationStatus = vehicle.RegistrationStatus
         };
         IsFormOpen = true;
     }
