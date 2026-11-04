@@ -54,7 +54,7 @@
 
         <Style TargetType="DataGridCell" BasedOn="{StaticResource ModernDataGridCell}"/>
 
-        <!-- Modern DataGrid Row -->
+        <!-- Modern DataGrid Row (Không tự động mở panel khi click dòng, chỉ chọn dòng) -->
         <Style x:Key="ModernResidentDataGridRow" TargetType="DataGridRow">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
@@ -64,7 +64,6 @@
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <EventSetter Event="PreviewMouseLeftButtonUp" Handler="OnResidentRowPreviewMouseLeftButtonUp"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F8FAFC"/>
@@ -282,13 +281,13 @@
 
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/> <!-- Tiêu đề Card + Nút Thao tác -->
+                            <RowDefinition Height="Auto"/> <!-- Tiêu đề Card + Nút Thêm mới -->
                             <RowDefinition Height="Auto"/> <!-- Thanh công cụ tìm kiếm & bộ lọc -->
                             <RowDefinition Height="*"/>    <!-- Bảng DataGrid -->
                             <RowDefinition Height="Auto"/> <!-- Thanh phân trang cố định ở đáy -->
                         </Grid.RowDefinitions>
 
-                        <!-- Tiêu đề card + Nút Xem chi tiết (khi đóng tab) + Nút Thêm cư dân -->
+                        <!-- Tiêu đề card + Nút Thêm cư dân (Đã bỏ nút Xem chi tiết trên toolbar theo note người dùng) -->
                         <Grid Grid.Row="0" Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -300,44 +299,22 @@
                                 <TextBlock Text="Danh sách cư dân" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Nút Xem chi tiết xuất hiện khi tab chi tiết đang đóng để người dùng dễ dàng mở lại -->
-                                <Button Height="36" Padding="12,0" Margin="0,0,8,0"
-                                        Command="{Binding ToggleDetailCommand}"
-                                        ToolTip="Mở lại tab chi tiết cư dân">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource OutlineButton}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsDetailPanelOpen}" Value="False">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="🪪" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Xem chi tiết" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Nút + Thêm cư dân xanh dương nổi bật -->
-                                <Button Height="36" Padding="16,0"
-                                        Background="#2563EB" Foreground="White"
-                                        FontWeight="SemiBold" FontSize="13"
-                                        BorderThickness="0" Cursor="Hand"
-                                        Command="{Binding OpenAddFormCommand}">
-                                    <Button.Resources>
-                                        <Style TargetType="Border">
-                                            <Setter Property="CornerRadius" Value="8"/>
-                                        </Style>
-                                    </Button.Resources>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="＋" FontSize="14" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Thêm cư dân" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
+                            <!-- Nút + Thêm cư dân xanh dương nổi bật -->
+                            <Button Grid.Column="1" Height="36" Padding="16,0"
+                                    Background="#2563EB" Foreground="White"
+                                    FontWeight="SemiBold" FontSize="13"
+                                    BorderThickness="0" Cursor="Hand"
+                                    Command="{Binding OpenAddFormCommand}">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="8"/>
+                                    </Style>
+                                </Button.Resources>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="＋" FontSize="14" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Thêm cư dân" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </Grid>
 
                         <!-- Thanh công cụ tìm kiếm & lọc -->
@@ -474,21 +451,20 @@
                                         </DataGridTextColumn>
 
                                         <!-- Cột 2: Mã cư dân (CD001) -->
-                                        <DataGridTextColumn Header="Mã cư dân" Binding="{Binding ResidentCode}" Width="90">
+                                        <DataGridTextColumn Header="Mã cư dân" Binding="{Binding ResidentCode}" Width="85">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                                                    <Setter Property="HorizontalAlignment" Value="Center"/>
                                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                                     <Setter Property="FontWeight" Value="Bold"/>
                                                     <Setter Property="Foreground" Value="#1D4ED8"/>
                                                     <Setter Property="FontSize" Value="13"/>
-                                                    <Setter Property="Margin" Value="4,0,0,0"/>
                                                 </Style>
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
 
-                                        <!-- Cột 3: Họ và tên -->
-                                        <DataGridTextColumn Header="Họ và tên" Binding="{Binding FullName}" Width="1.3*">
+                                        <!-- Cột 3: Họ và tên (Tỷ lệ 2* co dãn đều) -->
+                                        <DataGridTextColumn Header="Họ và tên" Binding="{Binding FullName}" Width="2*" MinWidth="135">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -496,12 +472,13 @@
                                                     <Setter Property="FontWeight" Value="SemiBold"/>
                                                     <Setter Property="Foreground" Value="#1E293B"/>
                                                     <Setter Property="FontSize" Value="13"/>
+                                                    <Setter Property="Margin" Value="12,0"/>
                                                 </Style>
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
 
-                                        <!-- Cột 4: Ngày sinh -->
-                                        <DataGridTextColumn Header="Ngày sinh" Binding="{Binding DateOfBirthFormatted}" Width="100">
+                                        <!-- Cột 4: Ngày sinh (Tỷ lệ 1.1* co dãn đều) -->
+                                        <DataGridTextColumn Header="Ngày sinh" Binding="{Binding DateOfBirthFormatted}" Width="1.1*" MinWidth="95">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -512,8 +489,8 @@
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
 
-                                        <!-- Cột 5: Số định danh (CCCD) -->
-                                        <DataGridTextColumn Header="Số định danh" Binding="{Binding IdentityCard}" Width="125">
+                                        <!-- Cột 5: Số định danh (CCCD) (Tỷ lệ 1.3* co dãn đều) -->
+                                        <DataGridTextColumn Header="Số định danh" Binding="{Binding IdentityCard}" Width="1.3*" MinWidth="115">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -524,8 +501,8 @@
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
 
-                                        <!-- Cột 6: Căn hộ -->
-                                        <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="85">
+                                        <!-- Cột 6: Căn hộ (Tỷ lệ 0.9* co dãn đều) -->
+                                        <DataGridTextColumn Header="Căn hộ" Binding="{Binding ApartmentNumber}" Width="0.9*" MinWidth="75">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -537,8 +514,8 @@
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
 
-                                        <!-- Cột 7: Trạng thái (Badge bo tròn kèm chấm tròn màu) -->
-                                        <DataGridTemplateColumn Header="Trạng thái" Width="125">
+                                        <!-- Cột 7: Trạng thái (Badge bo tròn kèm chấm tròn màu, Tỷ lệ 1.2* co dãn đều) -->
+                                        <DataGridTemplateColumn Header="Trạng thái" Width="1.2*" MinWidth="110">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Border CornerRadius="12" Padding="8,4"
@@ -560,70 +537,53 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- Cột 8: Thao tác (3 nút tròn: 👁 Xem, ✏️ Sửa, 🗑️ Xóa) -->
-                                        <DataGridTemplateColumn Header="Thao tác" Width="125">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                        <!-- Nút 1: Xem chi tiết (👁 Xanh dương) -->
-                                                        <Button Width="28" Height="28" Margin="2,0"
-                                                                ToolTip="Xem chi tiết cư dân"
-                                                                Command="{Binding DataContext.ViewResidentDetailCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                                CommandParameter="{Binding}">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="1" CornerRadius="14" x:Name="btnBorder">
-                                                                        <TextBlock Text="👁" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="btnBorder" Property="Background" Value="#DBEAFE"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                        </Button>
+                                        <!-- Cột 8: Thao tác (Chỉ 2 nút: 👁 Xem chi tiết, ✏️ Sửa thông tin. ĐÃ BỎ NÚT XÓA 🗑️ ĐỂ BẢO TOÀN DỮ LIỆU) -->
+                                        <DataGridTemplateColumn Header="Thao tác" Width="85">
+                                             <DataGridTemplateColumn.CellTemplate>
+                                                 <DataTemplate>
+                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                         <!-- Nút 1: Xem chi tiết (👁 Xanh dương - Kích hoạt mở panel chi tiết) -->
+                                                         <Button Width="30" Height="30" Margin="3,0"
+                                                                 ToolTip="Xem chi tiết cư dân"
+                                                                 Command="{Binding DataContext.ViewResidentDetailCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                 CommandParameter="{Binding}">
+                                                             <Button.Template>
+                                                                 <ControlTemplate TargetType="Button">
+                                                                     <Border Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="1" CornerRadius="15" x:Name="btnBorder">
+                                                                         <TextBlock Text="👁" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                     </Border>
+                                                                     <ControlTemplate.Triggers>
+                                                                         <Trigger Property="IsMouseOver" Value="True">
+                                                                             <Setter TargetName="btnBorder" Property="Background" Value="#DBEAFE"/>
+                                                                             <Setter TargetName="btnBorder" Property="BorderBrush" Value="#93C5FD"/>
+                                                                         </Trigger>
+                                                                     </ControlTemplate.Triggers>
+                                                                 </ControlTemplate>
+                                                             </Button.Template>
+                                                         </Button>
 
-                                                        <!-- Nút 2: Sửa thông tin (✏️ Vàng hổ phách) -->
-                                                        <Button Width="28" Height="28" Margin="2,0"
-                                                                ToolTip="Sửa thông tin cư dân"
-                                                                Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                                CommandParameter="{Binding}">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="#FEF3C7" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="14" x:Name="btnBorder">
-                                                                        <TextBlock Text="✏️" FontSize="12" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="btnBorder" Property="Background" Value="#FDE68A"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                        </Button>
-
-                                                        <!-- Nút 3: Xóa cư dân (🗑️ Đỏ) -->
-                                                        <Button Width="28" Height="28" Margin="2,0"
-                                                                ToolTip="Xóa hồ sơ cư dân"
-                                                                Command="{Binding DataContext.DeleteResidentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                                CommandParameter="{Binding}">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="#FEE2E2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="14" x:Name="btnBorder">
-                                                                        <TextBlock Text="🗑️" FontSize="12" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="btnBorder" Property="Background" Value="#FECACA"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                        </Button>
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
+                                                         <!-- Nút 2: Sửa thông tin (✏️ Vàng hổ phách) -->
+                                                         <Button Width="30" Height="30" Margin="3,0"
+                                                                 ToolTip="Sửa thông tin cư dân"
+                                                                 Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                 CommandParameter="{Binding}">
+                                                             <Button.Template>
+                                                                 <ControlTemplate TargetType="Button">
+                                                                     <Border Background="#FEF3C7" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="15" x:Name="btnBorder">
+                                                                         <TextBlock Text="✏️" FontSize="12" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                     </Border>
+                                                                     <ControlTemplate.Triggers>
+                                                                         <Trigger Property="IsMouseOver" Value="True">
+                                                                             <Setter TargetName="btnBorder" Property="Background" Value="#FDE68A"/>
+                                                                             <Setter TargetName="btnBorder" Property="BorderBrush" Value="#F59E0B"/>
+                                                                         </Trigger>
+                                                                     </ControlTemplate.Triggers>
+                                                                 </ControlTemplate>
+                                                             </Button.Template>
+                                                         </Button>
+                                                     </StackPanel>
+                                                 </DataTemplate>
+                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
                                     </DataGrid.Columns>
@@ -691,7 +651,7 @@
                     </Grid>
                 </Border>
 
-                <!-- ===== CỘT PHẢI: CHI TIẾT CƯ DÂN (TỰ ĐỘNG THU HẸP/MỞ RỘNG, CÓ DẤU X TẮT TAB, LĂN CHUỘT XEM HẾT NỘI DUNG) ===== -->
+                <!-- ===== CỘT PHẢI: CHI TIẾT CƯ DÂN (CHỈ HIỂN THỊ KHI BẤM ICON 👁 XEM CHI TIẾT, CÓ DẤU X TẮT TAB) ===== -->
                 <Border Grid.Column="1" Width="360" Margin="16,0,0,0"
                         Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18,16"
                         VerticalAlignment="Stretch"
@@ -910,8 +870,8 @@
                                 <Border Background="#F8FAFC" CornerRadius="10" Padding="12,10" Margin="0,0,0,12">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Grid.Column="0" Width="32" Height="32" CornerRadius="8" Background="#EFF6FF" VerticalAlignment="Top" Margin="0,0,10,0">
                                             <TextBlock Text="🚗" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>

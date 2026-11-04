@@ -1,8 +1,6 @@
 using System;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using ApartmentResidenceManagement.Wpf.ViewModels;
 
 namespace ApartmentResidenceManagement.Wpf.Views;
@@ -57,31 +55,5 @@ public partial class ResidentView : UserControl
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
         }
-    }
-
-    private void OnResidentRowPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-    {
-        // Bỏ qua nếu người dùng bấm trực tiếp vào Button thao tác (👁, ✏️, 🗑️)
-        if (e.OriginalSource is DependencyObject dep && FindVisualParent<Button>(dep) != null)
-        {
-            return;
-        }
-
-        if (sender is DataGridRow row && row.Item is ResidentListItemViewModel item)
-        {
-            if (DataContext is ResidentViewModel vm)
-            {
-                vm.SelectedResidentItem = item;
-                vm.IsDetailPanelOpen = true;
-            }
-        }
-    }
-
-    private static T? FindVisualParent<T>(DependencyObject child) where T : DependencyObject
-    {
-        DependencyObject parentObject = VisualTreeHelper.GetParent(child);
-        if (parentObject == null) return null;
-        if (parentObject is T parent) return parent;
-        return FindVisualParent<T>(parentObject);
     }
 }

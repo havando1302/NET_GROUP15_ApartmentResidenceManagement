@@ -315,7 +315,7 @@ public class ResidentViewModelTests
     public void CloseDetailCommand_ShouldSetIsDetailPanelOpenToFalse()
     {
         var vm = new ResidentViewModel(_residentService, _accountService, _residenceService, _apartmentService);
-        Assert.True(vm.IsDetailPanelOpen);
+        vm.IsDetailPanelOpen = true;
 
         vm.CloseDetailCommand.Execute(null);
 
@@ -326,13 +326,13 @@ public class ResidentViewModelTests
     public void ToggleDetailCommand_ShouldToggleIsDetailPanelOpen()
     {
         var vm = new ResidentViewModel(_residentService, _accountService, _residenceService, _apartmentService);
-        Assert.True(vm.IsDetailPanelOpen);
-
-        vm.ToggleDetailCommand.Execute(null);
         Assert.False(vm.IsDetailPanelOpen);
 
         vm.ToggleDetailCommand.Execute(null);
         Assert.True(vm.IsDetailPanelOpen);
+
+        vm.ToggleDetailCommand.Execute(null);
+        Assert.False(vm.IsDetailPanelOpen);
     }
 
     [Fact]

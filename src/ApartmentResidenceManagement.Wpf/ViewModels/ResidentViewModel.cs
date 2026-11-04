@@ -240,7 +240,7 @@ public class ResidentViewModel : ViewModelBase
     private List<ResidentListItemViewModel> _allResidentItems = new();
     private ObservableCollection<ResidentListItemViewModel> _pagedResidents = new();
     private ResidentListItemViewModel? _selectedResidentItem;
-    private bool _isDetailPanelOpen = true;
+    private bool _isDetailPanelOpen = false;
 
     // Backward compatibility
     private ObservableCollection<Resident> _residents = new();
