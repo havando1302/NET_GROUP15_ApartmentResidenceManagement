@@ -100,14 +100,29 @@ public class VehicleServiceTests
     }
 
     [Fact]
-    public async Task ReviewVehicle_Reject_ShouldUpdateStatus()
+    public async Task ReviewVehicle_Reject_ShouldUpdateStatusAndSaveRejectReason()
     {
         var vehicle = new Vehicle { Id = 5, OwnerId = 10, RegistrationStatus = VehicleRegistrationStatus.Pending };
         _mockVehicleRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(vehicle);
 
-        await _service.ReviewVehicleAsync(5, VehicleRegistrationStatus.Rejected);
+        await _service.ReviewVehicleAsync(5, VehicleRegistrationStatus.Rejected, "Không đủ chỗ để xe trong hầm");
 
         Assert.Equal(VehicleRegistrationStatus.Rejected, vehicle.RegistrationStatus);
+        Assert.Equal("Không đủ chỗ để xe trong hầm", vehicle.RejectReason);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReviewVehicle_Approve_ShouldClearRejectReason()
+    {
+        var vehicle = new Vehicle { Id = 5, OwnerId = 10, RegistrationStatus = VehicleRegistrationStatus.Rejected, RejectReason = "Lý do cũ" };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(vehicle);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+
+        await _service.ReviewVehicleAsync(5, VehicleRegistrationStatus.Approved);
+
+        Assert.Equal(VehicleRegistrationStatus.Approved, vehicle.RegistrationStatus);
+        Assert.Null(vehicle.RejectReason);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
 

@@ -34,6 +34,10 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.Property(v => v.ImagePath)
             .HasMaxLength(255);
 
+        builder.Property(v => v.RejectReason)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         builder.Property(v => v.VehicleType)
             .IsRequired()
             .HasConversion<int>();

@@ -306,6 +306,10 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<int>("VehicleType")
                         .HasColumnType("int");
 

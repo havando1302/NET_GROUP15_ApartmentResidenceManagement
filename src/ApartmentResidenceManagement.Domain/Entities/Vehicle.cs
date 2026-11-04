@@ -14,6 +14,7 @@ public class Vehicle
     public string? ImagePath { get; set; }
     public int OwnerId { get; set; }
     public VehicleRegistrationStatus RegistrationStatus { get; set; } = VehicleRegistrationStatus.Pending;
+    public string? RejectReason { get; set; }
 
     // Navigation properties
     public virtual Resident Owner { get; set; } = null!;

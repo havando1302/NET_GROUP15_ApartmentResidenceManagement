@@ -23,6 +23,14 @@ public static class DatabaseInitializer
         }
         catch { }
 
+        // Đảm bảo cột RejectReason tồn tại trong Vehicles
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE Vehicles ADD COLUMN RejectReason varchar(500) NULL;");
+        }
+        catch { }
+
         // Bổ sung AvatarPath cho các cư dân hiện có trong CSDL nếu đang null
         var residentsWithoutAvatar = await context.Residents
             .Where(r => r.AvatarPath == null || r.AvatarPath == "")

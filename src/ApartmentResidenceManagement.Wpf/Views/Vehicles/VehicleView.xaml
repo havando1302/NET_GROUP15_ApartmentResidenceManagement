@@ -804,6 +804,20 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- Khối: Lý do từ chối (Chỉ hiển thị khi xe bị từ chối) -->
+                            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
+                                    CornerRadius="12" Padding="12,12" Margin="0,0,0,14"
+                                    Visibility="{Binding SelectedVehicleItem.IsRejected, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <TextBlock Text="⚠️" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Lý do từ chối phê duyệt:" FontSize="13" FontWeight="Bold" Foreground="#DC2626" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding SelectedVehicleItem.RejectReasonDisplay}"
+                                               FontSize="12.5" Foreground="#991B1B" TextWrapping="Wrap" LineHeight="18"/>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Khối: Hạn mức phương tiện của căn hộ -->
                             <TextBlock Text="{Binding ApartmentQuotaTitle}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,10"/>
                             <Border Background="#F8FAFC" CornerRadius="12" Padding="12,12" Margin="0,0,0,14">
@@ -838,41 +852,60 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Chân tab: 2 Nút Phê duyệt / Từ chối -->
+                    <!-- Chân tab: 2 Nút Phê duyệt / Từ chối (nếu đang chờ duyệt) hoặc 1 Nút Đóng (nếu đã duyệt / từ chối) -->
                     <Grid Grid.Row="2" Margin="0,12,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                        <!-- Trường hợp 1: Chờ duyệt -> Hiển thị 2 nút Phê duyệt / Từ chối -->
+                        <Grid Visibility="{Binding SelectedVehicleItem.IsPending, Converter={StaticResource BoolToVis}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Nút ✓ Phê duyệt -->
-                        <Button Grid.Column="0" Height="38" Background="#16A34A" Foreground="White"
-                                BorderThickness="0" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
-                                Command="{Binding ApproveSelectedVehicleCommand}">
+                            <!-- Nút ✓ Phê duyệt -->
+                            <Button Grid.Column="0" Height="38" Background="#16A34A" Foreground="White"
+                                    BorderThickness="0" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                                    Command="{Binding ApproveSelectedVehicleCommand}">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="8"/>
+                                    </Style>
+                                </Button.Resources>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="✓" FontSize="13" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Phê duyệt" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Nút ✕ Từ chối -->
+                            <Button Grid.Column="2" Height="38" Background="#FFF1F2" Foreground="#DC2626"
+                                    BorderBrush="#FECDD3" BorderThickness="1" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                                    Command="{Binding RejectSelectedVehicleCommand}">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="8"/>
+                                    </Style>
+                                </Button.Resources>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="✕" FontSize="12" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Từ chối" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Trường hợp 2: Đã phê duyệt hoặc Đã từ chối -> Hiển thị 1 nút Đóng duy nhất -->
+                        <Button Height="38" Background="#F1F5F9" Foreground="#334155"
+                                BorderBrush="#E2E8F0" BorderThickness="1" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                                Command="{Binding CloseDetailCommand}"
+                                Visibility="{Binding SelectedVehicleItem.IsReviewed, Converter={StaticResource BoolToVis}}">
                             <Button.Resources>
                                 <Style TargetType="Border">
                                     <Setter Property="CornerRadius" Value="8"/>
                                 </Style>
                             </Button.Resources>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="✓" FontSize="13" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Phê duyệt" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- Nút ✕ Từ chối -->
-                        <Button Grid.Column="2" Height="38" Background="#FFF1F2" Foreground="#DC2626"
-                                BorderBrush="#FECDD3" BorderThickness="1" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
-                                Command="{Binding RejectSelectedVehicleCommand}">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="8"/>
-                                </Style>
-                            </Button.Resources>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="✕" FontSize="12" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Từ chối" VerticalAlignment="Center"/>
+                                <TextBlock Text="✕" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Đóng" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -1045,9 +1078,83 @@
             </Border>
         </Grid>
 
+        <!-- ===== MODAL DIALOG: TỪ CHỐI ĐĂNG KÝ PHƯƠNG TIỆN ===== -->
+        <Grid Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="350"
+              Visibility="{Binding IsRejectDialogOpen, Converter={StaticResource BoolToVis}}">
+            <Border Background="#66000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseRejectDialogCommand}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <Border Background="White" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1"
+                    Width="440" Padding="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="25" Opacity="0.15" ShadowDepth="8" Color="#000000"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="28" Height="28" CornerRadius="14" Background="#FEE2E2" Margin="0,0,8,0">
+                                <TextBlock Text="✕" FontSize="13" FontWeight="Bold" Foreground="#DC2626"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Từ chối đăng ký phương tiện" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button Command="{Binding CloseRejectDialogCommand}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand" Content="✕" FontSize="14" Foreground="#94A3B8"/>
+                    </Grid>
+
+                    <!-- Thông tin tóm tắt xe chuẩn bị từ chối -->
+                    <Border Background="#F8FAFC" CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Biển số: " FontSize="12.5" Foreground="#64748B"/>
+                            <TextBlock Text="{Binding VehicleToReject.LicensePlate}" FontWeight="Bold" FontSize="12.5" Foreground="#0F172A" Margin="0,0,16,0"/>
+                            <TextBlock Text="Chủ xe: " FontSize="12.5" Foreground="#64748B"/>
+                            <TextBlock Text="{Binding VehicleToReject.OwnerName}" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Description -->
+                    <TextBlock Text="Vui lòng nhập lý do từ chối đăng ký phương tiện này (thông tin sẽ được gửi đến cư dân):"
+                               FontSize="13" Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                    <!-- Reason TextBox -->
+                    <TextBox Text="{Binding RejectReasonInput, UpdateSourceTrigger=PropertyChanged}"
+                             Height="80" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalContentAlignment="Top" Padding="10" FontSize="13"
+                             Margin="0,0,0,16"/>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Hủy bỏ" Command="{Binding CloseRejectDialogCommand}"
+                                Height="36" Padding="16,0" Background="#F1F5F9" Foreground="#475569"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Margin="0,0,10,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        <Button Content="Xác nhận từ chối" Command="{Binding ConfirmRejectCommand}"
+                                Height="36" Padding="16,0" Background="#DC2626" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
         <StackPanel Grid.Row="0" Grid.RowSpan="3" HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
+            <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
             <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
         </StackPanel>
     </Grid>

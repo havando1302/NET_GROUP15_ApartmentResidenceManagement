@@ -75,6 +75,17 @@ public class VehicleItem : ViewModelBase
     };
 
     public bool CanEdit => RegistrationStatus == VehicleRegistrationStatus.Pending;
+    public bool IsPending => RegistrationStatus == VehicleRegistrationStatus.Pending;
+    public bool IsApproved => RegistrationStatus == VehicleRegistrationStatus.Approved;
+    public bool IsRejected => RegistrationStatus == VehicleRegistrationStatus.Rejected;
+    public bool IsReviewed => !IsPending;
+    public string? RejectReason => Vehicle.RejectReason;
+    public string RejectReasonDisplay => string.IsNullOrWhiteSpace(Vehicle.RejectReason) ? "Không có lý do cụ thể" : Vehicle.RejectReason;
+
+    public void RefreshStatus()
+    {
+        OnPropertyChanged(string.Empty);
+    }
 
     public Vehicle Vehicle { get; }
 
@@ -133,6 +144,12 @@ public class VehicleViewModel : ViewModelBase
     private Vehicle _editingVehicle = new();
     private bool _isFormOpen;
     private string _formTitle = "ĐĂNG KÝ PHƯƠNG TIỆN MỚI";
+
+    // Dialog Từ chối phương tiện
+    private bool _isRejectDialogOpen;
+    private string _rejectReasonInput = string.Empty;
+    private VehicleItem? _vehicleToReject;
+    private string _successMessage = string.Empty;
 
     // Trạng thái Loading / Error
     private string _errorMessage = string.Empty;
@@ -339,6 +356,30 @@ public class VehicleViewModel : ViewModelBase
 
     public List<VehicleType> VehicleTypes { get; } = Enum.GetValues(typeof(VehicleType)).Cast<VehicleType>().ToList();
 
+    public bool IsRejectDialogOpen
+    {
+        get => _isRejectDialogOpen;
+        set => SetProperty(ref _isRejectDialogOpen, value);
+    }
+
+    public string RejectReasonInput
+    {
+        get => _rejectReasonInput;
+        set => SetProperty(ref _rejectReasonInput, value);
+    }
+
+    public VehicleItem? VehicleToReject
+    {
+        get => _vehicleToReject;
+        set => SetProperty(ref _vehicleToReject, value);
+    }
+
+    public string SuccessMessage
+    {
+        get => _successMessage;
+        set => SetProperty(ref _successMessage, value);
+    }
+
     public string ErrorMessage
     {
         get => _errorMessage;
@@ -378,6 +419,9 @@ public class VehicleViewModel : ViewModelBase
     public ICommand CloseDetailCommand { get; }
     public ICommand ApproveSelectedVehicleCommand { get; }
     public ICommand RejectSelectedVehicleCommand { get; }
+    public ICommand OpenRejectDialogCommand { get; }
+    public ICommand CloseRejectDialogCommand { get; }
+    public ICommand ConfirmRejectCommand { get; }
 
     public ICommand GoToPageCommand { get; }
     public ICommand NextPageCommand { get; }
@@ -398,7 +442,11 @@ public class VehicleViewModel : ViewModelBase
         CancelFormCommand = new RelayCommand(_ => CloseForm());
         DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
         ApproveVehicleCommand = new AsyncRelayCommand(p => ReviewVehicleAsync(p, VehicleRegistrationStatus.Approved));
-        RejectVehicleCommand = new AsyncRelayCommand(p => ReviewVehicleAsync(p, VehicleRegistrationStatus.Rejected));
+        RejectVehicleCommand = new RelayCommand(p => OpenRejectDialog(p));
+
+        OpenRejectDialogCommand = new RelayCommand(p => OpenRejectDialog(p));
+        CloseRejectDialogCommand = new RelayCommand(_ => CloseRejectDialog());
+        ConfirmRejectCommand = new AsyncRelayCommand(_ => ConfirmRejectAsync());
 
         ViewVehicleDetailCommand = new RelayCommand(p =>
         {
@@ -423,11 +471,11 @@ public class VehicleViewModel : ViewModelBase
             }
         });
 
-        RejectSelectedVehicleCommand = new AsyncRelayCommand(async _ =>
+        RejectSelectedVehicleCommand = new RelayCommand(_ =>
         {
             if (SelectedVehicleItem != null)
             {
-                await ReviewVehicleAsync(SelectedVehicleItem, VehicleRegistrationStatus.Rejected);
+                OpenRejectDialog(SelectedVehicleItem);
             }
         });
 
@@ -887,14 +935,23 @@ public class VehicleViewModel : ViewModelBase
         }
     }
 
-    private async Task ReviewVehicleAsync(object? parameter, VehicleRegistrationStatus status)
+    private async Task ReviewVehicleAsync(object? parameter, VehicleRegistrationStatus status, string? reason = null)
     {
         if (parameter is not VehicleItem item) return;
         ErrorMessage = string.Empty;
+        SuccessMessage = string.Empty;
 
         try
         {
-            await _vehicleService.ReviewVehicleAsync(item.Id, status);
+            await _vehicleService.ReviewVehicleAsync(item.Id, status, reason);
+            if (status == VehicleRegistrationStatus.Approved)
+            {
+                SuccessMessage = $"Đã phê duyệt phương tiện biển số {item.LicensePlate} thành công.";
+            }
+            else if (status == VehicleRegistrationStatus.Rejected)
+            {
+                SuccessMessage = $"Đã từ chối đăng ký phương tiện biển số {item.LicensePlate}.";
+            }
             await LoadDataAsync();
         }
         catch (BusinessRuleException ex)
@@ -905,5 +962,37 @@ public class VehicleViewModel : ViewModelBase
         {
             ErrorMessage = "Lỗi hệ thống khi duyệt phương tiện.";
         }
+    }
+
+    private void OpenRejectDialog(object? parameter)
+    {
+        var item = parameter as VehicleItem ?? SelectedVehicleItem;
+        if (item == null) return;
+        VehicleToReject = item;
+        RejectReasonInput = string.Empty;
+        ErrorMessage = string.Empty;
+        IsRejectDialogOpen = true;
+    }
+
+    private void CloseRejectDialog()
+    {
+        IsRejectDialogOpen = false;
+        VehicleToReject = null;
+        RejectReasonInput = string.Empty;
+    }
+
+    private async Task ConfirmRejectAsync()
+    {
+        if (VehicleToReject == null) return;
+        if (string.IsNullOrWhiteSpace(RejectReasonInput))
+        {
+            ErrorMessage = "Vui lòng nhập lý do từ chối đăng ký phương tiện.";
+            return;
+        }
+
+        var item = VehicleToReject;
+        var reason = RejectReasonInput.Trim();
+        CloseRejectDialog();
+        await ReviewVehicleAsync(item, VehicleRegistrationStatus.Rejected, reason);
     }
 }

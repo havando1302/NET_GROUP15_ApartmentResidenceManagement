@@ -89,7 +89,7 @@ public class VehicleService
         await _unitOfWork.CompleteAsync();
     }
 
-    public async Task ReviewVehicleAsync(int vehicleId, VehicleRegistrationStatus status)
+    public async Task ReviewVehicleAsync(int vehicleId, VehicleRegistrationStatus status, string? rejectReason = null)
     {
         if (status is not VehicleRegistrationStatus.Approved and not VehicleRegistrationStatus.Rejected)
         {
@@ -114,6 +114,11 @@ public class VehicleService
         if (status == VehicleRegistrationStatus.Approved)
         {
             await EnsureActiveResidenceAsync(vehicle.OwnerId);
+            vehicle.RejectReason = null;
+        }
+        else if (status == VehicleRegistrationStatus.Rejected)
+        {
+            vehicle.RejectReason = rejectReason;
         }
 
         vehicle.RegistrationStatus = status;
