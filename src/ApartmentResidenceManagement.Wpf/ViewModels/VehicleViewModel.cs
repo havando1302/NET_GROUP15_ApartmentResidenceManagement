@@ -30,10 +30,8 @@ public class VehicleItem : ViewModelBase
     public string Brand => string.IsNullOrWhiteSpace(Vehicle.Brand) ? "Chưa rõ" : Vehicle.Brand;
     public string Color => string.IsNullOrWhiteSpace(Vehicle.Color) ? "Chưa rõ" : Vehicle.Color;
 
-    public DateTime RegistrationDate => Vehicle.RegistrationDate;
-    public string RegistrationDateFormatted => RegistrationDate == default 
-        ? DateTime.Now.ToString("dd/MM/yyyy") 
-        : RegistrationDate.ToString("dd/MM/yyyy");
+    public DateTime RegistrationDate => Vehicle.RegistrationDate ?? DateTime.Now;
+    public string RegistrationDateFormatted => (Vehicle.RegistrationDate ?? DateTime.Now).ToString("dd/MM/yyyy");
 
     public string? ImagePath => Vehicle.ImagePath;
 
@@ -92,6 +90,7 @@ public class VehicleViewModel : ViewModelBase
     private readonly VehicleService _vehicleService;
     private readonly ResidentService _residentService;
     private readonly ResidenceService _residenceService;
+    private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
 
     private List<VehicleItem> _allVehicles = new();
     private List<VehicleItem> _filteredVehicles = new();
@@ -475,36 +474,22 @@ public class VehicleViewModel : ViewModelBase
             }
         });
 
-        _ = LoadDataAsync();
     }
 
     public async Task LoadDataAsync()
     {
+        await _loadLock.WaitAsync();
         ErrorMessage = string.Empty;
         IsLoading = true;
         try
         {
-            // 1. Lấy mapping cư dân -> số căn hộ đang ở active
-            var activeResidences = await _residenceService.GetAllResidencesAsync();
-            var residentApartmentMap = activeResidences
-                .Where(rh => rh.IsActive && rh.Apartment != null)
-                .GroupBy(rh => rh.ResidentId)
-                .ToDictionary(g => g.Key, g => g.First().Apartment?.ApartmentNumber ?? "Chưa rõ");
-
-            // 2. Lấy danh sách cư dân đang cư trú active để chọn lựa trong Form đăng ký xe
-            var activeResidentIds = residentApartmentMap.Keys.ToList();
-            var allResidents = await _residentService.GetAllResidentsAsync();
-            ActiveResidents = allResidents
-                .Where(r => activeResidentIds.Contains(r.Id))
-                .OrderBy(r => r.FullName)
-                .ToList();
-
-            // 3. Lấy danh sách xe
+            // 1. Lấy danh sách xe kèm chủ sở hữu và căn hộ trong 1 truy vấn tối ưu duy nhất
             var vehicles = await _vehicleService.GetAllVehiclesAsync();
             _allVehicles = vehicles.Select(v =>
             {
-                residentApartmentMap.TryGetValue(v.OwnerId, out var aptNum);
-                return new VehicleItem(v, aptNum ?? "Chưa rõ");
+                var activeHist = v.Owner?.ResidenceHistories?.FirstOrDefault(rh => rh.IsActive && rh.Apartment != null);
+                string aptNum = activeHist?.Apartment?.ApartmentNumber ?? "Chưa rõ";
+                return new VehicleItem(v, aptNum);
             }).ToList();
 
             // Cập nhật thống kê KPI Cards
@@ -526,13 +511,14 @@ public class VehicleViewModel : ViewModelBase
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = "Lỗi khi lấy danh sách phương tiện hoặc cư dân.";
+            ErrorMessage = $"Lỗi khi lấy danh sách phương tiện hoặc cư dân: {ex.GetType().Name} - {ex.Message}";
         }
         finally
         {
             IsLoading = false;
+            _loadLock.Release();
         }
     }
 
@@ -769,10 +755,11 @@ public class VehicleViewModel : ViewModelBase
         CarQuotaPercent = Math.Min(100.0, ((double)carCount / maxCar) * 100.0);
     }
 
-    private void OpenAddForm()
+    private async void OpenAddForm()
     {
         ErrorMessage = string.Empty;
         FormTitle = "ĐĂNG KÝ PHƯƠNG TIỆN MỚI";
+        await EnsureActiveResidentsLoadedAsync();
         EditingVehicle = new Vehicle
         {
             VehicleType = VehicleType.Moto,
@@ -805,6 +792,27 @@ public class VehicleViewModel : ViewModelBase
     {
         IsFormOpen = false;
         ErrorMessage = string.Empty;
+    }
+
+    private async Task EnsureActiveResidentsLoadedAsync()
+    {
+        if (ActiveResidents.Count > 0) return;
+        try
+        {
+            var activeResidences = await _residenceService.GetAllResidencesAsync();
+            var activeResidentIds = activeResidences
+                .Where(rh => rh.IsActive && rh.Apartment != null)
+                .Select(rh => rh.ResidentId)
+                .Distinct()
+                .ToList();
+
+            var allResidents = await _residentService.GetAllResidentsAsync();
+            ActiveResidents = allResidents
+                .Where(r => activeResidentIds.Contains(r.Id))
+                .OrderBy(r => r.FullName)
+                .ToList();
+        }
+        catch { }
     }
 
     private async Task SaveVehicleAsync()

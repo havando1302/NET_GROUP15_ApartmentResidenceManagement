@@ -8,4 +8,5 @@ public interface IResidentRepository : IRepository<Resident>
 {
     Task<Resident?> GetByIdentityCardAsync(string identityCard);
     Task<IEnumerable<Resident>> GetResidentsByApartmentIdAsync(int apartmentId);
+    Task<IEnumerable<Resident>> GetAllWithDetailsAsync();
 }

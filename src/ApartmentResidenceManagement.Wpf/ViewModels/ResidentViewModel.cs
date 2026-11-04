@@ -750,8 +750,6 @@ public class ResidentViewModel : ViewModelBase
         {
             IsAccountPanelOpen = false;
         });
-
-        _ = LoadDataAsync();
     }
 
     #region MouseWheel Paging
@@ -816,68 +814,52 @@ public class ResidentViewModel : ViewModelBase
             SuccessMessage = string.Empty;
             IsLoading = true;
 
-            var residentList = (await _residentService.GetAllResidentsAsync()).ToList();
+            // 1. Tối ưu truy xuất dữ liệu: Chỉ 1 truy vấn duy nhất lấy toàn bộ Cư dân kèm Cư trú, Căn hộ, Xe và Tài khoản
+            var residentList = (await _residentService.GetAllWithDetailsAsync())?.ToList()
+                               ?? (await _residentService.GetAllResidentsAsync()).ToList();
 
-            // 1. Lấy danh sách lịch sử cư trú và căn hộ
+            bool hasPopulatedDetails = residentList.Any(r => (r.ResidenceHistories != null && r.ResidenceHistories.Count > 0)
+                                                          || (r.Vehicles != null && r.Vehicles.Count > 0)
+                                                          || r.UserAccount != null);
+
             List<ResidenceHistory> historyList = new();
-            if (_residenceService != null)
-            {
-                try
-                {
-                    historyList = (await _residenceService.GetAllResidencesAsync()).ToList();
-                }
-                catch { }
-            }
-
-            List<Apartment> apartmentList = new();
-            if (_apartmentService != null)
-            {
-                try
-                {
-                    apartmentList = (await _apartmentService.GetAllApartmentsAsync()).ToList();
-                }
-                catch { }
-            }
-
-            // 2. Lấy danh sách phương tiện
             List<Vehicle> vehicleList = new();
-            if (_vehicleService != null)
-            {
-                try
-                {
-                    vehicleList = (await _vehicleService.GetAllVehiclesAsync()).ToList();
-                }
-                catch { }
-            }
-
-            // 3. Lấy danh sách tài khoản
             List<UserAccount> accountList = new();
-            if (_accountService != null)
+
+            if (!hasPopulatedDetails)
             {
-                try
+                if (_residenceService != null)
                 {
-                    accountList = (await _accountService.GetAllAccountsWithResidentAsync()).ToList();
+                    try { historyList = (await _residenceService.GetAllResidencesAsync()).ToList(); } catch { }
                 }
-                catch { }
+                if (_vehicleService != null)
+                {
+                    try { vehicleList = (await _vehicleService.GetAllVehiclesAsync()).ToList(); } catch { }
+                }
+                if (_accountService != null)
+                {
+                    try { accountList = (await _accountService.GetAllAccountsWithResidentAsync()).ToList(); } catch { }
+                }
             }
 
-            // Gom nhóm lịch sử cư trú theo ResidentId
             var historyGroup = historyList
                 .GroupBy(h => h.ResidentId)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(h => h.StartDate).ToList());
 
-            // Đếm số thành viên đang cư trú trong từng căn hộ
-            var activeAptMemberCounts = historyList
-                .Where(h => h.IsActive)
-                .GroupBy(h => h.ApartmentId)
-                .ToDictionary(g => g.Key, g => g.Select(x => x.ResidentId).Distinct().Count());
+            var activeAptMemberCounts = hasPopulatedDetails
+                ? residentList
+                    .SelectMany(r => r.ResidenceHistories.Where(h => h.IsActive))
+                    .GroupBy(h => h.ApartmentId)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.ResidentId).Distinct().Count())
+                : historyList
+                    .Where(h => h.IsActive)
+                    .GroupBy(h => h.ApartmentId)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.ResidentId).Distinct().Count());
 
-            // Gom nhóm phương tiện theo OwnerId
             var vehiclesByResident = vehicleList
                 .GroupBy(v => v.OwnerId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            // Gom nhóm tài khoản theo ResidentId
             var accountsByResident = accountList
                 .Where(a => a.ResidentId.HasValue)
                 .ToDictionary(a => a.ResidentId!.Value, a => a);
@@ -890,7 +872,11 @@ public class ResidentViewModel : ViewModelBase
                 var item = new ResidentListItemViewModel(r, stt++);
 
                 // Cư trú & Lịch sử
-                if (historyGroup.TryGetValue(r.Id, out var rHistories) && rHistories.Count > 0)
+                var rHistories = (hasPopulatedDetails && r.ResidenceHistories != null && r.ResidenceHistories.Count > 0)
+                    ? r.ResidenceHistories.OrderByDescending(h => h.StartDate).ToList()
+                    : (historyGroup.TryGetValue(r.Id, out var rh) ? rh : new List<ResidenceHistory>());
+
+                if (rHistories.Count > 0)
                 {
                     int hStt = 1;
                     item.Histories = rHistories.Select(h => new ResidenceHistoryItemViewModel
@@ -936,7 +922,11 @@ public class ResidentViewModel : ViewModelBase
                 }
 
                 // Phương tiện
-                if (vehiclesByResident.TryGetValue(r.Id, out var rVehicles) && rVehicles.Count > 0)
+                var rVehicles = (hasPopulatedDetails && r.Vehicles != null && r.Vehicles.Count > 0)
+                    ? r.Vehicles.ToList()
+                    : (vehiclesByResident.TryGetValue(r.Id, out var rv) ? rv : new List<Vehicle>());
+
+                if (rVehicles.Count > 0)
                 {
                     item.VehiclesCount = rVehicles.Count;
                     item.VehiclesSummary = string.Join(", ", rVehicles.Select(v => $"{v.LicensePlate} ({GetVehicleTypeName(v.VehicleType)})"));
@@ -948,7 +938,11 @@ public class ResidentViewModel : ViewModelBase
                 }
 
                 // Tài khoản
-                if (accountsByResident.TryGetValue(r.Id, out var rAccount))
+                var rAccount = (hasPopulatedDetails && r.UserAccount != null)
+                    ? r.UserAccount
+                    : (accountsByResident.TryGetValue(r.Id, out var acc) ? acc : null);
+
+                if (rAccount != null)
                 {
                     item.HasAccount = true;
                     item.AccountUsername = rAccount.Username;

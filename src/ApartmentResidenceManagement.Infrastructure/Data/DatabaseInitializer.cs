@@ -15,6 +15,14 @@ public static class DatabaseInitializer
         // Đảm bảo database đã được tạo và áp dụng migration mới nhất
         await context.Database.MigrateAsync();
 
+        // Cập nhật giá trị mặc định cho cột RegisteredAtUtc nếu có bản ghi cũ đang null
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "UPDATE Vehicles SET RegisteredAtUtc = CURRENT_TIMESTAMP WHERE RegisteredAtUtc IS NULL;");
+        }
+        catch { }
+
         // Bổ sung AvatarPath cho các cư dân hiện có trong CSDL nếu đang null
         var residentsWithoutAvatar = await context.Residents
             .Where(r => r.AvatarPath == null || r.AvatarPath == "")

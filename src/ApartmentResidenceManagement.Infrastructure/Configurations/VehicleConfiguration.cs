@@ -28,7 +28,7 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
 
         builder.Property(v => v.RegistrationDate)
             .HasColumnName("RegisteredAtUtc")
-            .IsRequired()
+            .IsRequired(false)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(v => v.ImagePath)

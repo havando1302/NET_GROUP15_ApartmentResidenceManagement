@@ -26,4 +26,15 @@ public class ResidentRepository : Repository<Resident>, IResidentRepository
         // Khi bảng ResidenceHistories được Đô tạo, sẽ nối bảng để lấy danh sách cư dân theo căn hộ
         return await Task.FromResult(Enumerable.Empty<Resident>());
     }
+
+    public async Task<IEnumerable<Resident>> GetAllWithDetailsAsync()
+    {
+        return await DbSet
+            .AsNoTracking()
+            .Include(r => r.ResidenceHistories)
+                .ThenInclude(rh => rh.Apartment)
+            .Include(r => r.Vehicles)
+            .Include(r => r.UserAccount)
+            .ToListAsync();
+    }
 }

@@ -10,7 +10,7 @@ public class Vehicle
     public VehicleType VehicleType { get; set; }
     public string? Brand { get; set; }
     public string? Color { get; set; }
-    public DateTime RegistrationDate { get; set; } = DateTime.Now;
+    public DateTime? RegistrationDate { get; set; } = DateTime.Now;
     public string? ImagePath { get; set; }
     public int OwnerId { get; set; }
     public VehicleRegistrationStatus RegistrationStatus { get; set; } = VehicleRegistrationStatus.Pending;

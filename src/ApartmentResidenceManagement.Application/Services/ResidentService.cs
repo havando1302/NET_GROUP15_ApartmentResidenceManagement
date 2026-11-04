@@ -23,6 +23,13 @@ public class ResidentService
         return await _unitOfWork.Residents.GetAllAsync();
     }
 
+    public async Task<IEnumerable<Resident>> GetAllWithDetailsAsync()
+    {
+        var result = await _unitOfWork.Residents.GetAllWithDetailsAsync();
+        if (result != null && result.Any()) return result;
+        return await _unitOfWork.Residents.GetAllAsync();
+    }
+
     public async Task<Resident?> GetResidentByIdAsync(int id)
     {
         return await _unitOfWork.Residents.GetByIdAsync(id);
