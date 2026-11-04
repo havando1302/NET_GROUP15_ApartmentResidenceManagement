@@ -140,7 +140,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/> <!-- 0. Header -->
                 <RowDefinition Height="Auto"/> <!-- 1. 4 KPI Cards -->
-                <RowDefinition Height="Auto"/> <!-- 2. Notification Banner -->
+                <RowDefinition Height="0"/>    <!-- 2. Notification Banner chuyển thành Floating Toast -->
                 <RowDefinition Height="*"/>    <!-- 3. Main Split (Danh sách cư dân + Chi tiết) -->
             </Grid.RowDefinitions>
 
@@ -257,11 +257,6 @@
                 </Border>
             </Grid>
 
-            <!-- ================= 2. THÔNG BÁO LỖI / THÀNH CÔNG ================= -->
-            <StackPanel Grid.Row="2" Margin="0,0,0,12">
-                <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
-                <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,4,0,0"/>
-            </StackPanel>
 
             <!-- ================= 3. KHỐI CHÍNH (CỘT TRÁI: BẢNG + CỘT PHẢI: CHI TIẾT) ================= -->
             <Grid Grid.Row="3">
@@ -1325,5 +1320,11 @@
                 </Grid>
             </Border>
         </Grid>
+        <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI THEO MẪU NOTE ĐỎ - THỜI GIAN 3S) -->
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+            <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"/>
+            <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success"/>
+        </StackPanel>
     </Grid>
 </UserControl>

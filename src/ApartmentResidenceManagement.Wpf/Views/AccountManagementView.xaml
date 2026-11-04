@@ -158,7 +158,7 @@
                 <!-- Row 1: KPI Stats Cards -->
                 <RowDefinition Height="Auto"/>
                 <!-- Row 2: Notifications -->
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="0"/>
                 <!-- Row 3: Main Content (List + Detail) -->
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -252,15 +252,7 @@
                 </Border>
             </UniformGrid>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 NOTIFICATIONS
-            ══════════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="2" Margin="0,0,0,10">
-                <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,6"
-                                             Visibility="{Binding SuccessMessage, Converter={StaticResource BoolToVis}}"/>
-                <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"
-                                             Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVis}}"/>
-            </StackPanel>
+
 
             <!-- ══════════════════════════════════════════════════════════
                  3. MAIN CONTENT: Left List + Right Detail Panel
@@ -1054,6 +1046,12 @@
                 </StackPanel>
             </Border>
         </Grid>
+        <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+            <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
+            <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
+        </StackPanel>
     </Grid>
 </UserControl>
 

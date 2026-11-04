@@ -103,14 +103,7 @@
                                FontSize="13" Foreground="#64748B" Margin="32,3,0,0"/>
                 </StackPanel>
 
-                <!-- ══════════════════════════════════════════════════════════
-                     2. THÔNG BÁO TRẠNG THÁI (SUCCESS / ERROR)
-                ══════════════════════════════════════════════════════════ -->
-                <StackPanel Grid.Row="1" Margin="0,0,0,16">
-                    <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
-                    <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,8"
-                                                Visibility="{Binding IsBackgroundErrorVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                </StackPanel>
+
 
                 <!-- ══════════════════════════════════════════════════════════
                      3A. GIAO DIỆN QUẢN TRỊ VIÊN (ROLE ADMIN) - XU HƯỚNG 2026
@@ -1237,5 +1230,11 @@
                 </StackPanel>
             </Border>
         </Grid>
+        <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+            <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
+            <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
+        </StackPanel>
     </Grid>
 </UserControl>

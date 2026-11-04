@@ -19,7 +19,7 @@
             </StackPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
-                    <controls:NotificationBanner x:Name="Notice" MaxHeight="300"/>
+                    <controls:NotificationBanner x:Name="Notice" MaxHeight="300" IsAutoDismissEnabled="False"/>
                     <Expander x:Name="DetailsExpander" Header="Chi tiết kỹ thuật" Margin="0,12,0,0"
                               Visibility="Collapsed" Foreground="#6B7280">
                         <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

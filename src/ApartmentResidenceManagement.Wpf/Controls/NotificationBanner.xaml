@@ -2,62 +2,133 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ApartmentResidenceManagement.Wpf.Controls"
-             x:Name="Notice" MaxHeight="160" HorizontalContentAlignment="Stretch"
+             x:Name="Notice"
+             MaxWidth="520" MinWidth="280"
              AutomationProperties.Name="{Binding Message, ElementName=Notice}"
              AutomationProperties.LiveSetting="Polite">
-    <Border CornerRadius="8" BorderThickness="1" Padding="14,12">
+    <UserControl.Resources>
+        <!-- Storyboard xuất hiện mượt mà (Fade In + Slide nhẹ lên) -->
+        <Storyboard x:Key="FadeInStory">
+            <DoubleAnimation Storyboard.TargetName="ToastBorder"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.0" To="1.0" Duration="0:0:0.2"/>
+            <DoubleAnimation Storyboard.TargetName="ToastTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="15" To="0" Duration="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <!-- Storyboard ẩn dần (Fade Out) -->
+        <Storyboard x:Key="FadeOutStory">
+            <DoubleAnimation Storyboard.TargetName="ToastBorder"
+                             Storyboard.TargetProperty="Opacity"
+                             From="1.0" To="0.0" Duration="0:0:0.2"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <!-- Thẻ thông báo nổi (Floating Toast Card với đổ bóng 3D hiện đại) -->
+    <Border x:Name="ToastBorder" CornerRadius="10" BorderThickness="1" Padding="16,12" Margin="0,4">
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="ToastTranslate" Y="0"/>
+        </Border.RenderTransform>
+        <Border.Effect>
+            <!-- Hiệu ứng đổ bóng nổi bật giúp thông báo nổi lên trên toàn bộ nội dung -->
+            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.25"/>
+        </Border.Effect>
         <Border.Style>
             <Style TargetType="Border">
-                <Setter Property="Background" Value="#FEE2E2"/>
-                <Setter Property="BorderBrush" Value="#F87171"/>
-                <Setter Property="TextElement.Foreground" Value="#B91C1C"/>
+                <!-- Mặc định: Thông báo LỖI (Màu đỏ tươi nổi bật #DC2626 theo yêu cầu) -->
+                <Setter Property="Background" Value="#DC2626"/>
+                <Setter Property="BorderBrush" Value="#B91C1C"/>
+                <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
                 <Style.Triggers>
+                    <!-- Thông báo THÀNH CÔNG (Màu xanh lá tươi nổi bật #16A34A theo yêu cầu) -->
                     <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Success}">
-                        <Setter Property="Background" Value="#ECFDF5"/>
-                        <Setter Property="BorderBrush" Value="#6EE7B7"/>
-                        <Setter Property="TextElement.Foreground" Value="#047857"/>
+                        <Setter Property="Background" Value="#16A34A"/>
+                        <Setter Property="BorderBrush" Value="#15803D"/>
+                        <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
                     </DataTrigger>
+                    <!-- Thông báo CẢNH BÁO (Màu cam vàng #D97706 khớp mẫu note Phenikaa) -->
                     <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Warning}">
-                        <Setter Property="Background" Value="#FFFBEB"/>
-                        <Setter Property="BorderBrush" Value="#FBBF24"/>
-                        <Setter Property="TextElement.Foreground" Value="#92400E"/>
+                        <Setter Property="Background" Value="#D97706"/>
+                        <Setter Property="BorderBrush" Value="#B45309"/>
+                        <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
                     </DataTrigger>
+                    <!-- Thông báo THÔNG TIN (Màu xanh dương #2563EB) -->
                     <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Information}">
-                        <Setter Property="Background" Value="#EFF6FF"/>
-                        <Setter Property="BorderBrush" Value="#93C5FD"/>
-                        <Setter Property="TextElement.Foreground" Value="#1D4ED8"/>
+                        <Setter Property="Background" Value="#2563EB"/>
+                        <Setter Property="BorderBrush" Value="#1D4ED8"/>
+                        <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
         </Border.Style>
+
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/> <!-- Icon tròn -->
+                <ColumnDefinition Width="*"/>    <!-- Text thông báo -->
+                <ColumnDefinition Width="Auto"/> <!-- Nút tắt nhanh ✕ -->
             </Grid.ColumnDefinitions>
-            <Path Width="20" Height="20" Margin="0,2,10,0" VerticalAlignment="Top"
-                  Stretch="Uniform" Stroke="{Binding Foreground, ElementName=MessageText}"
-                  StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
-                <Path.Style>
-                    <Style TargetType="Path">
-                        <Setter Property="Data" Value="M12,2 L22,21 L2,21 Z M12,8 L12,14 M12,17 L12,18"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Success}">
-                                <Setter Property="Data" Value="M22,12 A10,10 0 1 1 2,12 A10,10 0 1 1 22,12 M7,12 L10,15 L17,8"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Information}">
-                                <Setter Property="Data" Value="M22,12 A10,10 0 1 1 2,12 A10,10 0 1 1 22,12 M12,7 L12,8 M12,11 L12,17"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Path.Style>
-            </Path>
+
+            <!-- Icon tròn thể hiện trạng thái -->
+            <Border Grid.Column="0" Width="26" Height="26" CornerRadius="13" Background="#30FFFFFF"
+                    VerticalAlignment="Center" Margin="0,0,12,0">
+                <TextBlock x:Name="IconText" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="⚠️"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Success}">
+                                    <Setter Property="Text" Value="✓"/>
+                                    <Setter Property="FontSize" Value="15"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Warning}">
+                                    <Setter Property="Text" Value="⚠️"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind, ElementName=Notice}" Value="{x:Static local:NotificationKind.Information}">
+                                    <Setter Property="Text" Value="ℹ"/>
+                                    <Setter Property="FontSize" Value="15"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Border>
+
+            <!-- Nội dung văn bản thông báo -->
             <ScrollViewer x:Name="MessageScroller" Grid.Column="1" VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled" CanContentScroll="False"
-                          PanningMode="VerticalOnly" Focusable="True">
+                          PanningMode="VerticalOnly" Focusable="False" VerticalAlignment="Center"
+                          MaxHeight="120">
                 <TextBlock x:Name="MessageText" Text="{Binding Message, ElementName=Notice}"
-                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="None"/>
+                           FontSize="13.5" FontWeight="SemiBold" Foreground="#FFFFFF"
+                           TextWrapping="Wrap" LineHeight="19"/>
             </ScrollViewer>
+
+            <!-- Nút tắt nhanh ✕ -->
+            <Button Grid.Column="2" Click="OnCloseButtonClick"
+                    VerticalAlignment="Center" Margin="10,0,0,0"
+                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                    ToolTip="Đóng thông báo" Padding="4">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBd" Background="Transparent" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <TextBlock Text="✕" FontSize="12" FontWeight="Bold" Foreground="#CCFFFFFF" x:Name="txtX"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBd" Property="Background" Value="#30FFFFFF"/>
+                                <Setter TargetName="txtX" Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
         </Grid>
     </Border>
 </UserControl>

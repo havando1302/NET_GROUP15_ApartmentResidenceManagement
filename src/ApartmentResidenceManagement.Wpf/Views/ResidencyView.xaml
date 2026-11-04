@@ -291,7 +291,7 @@
                 <!-- Row 2: Action Buttons Bar -->
                 <RowDefinition Height="Auto"/>
                 <!-- Row 3: Notification Banners -->
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="0"/>
                 <!-- Row 4: Main Content (Table + Detail) -> Stretches to fill ALL remaining space! -->
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -541,13 +541,7 @@
                 </Button>
 
             </StackPanel>
-            <!-- ERROR / SUCCESS NOTIFICATIONS -->
-            <StackPanel Grid.Row="3" Margin="0,0,0,8">
-                <controls:NotificationBanner Message="{Binding RequestSuccessMessage}" Kind="Success" Margin="0,0,0,8"
-                                             Visibility="{Binding RequestSuccessMessage, Converter={StaticResource BoolToVis}}"/>
-                <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"
-                                             Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
-            </StackPanel>
+
 
             <!-- ══════════════════════════════════════════════════════════
                  4. MAIN CONTENT (Split: Left = Table & Filters | Right = Detail Panel)
@@ -1847,5 +1841,11 @@
                 </StackPanel>
             </Border>
         </Grid>
+        <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+            <controls:NotificationBanner Message="{Binding RequestSuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
+            <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
+        </StackPanel>
     </Grid>
 </UserControl>

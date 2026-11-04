@@ -134,12 +134,13 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="24,20,24,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>  <!-- 1. Tiêu đề trang -->
                 <RowDefinition Height="Auto"/>  <!-- 2. Thanh 3 Tab chức năng -->
-                <RowDefinition Height="Auto"/>  <!-- 3. Thanh thông báo -->
+                <RowDefinition Height="0"/>  <!-- 3. Thanh thông báo chuyển thành Floating Toast -->
                 <RowDefinition Height="Auto"/>  <!-- 4. Nội dung Tab 1: Biến động cư trú -->
                 <RowDefinition Height="Auto"/>  <!-- 5. Nội dung Tab 2: Thống kê căn hộ -->
                 <RowDefinition Height="Auto"/>  <!-- 6. Nội dung Tab 3: Thống kê phương tiện -->
@@ -183,26 +184,7 @@
                              Command="{Binding SwitchTabCommand}" CommandParameter="2"/>
             </StackPanel>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 3. THÔNG BÁO LỖI / THÀNH CÔNG
-            ══════════════════════════════════════════════════════════ -->
-            <StackPanel Grid.Row="2" Margin="0,0,0,14">
-                <Border Background="#FEE2E2" CornerRadius="8" Padding="14,10" Margin="0,0,0,8"
-                        Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="AlertCircleOutline" Width="16" Height="16" Foreground="#DC2626" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#991B1B" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
 
-                <Border Background="#DCFCE7" CornerRadius="8" Padding="14,10" Margin="0,0,0,8"
-                        Visibility="{Binding HasSuccess, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconMaterial Kind="CheckCircleOutline" Width="16" Height="16" Foreground="#16A34A" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBlock Text="{Binding SuccessMessage}" Foreground="#166534" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
 
             <!-- ══════════════════════════════════════════════════════════
                  4. NỘI DUNG TAB 1: BIẾN ĐỘNG CƯ TRÚ (Mockup 2)
@@ -1298,4 +1280,11 @@
             </StackPanel>
         </Grid>
     </ScrollViewer>
+        <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+            <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
+            <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
+        </StackPanel>
+    </Grid>
 </UserControl>
