@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ApartmentResidenceManagement.Application.Common;
 using ApartmentResidenceManagement.Application.Services;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
@@ -603,6 +604,7 @@ public class ResidentViewModel : ViewModelBase
     #region Commands
     public ICommand LoadResidentsCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     public ICommand ViewResidentDetailCommand { get; }
     public ICommand CloseDetailCommand { get; }
     public ICommand ToggleDetailCommand { get; }
@@ -658,6 +660,7 @@ public class ResidentViewModel : ViewModelBase
 
         LoadResidentsCommand = new AsyncRelayCommand(_ => LoadDataAsync());
         RefreshCommand = new AsyncRelayCommand(_ => LoadDataAsync());
+        ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty);
 
         ViewResidentDetailCommand = new RelayCommand(p =>
         {
@@ -1044,15 +1047,15 @@ public class ResidentViewModel : ViewModelBase
     {
         var filtered = _allResidentItems.AsEnumerable();
 
-        // 1. Tìm kiếm theo mã, họ tên, số định danh, số điện thoại
+        // 1. Tìm kiếm thông minh tiếng Việt (mã cư dân, họ tên, CCCD, SĐT, căn hộ)
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            string keyword = SearchText.Trim().ToLower();
-            filtered = filtered.Where(r =>
-                r.ResidentCode.ToLower().Contains(keyword) ||
-                r.FullName.ToLower().Contains(keyword) ||
-                (r.IdentityCard != null && r.IdentityCard.ToLower().Contains(keyword)) ||
-                (r.PhoneNumber != null && r.PhoneNumber.ToLower().Contains(keyword)));
+            filtered = filtered.Where(r => VietnameseSearchHelper.MatchesSearch(SearchText,
+                r.ResidentCode,
+                r.FullName,
+                r.IdentityCard,
+                r.PhoneNumber,
+                r.ApartmentNumber));
         }
 
         // 2. Lọc theo trạng thái
