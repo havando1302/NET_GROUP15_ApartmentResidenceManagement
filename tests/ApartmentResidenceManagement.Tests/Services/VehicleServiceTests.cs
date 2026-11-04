@@ -62,9 +62,19 @@ public class VehicleServiceTests
     }
 
     [Fact]
+    public async Task SubmitVehicleRegistration_WithoutImage_ShouldThrowBusinessRuleException()
+    {
+        var vehicle = new Vehicle { LicensePlate = "29A1-12345", OwnerId = 10, VehicleType = VehicleType.Moto, ImagePath = null };
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(vehicle));
+        _mockVehicleRepo.Verify(r => r.AddAsync(It.IsAny<Vehicle>()), Times.Never);
+    }
+
+    [Fact]
     public async Task SubmitVehicleRegistration_ValidData_ShouldRemainPending()
     {
-        var vehicle = new Vehicle { LicensePlate = "29A1-12345", OwnerId = 10, VehicleType = VehicleType.Moto };
+        var vehicle = new Vehicle { LicensePlate = "29A1-12345", OwnerId = 10, VehicleType = VehicleType.Moto, ImagePath = "/uploads/vehicles/test.jpg" };
         _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
 
         var result = await _service.SubmitVehicleRegistrationAsync(vehicle);
@@ -144,7 +154,7 @@ public class VehicleServiceTests
         _mockResidentRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Resident { Id = 10 });
         _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(10)).ReturnsAsync((ResidenceHistory?)null);
         await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(
-            new Vehicle { OwnerId = 10, LicensePlate = "29A1-12345", VehicleType = VehicleType.Moto }));
+            new Vehicle { OwnerId = 10, LicensePlate = "29A1-12345", VehicleType = VehicleType.Moto, ImagePath = "/uploads/vehicles/test.jpg" }));
         _mockVehicleRepo.Verify(r => r.AddAsync(It.IsAny<Vehicle>()), Times.Never);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Never);
     }

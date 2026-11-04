@@ -141,4 +141,53 @@ public class VehicleViewModelTests
         Assert.Equal("Không cung cấp đủ giấy tờ xe", vehicle.RejectReason);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
+
+    [Fact]
+    public void VehicleItem_HasImage_ReturnsExpectedResult()
+    {
+        var v1 = new Vehicle { Id = 1, ImagePath = "C:\\path\\car.jpg" };
+        var item1 = new VehicleItem(v1, "101");
+        Assert.True(item1.HasImage);
+
+        var v2 = new Vehicle { Id = 2, ImagePath = null };
+        var item2 = new VehicleItem(v2, "102");
+        Assert.False(item2.HasImage);
+    }
+
+    [Fact]
+    public void OpenImageZoomCommand_SetsPropertiesAndOpensZoomModal()
+    {
+        var vm = new VehicleViewModel(_vehicleService, _residentService, _residenceService);
+        var v = new Vehicle { Id = 1, LicensePlate = "30A-99999", ImagePath = "C:\\photos\\car.jpg" };
+        var item = new VehicleItem(v, "301");
+
+        vm.OpenImageZoomCommand.Execute(item);
+
+        Assert.True(vm.IsImageZoomOpen);
+        Assert.Equal("C:\\photos\\car.jpg", vm.ZoomedImagePath);
+        Assert.Contains("30A-99999", vm.ZoomedImageTitle);
+
+        vm.CloseImageZoomCommand.Execute(null);
+        Assert.False(vm.IsImageZoomOpen);
+        Assert.Null(vm.ZoomedImagePath);
+    }
+
+    [Fact]
+    public async Task SaveVehicleAsync_WithoutImage_SetsErrorMessage()
+    {
+        var vm = new VehicleViewModel(_vehicleService, _residentService, _residenceService);
+        vm.EditingVehicle = new Vehicle
+        {
+            LicensePlate = "30A-11122",
+            OwnerId = 10,
+            ImagePath = null
+        };
+
+        if (vm.SaveVehicleCommand.CanExecute(null))
+        {
+            await ((ApartmentResidenceManagement.Wpf.Commands.AsyncRelayCommand)vm.SaveVehicleCommand).ExecuteAsync(null);
+        }
+
+        Assert.Contains("bắt buộc", vm.ErrorMessage);
+    }
 }

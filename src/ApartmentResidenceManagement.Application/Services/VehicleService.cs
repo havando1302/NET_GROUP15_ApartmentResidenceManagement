@@ -41,6 +41,10 @@ public class VehicleService
 
     public async Task<Vehicle> SubmitVehicleRegistrationAsync(Vehicle vehicle)
     {
+        if (string.IsNullOrWhiteSpace(vehicle.ImagePath))
+        {
+            throw new BusinessRuleException("Hình ảnh phương tiện là bắt buộc khi tạo đơn đăng ký.");
+        }
         var result = await CreateVehicleCoreAsync(vehicle, VehicleRegistrationStatus.Pending);
 
         if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
@@ -117,6 +121,11 @@ public class VehicleService
         if (existing.OwnerId != ownerId || vehicle.OwnerId != ownerId)
         {
             throw new BusinessRuleException("Bạn chỉ được cập nhật phương tiện thuộc sở hữu của mình.");
+        }
+
+        if (string.IsNullOrWhiteSpace(vehicle.ImagePath))
+        {
+            throw new BusinessRuleException("Hình ảnh phương tiện là bắt buộc khi cập nhật đơn đăng ký.");
         }
 
         await ValidateVehicleDataAsync(vehicle, existing.Id);

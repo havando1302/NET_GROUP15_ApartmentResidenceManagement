@@ -129,6 +129,44 @@ public class MyVehiclesViewModel : ViewModelBase
     }
 
     public List<VehicleType> VehicleTypes { get; } = Enum.GetValues(typeof(VehicleType)).Cast<VehicleType>().ToList();
+
+    public string? SelectedImagePath
+    {
+        get => EditingVehicle?.ImagePath;
+        set
+        {
+            if (EditingVehicle != null)
+            {
+                EditingVehicle.ImagePath = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedImage));
+                OnPropertyChanged(nameof(EditingVehicle));
+            }
+        }
+    }
+
+    public bool HasSelectedImage => !string.IsNullOrWhiteSpace(SelectedImagePath);
+
+    private bool _isImageZoomOpen;
+    public bool IsImageZoomOpen
+    {
+        get => _isImageZoomOpen;
+        set => SetProperty(ref _isImageZoomOpen, value);
+    }
+
+    private string? _zoomedImagePath;
+    public string? ZoomedImagePath
+    {
+        get => _zoomedImagePath;
+        set => SetProperty(ref _zoomedImagePath, value);
+    }
+
+    private string _zoomedImageTitle = "Hình ảnh phương tiện";
+    public string ZoomedImageTitle
+    {
+        get => _zoomedImageTitle;
+        set => SetProperty(ref _zoomedImageTitle, value);
+    }
     #endregion
 
     #region Commands
@@ -140,6 +178,9 @@ public class MyVehiclesViewModel : ViewModelBase
     public ICommand DeleteVehicleCommand { get; }
     public ICommand SelectImageCommand { get; }
     public ICommand ClearSearchCommand { get; }
+    public ICommand OpenImageZoomCommand { get; }
+    public ICommand CloseImageZoomCommand { get; }
+    public ICommand ClearSelectedImageCommand { get; }
     #endregion
 
     public MyVehiclesViewModel(VehicleService vehicleService, ResidenceService residenceService)
@@ -154,6 +195,44 @@ public class MyVehiclesViewModel : ViewModelBase
         CancelFormCommand = new RelayCommand(_ => CloseForm());
         DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
 
+        OpenImageZoomCommand = new RelayCommand(p =>
+        {
+            string? path = p as string;
+            string title = "Hình ảnh phương tiện";
+
+            if (p is Vehicle v)
+            {
+                path = v.ImagePath;
+                title = $"Hình ảnh xe {v.LicensePlate}";
+            }
+            else if (string.IsNullOrWhiteSpace(path))
+            {
+                path = SelectedImagePath;
+                if (!string.IsNullOrWhiteSpace(EditingVehicle?.LicensePlate))
+                {
+                    title = $"Hình ảnh xe {EditingVehicle.LicensePlate}";
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                ZoomedImagePath = path;
+                ZoomedImageTitle = title;
+                IsImageZoomOpen = true;
+            }
+        });
+
+        CloseImageZoomCommand = new RelayCommand(_ =>
+        {
+            IsImageZoomOpen = false;
+            ZoomedImagePath = null;
+        });
+
+        ClearSelectedImageCommand = new RelayCommand(_ =>
+        {
+            SelectedImagePath = null;
+        });
+
         SelectImageCommand = new RelayCommand(_ =>
         {
             var dialog = new OpenFileDialog
@@ -163,8 +242,21 @@ public class MyVehiclesViewModel : ViewModelBase
             };
             if (dialog.ShowDialog() == true)
             {
-                EditingVehicle.ImagePath = dialog.FileName;
-                OnPropertyChanged(nameof(EditingVehicle));
+                string selectedFile = dialog.FileName;
+                string finalPath = selectedFile;
+                try
+                {
+                    string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    string uploadDir = System.IO.Path.Combine(appData, "ApartmentResidenceManagement", "Vehicles");
+                    System.IO.Directory.CreateDirectory(uploadDir);
+                    string ext = System.IO.Path.GetExtension(selectedFile);
+                    string destFile = System.IO.Path.Combine(uploadDir, $"{Guid.NewGuid()}{ext}");
+                    System.IO.File.Copy(selectedFile, destFile, true);
+                    finalPath = destFile;
+                }
+                catch { }
+
+                SelectedImagePath = finalPath;
             }
         });
     }
@@ -255,6 +347,8 @@ public class MyVehiclesViewModel : ViewModelBase
             OwnerId = _account?.Resident?.Id ?? 0,
             RegistrationDate = DateTime.Now
         };
+        OnPropertyChanged(nameof(SelectedImagePath));
+        OnPropertyChanged(nameof(HasSelectedImage));
         IsFormOpen = true;
     }
 
@@ -275,6 +369,8 @@ public class MyVehiclesViewModel : ViewModelBase
             RegistrationStatus = vehicle.RegistrationStatus,
             RejectReason = vehicle.RejectReason
         };
+        OnPropertyChanged(nameof(SelectedImagePath));
+        OnPropertyChanged(nameof(HasSelectedImage));
         IsFormOpen = true;
     }
 
@@ -304,6 +400,12 @@ public class MyVehiclesViewModel : ViewModelBase
         if (EditingVehicle.OwnerId == 0)
         {
             ErrorMessage = "Không thể xác định chủ sở hữu phương tiện.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditingVehicle.ImagePath))
+        {
+            ErrorMessage = "Vui lòng tải lên hình ảnh phương tiện (danh mục ảnh là bắt buộc khi tạo đơn).";
             return;
         }
 

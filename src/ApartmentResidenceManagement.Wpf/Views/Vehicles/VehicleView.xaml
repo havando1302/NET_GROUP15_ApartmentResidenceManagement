@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:enums="clr-namespace:ApartmentResidenceManagement.Domain.Enums;assembly=ApartmentResidenceManagement.Domain"
+              xmlns:converters="clr-namespace:ApartmentResidenceManagement.Wpf.Converters"
               xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d"
              d:DesignHeight="850" d:DesignWidth="1280"
@@ -13,6 +14,8 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVis"/>
+        <converters:InverseStringToVisibilityConverter x:Key="InverseStringToVis"/>
 
         <!-- Override System Highlight để loại bỏ viền đen mặc định của WPF DataGrid -->
         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#EFF6FF"/>
@@ -509,6 +512,51 @@
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
 
+                                    <!-- Cột 2: Hình ảnh xe -->
+                                    <DataGridTemplateColumn Header="Hình ảnh" Width="68">
+                                        <DataGridTemplateColumn.HeaderStyle>
+                                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            </Style>
+                                        </DataGridTemplateColumn.HeaderStyle>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Width="38" Height="38" CornerRadius="8" Background="#F8FAFC"
+                                                        BorderBrush="#CBD5E1" BorderThickness="1" ClipToBounds="True"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand"
+                                                        ToolTip="Bấm để xem ảnh phương tiện phóng to rõ nét">
+                                                    <Border.InputBindings>
+                                                        <MouseBinding MouseAction="LeftClick"
+                                                                      Command="{Binding DataContext.OpenImageZoomCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                    </Border.InputBindings>
+                                                    <Grid>
+                                                        <Image Source="{Binding ImagePath}" Stretch="UniformToFill"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                                               RenderOptions.EdgeMode="Aliased"
+                                                               Visibility="{Binding ImagePath, Converter={StaticResource StringToVis}}"/>
+                                                        <TextBlock FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Visibility="{Binding ImagePath, Converter={StaticResource InverseStringToVis}}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text" Value="🛵"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Car}">
+                                                                            <Setter Property="Text" Value="🚗"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Bicycle}">
+                                                                            <Setter Property="Text" Value="🚲"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
                                     <!-- Cột 2: Biển số (chữ đậm màu xanh dương #1D4ED8) -->
                                     <DataGridTextColumn Header="Biển số" Binding="{Binding LicensePlate}" Width="1.2*" MinWidth="105">
                                         <DataGridTextColumn.ElementStyle>
@@ -761,15 +809,25 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Hình ảnh xe hoặc Icon vector minh họa -->
-                                    <Border Grid.Column="0" Width="72" Height="72" CornerRadius="12" Background="White"
-                                            BorderBrush="#DBEAFE" BorderThickness="1" Margin="0,0,12,0" VerticalAlignment="Center" ClipToBounds="True">
+                                    <!-- Hình ảnh xe (Click để phóng to kiểm tra rõ nét trước khi duyệt) -->
+                                    <Border Grid.Column="0" Width="82" Height="82" CornerRadius="12" Background="#F8FAFC"
+                                            BorderBrush="#CBD5E1" BorderThickness="1.5" Margin="0,0,14,0" VerticalAlignment="Center"
+                                            ClipToBounds="True" Cursor="Hand" ToolTip="Bấm vào ảnh để phóng to kiểm tra rõ nét trước khi phê duyệt">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick"
+                                                          Command="{Binding OpenImageZoomCommand}"
+                                                          CommandParameter="{Binding SelectedVehicleItem.ImagePath}"/>
+                                        </Border.InputBindings>
                                         <Grid>
-                                            <!-- Nếu có ImagePath -->
+                                            <!-- Ảnh xe thực tế sắc nét -->
                                             <Image Source="{Binding SelectedVehicleItem.ImagePath}" Stretch="UniformToFill"
-                                                   Visibility="{Binding SelectedVehicleItem.ImagePath, Converter={StaticResource BoolToVis}}"/>
-                                            <!-- Nếu không có ImagePath -> Hiển thị icon theo loại xe -->
-                                            <TextBlock Text="🛵" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                   RenderOptions.EdgeMode="Aliased"
+                                                   Visibility="{Binding SelectedVehicleItem.ImagePath, Converter={StaticResource StringToVis}}"/>
+
+                                            <!-- Fallback icon khi không có ảnh -->
+                                            <TextBlock Text="🛵" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Visibility="{Binding SelectedVehicleItem.ImagePath, Converter={StaticResource InverseStringToVis}}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
@@ -783,6 +841,13 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
+
+                                            <!-- Hint overlay nhỏ góc dưới -->
+                                            <Border Background="#99000000" CornerRadius="4" Padding="4,1"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,3,3"
+                                                    Visibility="{Binding SelectedVehicleItem.ImagePath, Converter={StaticResource StringToVis}}">
+                                                <TextBlock Text="🔍 Phóng to" FontSize="9" Foreground="White" FontWeight="SemiBold"/>
+                                            </Border>
                                         </Grid>
                                     </Border>
 
@@ -1103,28 +1168,82 @@
                             </StackPanel>
 
                             <!-- Hình ảnh phương tiện -->
-                            <StackPanel Margin="0,0,0,12">
-                                <TextBlock Text="Hình ảnh phương tiện" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="#475569" Margin="0,0,0,5"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Style="{StaticResource SearchTextBoxStyle}"
-                                             Text="{Binding EditingVehicle.ImagePath, UpdateSourceTrigger=PropertyChanged}"
-                                             Height="36" Margin="0,0,8,0" Tag="Đường dẫn ảnh xe..."/>
-                                    <Button Grid.Column="1" Height="36" Padding="12,0" Background="#EFF6FF" Foreground="#2563EB"
-                                            BorderBrush="#DBEAFE" BorderThickness="1" FontWeight="Medium" Cursor="Hand"
-                                            Command="{Binding SelectImageCommand}">
-                                        <Button.Resources>
-                                            <Style TargetType="Border">
-                                                <Setter Property="CornerRadius" Value="8"/>
-                                            </Style>
-                                        </Button.Resources>
-                                        <TextBlock Text="Chọn tệp..."/>
-                                    </Button>
-                                </Grid>
+                            <!-- Hình ảnh xe (Bắt buộc, xem trước sắc nét cạnh nút tải lên) -->
+                            <StackPanel Margin="0,0,0,16">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock Text="Hình ảnh phương tiện" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="#475569" Margin="0"/>
+                                    <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold" FontSize="13"/>
+                                    <TextBlock Text="(Bắt buộc tải ảnh thật)" Foreground="#64748B" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Height="36" Padding="12,0" Background="#EFF6FF" Foreground="#2563EB"
+                                                BorderBrush="#DBEAFE" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand"
+                                                Command="{Binding SelectImageCommand}" Margin="0,0,12,0">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="8"/>
+                                                </Style>
+                                            </Button.Resources>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="📁" FontSize="13" Margin="0,0,6,0"/>
+                                                <TextBlock Text="Chọn tệp ảnh..."/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                                            <!-- Khi đã chọn ảnh -->
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                                        Visibility="{Binding HasSelectedImage, Converter={StaticResource BoolToVis}}">
+                                                <Border Width="50" Height="50" CornerRadius="8" Background="White"
+                                                        BorderBrush="#CBD5E1" BorderThickness="1" ClipToBounds="True"
+                                                        Cursor="Hand" ToolTip="Nhấn vào ảnh để xem phóng to rõ nét">
+                                                    <Border.InputBindings>
+                                                        <MouseBinding MouseAction="LeftClick"
+                                                                      Command="{Binding OpenImageZoomCommand}"
+                                                                      CommandParameter="{Binding SelectedImagePath}"/>
+                                                    </Border.InputBindings>
+                                                    <Image Source="{Binding SelectedImagePath}" Stretch="UniformToFill"
+                                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                                           RenderOptions.EdgeMode="Aliased"/>
+                                                </Border>
+
+                                                <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
+                                                    <TextBlock Text="Đã chọn ảnh xe" FontSize="11.5" FontWeight="SemiBold" Foreground="#16A34A"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <Button Command="{Binding OpenImageZoomCommand}" CommandParameter="{Binding SelectedImagePath}"
+                                                                Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Margin="0,0,8,0">
+                                                            <TextBlock Text="👁️ Phóng to" FontSize="11" Foreground="#2563EB" TextDecorations="Underline"/>
+                                                        </Button>
+                                                        <Button Command="{Binding ClearSelectedImageCommand}"
+                                                                Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand">
+                                                            <TextBlock Text="✕ Xóa" FontSize="11" Foreground="#DC2626"/>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Khi chưa có ảnh -->
+                                            <TextBlock Text="Chưa chọn tệp ảnh nào (Bắt buộc)" FontSize="11.5" Foreground="#DC2626" FontStyle="Italic" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasSelectedImage}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
@@ -1227,6 +1346,65 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ════════ MODAL PHÓNG TO ẢNH PHƯƠNG TIỆN (LIGHTBOX - ADMIN) ════════ -->
+        <Grid Visibility="{Binding IsImageZoomOpen, Converter={StaticResource BoolToVis}}" Panel.ZIndex="99990">
+            <!-- Backdrop -->
+            <Border Background="#80000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseImageZoomCommand}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <!-- Modal Card -->
+            <Border Width="680" MaxHeight="620" Background="White" CornerRadius="16" Padding="20"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="6" Direction="270" Color="#000000" Opacity="0.3"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📷" FontSize="18" Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding ZoomedImageTitle}" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
+                        </StackPanel>
+                        <Button Command="{Binding CloseImageZoomCommand}" HorizontalAlignment="Right"
+                                Background="Transparent" BorderThickness="0" Width="30" Height="30" Cursor="Hand">
+                            <TextBlock Text="✕" FontSize="16" FontWeight="Bold" Foreground="#64748B"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Zoomed Image Container -->
+                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="12" ClipToBounds="True" MaxHeight="460" Padding="6">
+                        <Image Source="{Binding ZoomedImagePath}" Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               RenderOptions.EdgeMode="Aliased"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- Footer Button -->
+                    <Button Grid.Row="2" Command="{Binding CloseImageZoomCommand}" Content="Đóng"
+                            HorizontalAlignment="Right" Margin="0,14,0,0" Width="90" Height="36"
+                            Background="#F1F5F9" Foreground="#334155" FontSize="13" FontWeight="SemiBold"
+                            BorderThickness="0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
             </Border>
         </Grid>
 
