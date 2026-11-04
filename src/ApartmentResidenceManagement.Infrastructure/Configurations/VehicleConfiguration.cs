@@ -24,9 +24,10 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .HasMaxLength(50);
 
         builder.Property(v => v.Color)
-            .HasMaxLength(30);
+            .HasMaxLength(50);
 
         builder.Property(v => v.RegistrationDate)
+            .HasColumnName("RegisteredAtUtc")
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 

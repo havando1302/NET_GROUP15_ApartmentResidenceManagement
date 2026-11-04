@@ -280,8 +280,8 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Color")
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("ImagePath")
                         .HasMaxLength(255)
@@ -290,6 +290,7 @@ namespace ApartmentResidenceManagement.Infrastructure.Migrations
                     b.Property<DateTime>("RegistrationDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
+                        .HasColumnName("RegisteredAtUtc")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("LicensePlate")
