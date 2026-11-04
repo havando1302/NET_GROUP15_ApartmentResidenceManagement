@@ -237,6 +237,82 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _notificationSendError, value);
     }
 
+    #region Xem trước thông báo (Preview Notice 2026)
+    private bool _isPreviewNoticeModalOpen;
+    public bool IsPreviewNoticeModalOpen
+    {
+        get => _isPreviewNoticeModalOpen;
+        set => SetProperty(ref _isPreviewNoticeModalOpen, value);
+    }
+
+    private string _previewNoticeTitle = string.Empty;
+    public string PreviewNoticeTitle
+    {
+        get => _previewNoticeTitle;
+        set => SetProperty(ref _previewNoticeTitle, value);
+    }
+
+    private string _previewNoticeTypeName = string.Empty;
+    public string PreviewNoticeTypeName
+    {
+        get => _previewNoticeTypeName;
+        set => SetProperty(ref _previewNoticeTypeName, value);
+    }
+
+    private string _previewNoticeTypeBadgeBg = "#EFF6FF";
+    public string PreviewNoticeTypeBadgeBg
+    {
+        get => _previewNoticeTypeBadgeBg;
+        set => SetProperty(ref _previewNoticeTypeBadgeBg, value);
+    }
+
+    private string _previewNoticeTypeBadgeFg = "#1D4ED8";
+    public string PreviewNoticeTypeBadgeFg
+    {
+        get => _previewNoticeTypeBadgeFg;
+        set => SetProperty(ref _previewNoticeTypeBadgeFg, value);
+    }
+
+    private string _previewNoticePriorityName = string.Empty;
+    public string PreviewNoticePriorityName
+    {
+        get => _previewNoticePriorityName;
+        set => SetProperty(ref _previewNoticePriorityName, value);
+    }
+
+    private string _previewNoticePriorityBadgeBg = "#F1F5F9";
+    public string PreviewNoticePriorityBadgeBg
+    {
+        get => _previewNoticePriorityBadgeBg;
+        set => SetProperty(ref _previewNoticePriorityBadgeBg, value);
+    }
+
+    private string _previewNoticePriorityBadgeFg = "#64748B";
+    public string PreviewNoticePriorityBadgeFg
+    {
+        get => _previewNoticePriorityBadgeFg;
+        set => SetProperty(ref _previewNoticePriorityBadgeFg, value);
+    }
+
+    private string _previewNoticeAudienceText = string.Empty;
+    public string PreviewNoticeAudienceText
+    {
+        get => _previewNoticeAudienceText;
+        set => SetProperty(ref _previewNoticeAudienceText, value);
+    }
+
+    private string _previewNoticeContent = string.Empty;
+    public string PreviewNoticeContent
+    {
+        get => _previewNoticeContent;
+        set => SetProperty(ref _previewNoticeContent, value);
+    }
+
+    public ICommand OpenPreviewNoticeCommand { get; }
+    public ICommand ClosePreviewNoticeCommand { get; }
+    public ICommand ConfirmSendFromPreviewCommand { get; }
+    #endregion
+
     private string _toastMessage = string.Empty;
     public string ToastMessage
     {
@@ -531,6 +607,13 @@ public class MainViewModel : ViewModelBase
             foreach (var r in FilteredSelectableResidents) r.IsSelected = false;
         });
         SendAnnouncementCommand = new AsyncRelayCommand(_ => SendAnnouncementAsync());
+        OpenPreviewNoticeCommand = new RelayCommand(_ => PrepareAndOpenPreview());
+        ClosePreviewNoticeCommand = new RelayCommand(_ => IsPreviewNoticeModalOpen = false);
+        ConfirmSendFromPreviewCommand = new AsyncRelayCommand(async _ =>
+        {
+            IsPreviewNoticeModalOpen = false;
+            await SendAnnouncementAsync();
+        });
         CloseToastCommand = new RelayCommand(_ => IsToastVisible = false);
 
         LogoutCommand = new RelayCommand(_ => onLogout?.Invoke());
@@ -786,6 +869,96 @@ public class MainViewModel : ViewModelBase
         {
             IsSendingNotification = false;
         }
+    }
+
+    private void PrepareAndOpenPreview()
+    {
+        NotificationSendError = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(NewNotificationTitle))
+        {
+            NotificationSendError = "Vui lòng nhập tiêu đề thông báo trước khi xem trước.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(NewNotificationContent))
+        {
+            NotificationSendError = "Vui lòng nhập nội dung thông báo trước khi xem trước.";
+            return;
+        }
+
+        PreviewNoticeTitle = NewNotificationTitle.Trim();
+        PreviewNoticeContent = NewNotificationContent;
+
+        PreviewNoticeTypeName = NewNotificationType switch
+        {
+            NotificationType.Maintenance => "🛠️ Bảo trì - Kỹ thuật",
+            NotificationType.FeeNotice => "💳 Phí dịch vụ",
+            NotificationType.UrgentNotice => "🚨 Khẩn cấp",
+            _ => "📢 Thông báo chung"
+        };
+
+        PreviewNoticeTypeBadgeBg = NewNotificationType switch
+        {
+            NotificationType.Maintenance => "#FEF3C7",
+            NotificationType.FeeNotice => "#F3E8FF",
+            NotificationType.UrgentNotice => "#FEE2E2",
+            _ => "#EFF6FF"
+        };
+
+        PreviewNoticeTypeBadgeFg = NewNotificationType switch
+        {
+            NotificationType.Maintenance => "#D97706",
+            NotificationType.FeeNotice => "#7C3AED",
+            NotificationType.UrgentNotice => "#DC2626",
+            _ => "#1D4ED8"
+        };
+
+        PreviewNoticePriorityName = NewNotificationPriority switch
+        {
+            NotificationPriority.Urgent => "🔥 Khẩn cấp",
+            NotificationPriority.Important => "⚡ Quan trọng",
+            _ => "Bình thường"
+        };
+
+        PreviewNoticePriorityBadgeBg = NewNotificationPriority switch
+        {
+            NotificationPriority.Urgent => "#FEE2E2",
+            NotificationPriority.Important => "#FEF3C7",
+            _ => "#F1F5F9"
+        };
+
+        PreviewNoticePriorityBadgeFg = NewNotificationPriority switch
+        {
+            NotificationPriority.Urgent => "#DC2626",
+            NotificationPriority.Important => "#B45309",
+            _ => "#64748B"
+        };
+
+        PreviewNoticeAudienceText = SelectedTargetAudienceIndex switch
+        {
+            1 => $"Nhóm cư dân đang cư trú ({SelectableResidents.Count(r => r.StatusText == "Đang cư trú")} cư dân có tài khoản hoạt động)",
+            2 => $"Nhóm cư dân đã chuyển đi ({SelectableResidents.Count(r => r.StatusText == "Đã chuyển đi")} cư dân có tài khoản hoạt động)",
+            3 => GetSpecificAudienceText(),
+            _ => $"Toàn bộ cư dân có tài khoản đang hoạt động ({SelectableResidents.Count} cư dân)"
+        };
+
+        if (SelectedTargetAudienceIndex == 3 && SelectableResidents.Count(r => r.IsSelected) == 0)
+        {
+            NotificationSendError = "Vui lòng chọn ít nhất 1 cư dân trong danh sách để xem trước.";
+            return;
+        }
+
+        IsPreviewNoticeModalOpen = true;
+    }
+
+    private string GetSpecificAudienceText()
+    {
+        var selected = SelectableResidents.Where(r => r.IsSelected).ToList();
+        if (selected.Count == 0) return "Chưa chọn cư dân nào";
+        string names = string.Join(", ", selected.Take(3).Select(s => s.FullName));
+        if (selected.Count > 3) names += $" và {selected.Count - 3} cư dân khác";
+        return $"Cư dân được chọn ({selected.Count} người: {names})";
     }
 
     private void ShowToast(string message)

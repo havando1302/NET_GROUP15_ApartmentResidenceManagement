@@ -49,7 +49,7 @@ public static class FormattedTextHelper
         }
     }
 
-    private static void ParseAndAddInlines(InlineCollection inlines, string text)
+    public static void ParseAndAddInlines(InlineCollection inlines, string text)
     {
         // Chuẩn hóa line break
         text = text.Replace("\r\n", "\n").Replace("<br>", "\n").Replace("<br/>", "\n").Replace("<br />", "\n");

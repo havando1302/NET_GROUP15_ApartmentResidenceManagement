@@ -1,6 +1,8 @@
 using System;
+using System.Windows.Documents;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
+using ApartmentResidenceManagement.Wpf.Helpers;
 using ApartmentResidenceManagement.Wpf.ViewModels;
 using Xunit;
 
@@ -86,5 +88,59 @@ public class NotificationViewModelsTests
         Assert.True(vm.IsRead);
         Assert.Equal("Ban quản lý", vm.SenderName);
         Assert.False(vm.HasPriorityBadge);
+    }
+
+    [Fact]
+    public void FlowDocumentHelper_LoadContentIntoDocument_ParsesMarkupCorrectly()
+    {
+        // Arrange
+        var doc = new FlowDocument();
+        string markup = "Xin chào <b>Cư dân</b> toà nhà <color=#2563EB>A1</color>!<br/>Bảo trì hôm nay.";
+
+        // Act
+        FlowDocumentHelper.LoadContentIntoDocument(doc, markup);
+
+        // Assert
+        Assert.NotEmpty(doc.Blocks);
+        var textRange = new TextRange(doc.ContentStart, doc.ContentEnd);
+        Assert.Contains("Xin chào", textRange.Text);
+        Assert.Contains("Cư dân", textRange.Text);
+    }
+
+    [Fact]
+    public void FlowDocumentHelper_SaveAndLoadDocument_RoundTripsContent()
+    {
+        // Arrange
+        var doc1 = new FlowDocument();
+        doc1.Blocks.Add(new Paragraph(new Run("Nội dung thử nghiệm lưu trữ XAML")));
+
+        // Act
+        string xaml = FlowDocumentHelper.SaveDocumentToXaml(doc1);
+        Assert.NotEmpty(xaml);
+
+        var doc2 = new FlowDocument();
+        FlowDocumentHelper.LoadContentIntoDocument(doc2, xaml);
+        var textRange = new TextRange(doc2.ContentStart, doc2.ContentEnd);
+
+        // Assert
+        Assert.Contains("Nội dung thử nghiệm lưu trữ XAML", textRange.Text);
+    }
+
+    [Fact]
+    public void SelectableResidentItemViewModel_InitializesCorrectly()
+    {
+        var item = new SelectableResidentItemViewModel
+        {
+            ResidentId = 12,
+            FullName = "Hoàng Văn H",
+            Username = "hoangvanh",
+            ApartmentInfo = "Căn hộ 1205",
+            StatusText = "Đang cư trú",
+            IsSelected = true
+        };
+
+        Assert.Equal(12, item.ResidentId);
+        Assert.Equal("Hoàng Văn H", item.FullName);
+        Assert.True(item.IsSelected);
     }
 }
