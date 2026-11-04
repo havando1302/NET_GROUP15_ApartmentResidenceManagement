@@ -73,6 +73,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<AccountService>();
                 services.AddTransient<MemberRequestService>();
                 services.AddTransient<StatisticsService>();
+                services.AddTransient<IAppNotificationService, AppNotificationService>();
 
                 // 5. Đăng ký Views và ViewModels (Presentation UI)
                 services.AddTransient<LoginViewModel>();
@@ -170,6 +171,8 @@ public partial class App : System.Windows.Application
                 services.GetRequiredService<MyVehiclesViewModel>(),
                 services.GetRequiredService<ResidencyHistoryViewModel>(),
                 services.GetRequiredService<UnderDevelopmentViewModel>(),
+                services.GetRequiredService<IAppNotificationService>(),
+                services.GetRequiredService<IUnitOfWork>(),
                 onLogout: () =>
                 {
                     mainWindow.DialogResult = false;

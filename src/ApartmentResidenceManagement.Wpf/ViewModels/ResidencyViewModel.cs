@@ -776,6 +776,21 @@ public class ResidencyViewModel : ViewModelBase
     }
 
     #region Mouse Wheel & Keyboard Paged Navigation
+    
+    public async Task SelectMemberRequestByIdAsync(int requestId)
+    {
+        SelectedTabIndex = 2; // Chuyển sang Tab Y†u cầu đăng ký thành viên
+        await LoadRequestsAsync();
+
+        var target = _allRequests.FirstOrDefault(r => r.Id == requestId);
+        if (target != null)
+        {
+            SelectedRequestDetail = target;
+            SelectedRequestItem = target;
+            IsRequestDetailModalOpen = true;
+        }
+    }
+
     public void SelectNextItemOrNextPage()
     {
         if (IsResidencesTab)

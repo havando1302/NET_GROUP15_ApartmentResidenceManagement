@@ -31,6 +31,42 @@ public static class DatabaseInitializer
         }
         catch { }
 
+        // Đảm bảo 2 bảng Notifications và NotificationRecipients tồn tại
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS Notifications (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    Title VARCHAR(250) NOT NULL,
+                    Content TEXT NOT NULL,
+                    Type INT NOT NULL,
+                    Priority INT NOT NULL,
+                    TargetAudience INT NOT NULL,
+                    SenderId INT NULL,
+                    RelatedEntityType VARCHAR(100) NULL,
+                    RelatedEntityId INT NULL,
+                    CreatedAt DATETIME NOT NULL,
+                    CONSTRAINT FK_Notifications_SenderId FOREIGN KEY (SenderId) REFERENCES UserAccounts(Id) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS NotificationRecipients (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    NotificationId INT NOT NULL,
+                    UserAccountId INT NOT NULL,
+                    IsRead TINYINT(1) NOT NULL DEFAULT 0,
+                    ReadAt DATETIME NULL,
+                    CreatedAt DATETIME NOT NULL,
+                    CONSTRAINT FK_NotificationRecipients_NotificationId FOREIGN KEY (NotificationId) REFERENCES Notifications(Id) ON DELETE CASCADE,
+                    CONSTRAINT FK_NotificationRecipients_UserAccountId FOREIGN KEY (UserAccountId) REFERENCES UserAccounts(Id) ON DELETE CASCADE,
+                    INDEX IX_NotificationRecipients_User_Read (UserAccountId, IsRead)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+        }
+        catch { }
+
+
         // Bổ sung AvatarPath cho các cư dân hiện có trong CSDL nếu đang null
         var residentsWithoutAvatar = await context.Residents
             .Where(r => r.AvatarPath == null || r.AvatarPath == "")
@@ -93,6 +129,7 @@ public static class DatabaseInitializer
         if (seedDemoData)
         {
             await SeedVehiclesIfMissingAsync(context);
+            await SeedNotificationsIfMissingAsync(context);
         }
 
         if (!seedDemoData)
@@ -384,4 +421,109 @@ public static class DatabaseInitializer
         string result = sb.ToString();
         return string.IsNullOrWhiteSpace(result) ? "user" : result;
     }
+
+    public static async Task SeedNotificationsIfMissingAsync(AppDbContext context)
+    {
+        if (await context.Notifications.AnyAsync()) return;
+
+        var adminAccount = await context.UserAccounts.FirstOrDefaultAsync(u => u.Role == UserRole.Admin);
+        var activeResidents = await context.Residents
+            .Include(r => r.UserAccount)
+            .Where(r => r.UserAccount != null && r.UserAccount.IsActive)
+            .ToListAsync();
+
+        var pendingVehicle = await context.Vehicles
+            .Include(v => v.Owner)
+            .FirstOrDefaultAsync(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending);
+
+        var pendingRequest = await context.MemberRegistrationRequests
+            .Include(r => r.RequesterResident)
+            .FirstOrDefaultAsync(r => r.Status == RequestStatus.Pending);
+
+        var notifications = new List<Notification>();
+
+        // 1. Thông báo đơn duyệt xe cho Admin
+        if (pendingVehicle != null && adminAccount != null)
+        {
+            var notif = new Notification
+            {
+                Title = $"Đơn đăng ký phương tiện mới: {pendingVehicle.LicensePlate}",
+                Content = $"Cư dân <b>{pendingVehicle.Owner.FullName}</b> đã gửi yêu cầu đăng ký phương tiện mới với biển số <color=#2563EB><b>{pendingVehicle.LicensePlate}</b></color> ({pendingVehicle.Brand} - {pendingVehicle.Color}). Vui lòng kiểm tra và phê duyệt.",
+                Type = NotificationType.ApprovalRequest,
+                Priority = NotificationPriority.Important,
+                TargetAudience = TargetAudienceType.SystemAdmin,
+                SenderId = pendingVehicle.Owner.UserAccount?.Id,
+                RelatedEntityType = "Vehicle",
+                RelatedEntityId = pendingVehicle.Id,
+                CreatedAt = DateTime.Now.AddHours(-2)
+            };
+            notif.Recipients.Add(new NotificationRecipient
+            {
+                UserAccountId = adminAccount.Id,
+                IsRead = false,
+                CreatedAt = notif.CreatedAt
+            });
+            notifications.Add(notif);
+        }
+
+        // 2. Thông báo đơn duyệt thành viên cho Admin
+        if (pendingRequest != null && adminAccount != null)
+        {
+            var notif = new Notification
+            {
+                Title = $"Yêu cầu thêm thành viên mới: {pendingRequest.FullName}",
+                Content = $"Cư dân <b>{pendingRequest.RequesterResident.FullName}</b> gửi yêu cầu đăng ký thêm thành viên <color=#059669><b>{pendingRequest.FullName}</b></color> vào căn hộ. Vui lòng xem xét hồ sơ.",
+                Type = NotificationType.ApprovalRequest,
+                Priority = NotificationPriority.Normal,
+                TargetAudience = TargetAudienceType.SystemAdmin,
+                SenderId = pendingRequest.RequesterResident.UserAccount?.Id,
+                RelatedEntityType = "MemberRegistrationRequest",
+                RelatedEntityId = pendingRequest.Id,
+                CreatedAt = DateTime.Now.AddHours(-5)
+            };
+            notif.Recipients.Add(new NotificationRecipient
+            {
+                UserAccountId = adminAccount.Id,
+                IsRead = false,
+                CreatedAt = notif.CreatedAt
+            });
+            notifications.Add(notif);
+        }
+
+        // 3. Thông báo chung từ Admin gửi toàn bộ cư dân có tài khoản đang hoạt động
+        if (adminAccount != null && activeResidents.Count > 0)
+        {
+            var announcement = new Notification
+            {
+                Title = "Thông báo bảo trì hệ thống thang máy và tiện ích toà nhà",
+                Content = "<b>KÍNH GỬI QUÝ CƯ DÂN TOÀ NHÀ RESIDENCEMANAGER</b><br/><br/>Ban quản lý xin trân trọng thông báo lịch bảo trì định kỳ hệ thống kỹ thuật toà nhà:<br/>• Thời gian bảo trì: <color=#2563EB><b>08:30 - 11:30 ngày 15/11/2026</b></color><br/>• Khu vực thực hiện: Hệ thống thang máy Tháp A và Tháp B.<br/>• Phạm vi ảnh hưởng: Tạm ngưng hoạt động thang máy số 01 và 02 sảnh chính.<br/><br/>Quý cư dân vui lòng sắp xếp thời gian di chuyển phù hợp. Mọi thắc mắc xin liên hệ Lễ tân qua hotline: <color=#DC2626><b>1900 6868</b></color>.<br/><br/>Trân trọng cảm ơn sự phối hợp của Quý cư dân!<br/><i>Ban Quản Lý Toà Nhà</i>",
+                Type = NotificationType.Maintenance,
+                Priority = NotificationPriority.Important,
+                TargetAudience = TargetAudienceType.All,
+                SenderId = adminAccount.Id,
+                CreatedAt = DateTime.Now.AddDays(-1)
+            };
+
+            foreach (var r in activeResidents)
+            {
+                if (r.UserAccount != null)
+                {
+                    announcement.Recipients.Add(new NotificationRecipient
+                    {
+                        UserAccountId = r.UserAccount.Id,
+                        IsRead = false,
+                        CreatedAt = announcement.CreatedAt
+                    });
+                }
+            }
+            notifications.Add(announcement);
+        }
+
+        if (notifications.Count > 0)
+        {
+            context.Notifications.AddRange(notifications);
+            await context.SaveChangesAsync();
+        }
+    }
+
 }

@@ -16,6 +16,7 @@ public class UnitOfWork : IUnitOfWork
     private IUserAccountRepository? _userAccounts;
     private IMemberRegistrationRequestRepository? _memberRegistrationRequests;
     private IVehicleRepository? _vehicles;
+    private INotificationRepository? _notifications;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -39,6 +40,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IVehicleRepository Vehicles =>
         _vehicles ??= new VehicleRepository(_context);
+
+    public INotificationRepository Notifications =>
+        _notifications ??= new NotificationRepository(_context);
 
     public async Task<int> CompleteAsync()
     {

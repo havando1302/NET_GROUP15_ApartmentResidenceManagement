@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<MemberRegistrationRequest> MemberRegistrationRequests { get; set; } = null!;
 
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
+    public DbSet<Notification> Notifications { get; set; } = null!;
+    public DbSet<NotificationRecipient> NotificationRecipients { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

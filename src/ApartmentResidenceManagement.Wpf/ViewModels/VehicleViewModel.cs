@@ -725,6 +725,34 @@ public class VehicleViewModel : ViewModelBase
     }
 
     #region MouseWheel Paging
+    
+    public async Task SelectVehicleByIdAsync(int vehicleId)
+    {
+        if (_allVehicles.Count == 0)
+        {
+            await LoadDataAsync();
+        }
+
+        SelectedTypeFilter = "Tất cả";
+        SelectedStatusFilter = "Tất cả";
+        SearchText = string.Empty;
+        ApplyFilters();
+
+        var target = _allVehicles.FirstOrDefault(v => v.Id == vehicleId);
+        if (target != null)
+        {
+            int index = _filteredVehicles.IndexOf(target);
+            if (index >= 0)
+            {
+                CurrentPage = (index / PageSize) + 1;
+            }
+
+            SelectedVehicleItem = target;
+            UpdateApartmentQuotas(target);
+            IsDetailPanelOpen = true;
+        }
+    }
+
     public void SelectNextItemOrNextPage()
     {
         if (PagedVehicles.Count == 0) return;

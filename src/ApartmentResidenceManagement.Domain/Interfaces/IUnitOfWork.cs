@@ -11,6 +11,7 @@ public interface IUnitOfWork : IDisposable
     IUserAccountRepository UserAccounts { get; }
     IMemberRegistrationRequestRepository MemberRegistrationRequests { get; }
     IVehicleRepository Vehicles { get; }
+    INotificationRepository Notifications { get; }
     
     Task<int> CompleteAsync();
     Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation);

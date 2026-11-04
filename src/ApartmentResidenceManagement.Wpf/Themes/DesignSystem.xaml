@@ -1,10 +1,15 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:conv="clr-namespace:ApartmentResidenceManagement.Wpf.Converters"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ══════════════════════════════════════════════════════════
          BỘ CHUYỂN ĐỔI DÙNG CHUNG (CONVERTERS)
     ══════════════════════════════════════════════════════════ -->
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    <conv:IntToBoolConverter x:Key="IntToBoolConverter"/>
+    <conv:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+    <conv:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter"/>
+    <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
 
     <!-- ══════════════════════════════════════════════════════════
          SAAS LIGHT THEME - COLOR PALETTE
