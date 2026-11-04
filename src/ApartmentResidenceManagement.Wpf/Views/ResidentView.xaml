@@ -648,7 +648,7 @@
 
                 <!-- ===== CỘT PHẢI: CHI TIẾT CƯ DÂN (CHỈ HIỂN THỊ KHI BẤM ICON 👁 XEM CHI TIẾT, CÓ DẤU X TẮT TAB) ===== -->
                 <Border Grid.Column="1" Width="360" Margin="16,0,0,0"
-                        Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18,16"
+                        Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18,16,12,16"
                         VerticalAlignment="Stretch"
                         Visibility="{Binding IsDetailPanelOpen, Converter={StaticResource BoolToVis}}">
                     <Border.Effect>
@@ -690,12 +690,13 @@
                             </Button>
                         </Grid>
 
-                        <!-- Body chi tiết: Hỗ trợ lăn chuột mượt mà để xem được đầy đủ tất cả thông tin -->
+                        <!-- Body chi tiết: Hỗ trợ lăn chuột mượt mà, lùi cách thanh lướt 14px để không che lấp nội dung -->
                         <ScrollViewer Grid.Row="1" x:Name="DetailScrollViewer"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled"
+                                      Padding="0,0,4,0"
                                       PreviewMouseWheel="OnDetailPreviewMouseWheel">
-                            <StackPanel Margin="0,0,4,0">
+                            <StackPanel Margin="0,0,14,0">
                                 <!-- Khối Avatar + Tên + Mã cư dân + Badge trạng thái -->
                                 <StackPanel HorizontalAlignment="Center" Margin="0,4,0,14">
                                     <!-- Avatar tròn -->
@@ -957,8 +958,8 @@
                                    FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="520">
-                        <StackPanel Margin="0,0,0,8">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="520" Padding="0,0,4,0">
+                        <StackPanel Margin="0,0,14,8">
                             <!-- Họ và tên -->
                             <StackPanel Margin="0,0,0,16">
                                 <TextBlock Text="Họ và tên *" FontSize="13.5" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,6"/>

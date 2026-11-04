@@ -1188,7 +1188,7 @@
                      -> STRETCHES VERTICALLY TO ALIGN WITH THE TABLE
                 ──────────────────────────────────────────────────────── -->
                 <Border Grid.Column="1" Width="330" Margin="16,0,0,0"
-                        Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="16,14"
+                        Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="16,14,10,14"
                         VerticalAlignment="Stretch"
                         Visibility="{Binding IsDetailPanelVisible, Converter={StaticResource BoolToVis}}">
                     <Border.Effect>
@@ -1353,12 +1353,13 @@
                                 <TextBlock Text="Quá trình cư trú" FontSize="13" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,6"/>
                             </StackPanel>
 
-                            <!-- Row 4: Quá trình cư trú (Timeline) - Fills remaining space, with ScrollViewer if many items -->
+                            <!-- Row 4: Quá trình cư trú (Timeline) - Fills remaining space, có thanh lướt mượt mà, lùi cách 14px để không che lấp nội dung -->
                             <ScrollViewer x:Name="TimelineScrollViewer" Grid.Row="4"
-                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled"
+                                          Padding="0,0,4,0"
                                           PreviewMouseWheel="OnTimelinePreviewMouseWheel">
-                                <ItemsControl ItemsSource="{Binding SelectedResidentTimeline}">
+                                <ItemsControl ItemsSource="{Binding SelectedResidentTimeline}" Margin="0,0,14,0">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Grid Margin="0,0,0,6">
@@ -1591,6 +1592,9 @@
                     <TextBlock Text="Gửi yêu cầu đăng ký thêm thành viên vào căn hộ đến Ban quản lý toà nhà để phê duyệt."
                                FontSize="12.5" Foreground="#64748B" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
+                    <!-- Scrollable Content với khoảng cách đệm phải 14px chống che lấp nội dung -->
+                    <ScrollViewer MaxHeight="440" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
+                    <StackPanel Margin="0,0,14,0">
                     <!-- Khối thông tin đơn gửi: Căn hộ, Người tạo đơn, Ngày tạo đơn -->
                     <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10"
                             Padding="14,10" Margin="0,0,0,14">
@@ -1724,6 +1728,8 @@
                             <TextBlock Text="{Binding SelectedRequestDetail.RejectReason}" FontSize="13" Foreground="#991B1B" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
+                    </StackPanel>
+                    </ScrollViewer>
 
                     <!-- 7. Buttons dưới cùng -->
                     <!-- Khi Chưa duyệt: Có đủ [Hủy bỏ], [Từ chối], [Duyệt yêu cầu] -->

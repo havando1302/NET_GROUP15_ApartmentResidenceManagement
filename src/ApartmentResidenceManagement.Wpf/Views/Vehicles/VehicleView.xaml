@@ -627,7 +627,7 @@
 
             <!-- ===== CỘT PHẢI: CHI TIẾT PHƯƠNG TIỆN (CHỈ HIỂN THỊ KHI BẤM ICON 👁 XEM CHI TIẾT, CÓ DẤU X TẮT TAB) ===== -->
             <Border Grid.Column="1" Width="370" Margin="16,0,0,0"
-                    Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18,16"
+                    Background="White" CornerRadius="16" BorderBrush="#F1F5F9" BorderThickness="1" Padding="18,16,12,16"
                     VerticalAlignment="Stretch"
                     Visibility="{Binding IsDetailPanelOpen, Converter={StaticResource BoolToVis}}">
                 <Border.Effect>
@@ -670,10 +670,11 @@
                         </Button>
                     </Grid>
 
-                    <!-- Body chi tiết: Hỗ trợ lăn chuột mượt mà -->
+                    <!-- Body chi tiết: Hỗ trợ lăn chuột mượt mà, lùi cách thanh lướt 14px để không che lấp nội dung -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  Padding="0,0,4,0"
                                   PreviewMouseWheel="OnDetailPreviewMouseWheel">
-                        <StackPanel Margin="0,0,4,0">
+                        <StackPanel Margin="0,0,14,0">
                             <!-- Card Hero: Ảnh / Icon minh họa + Biển số + Loại • Hãng • Màu + Trạng thái -->
                             <Border Background="#EFF6FF" CornerRadius="14" Padding="14" Margin="0,0,0,16">
                                 <Grid>
@@ -955,8 +956,8 @@
                     </Grid>
 
                     <!-- Body Form -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="480">
-                        <StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="480" Padding="0,0,4,0">
+                        <StackPanel Margin="0,0,14,0">
                             <!-- Biển số xe -->
                             <StackPanel Margin="0,0,0,12">
                                 <TextBlock Text="Biển số xe (Ví dụ: 29A-123.45) *" FontSize="12" FontWeight="SemiBold"

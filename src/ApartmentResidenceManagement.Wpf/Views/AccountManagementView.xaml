@@ -655,7 +655,7 @@
                      RIGHT COLUMN: CHI TIẾT TÀI KHOẢN CARD
                 ──────────────────────────────────────────────────────── -->
                 <Border Grid.Column="1" Width="330" Margin="16,0,0,0"
-                        Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="18"
+                        Background="White" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Padding="18,18,12,18"
                         VerticalAlignment="Stretch"
                         Visibility="{Binding IsDetailPanelOpen, Converter={StaticResource BoolToVis}}">
                     <Border.Effect>
@@ -744,10 +744,12 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- Row 2: Section: Thông tin tài khoản -->
-                            <StackPanel Grid.Row="2" VerticalAlignment="Top">
-                                <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,14"/>
-                                <TextBlock Text="Thông tin tài khoản" FontSize="13" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
+                            <!-- Row 2: Section: Thông tin tài khoản (có thanh lướt mượt mà, lùi cách 14px để không che lấp nội dung) -->
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                          Padding="0,0,4,0">
+                                <StackPanel Margin="0,0,14,0" VerticalAlignment="Top">
+                                    <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,14"/>
+                                    <TextBlock Text="Thông tin tài khoản" FontSize="13" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
 
                                 <!-- Mã tài khoản -->
                                 <Grid Margin="0,0,0,10">
@@ -803,7 +805,8 @@
                                                FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"
                                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
-                            </StackPanel>
+                                </StackPanel>
+                            </ScrollViewer>
 
                             <!-- Row 3: Action Buttons at Bottom -->
                             <StackPanel Grid.Row="3" Margin="0,14,0,0">
