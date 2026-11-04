@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
+using System.Windows.Media;
 
 namespace ApartmentResidenceManagement.Wpf.Helpers;
 
@@ -37,6 +38,9 @@ public static class FlowDocumentHelper
             {
                 rtb.Document = new FlowDocument();
             }
+            RenderOptions.SetBitmapScalingMode(rtb, BitmapScalingMode.HighQuality);
+            rtb.SnapsToDevicePixels = true;
+            rtb.UseLayoutRounding = true;
             LoadContentIntoDocument(rtb.Document, content);
         }
         else if (d is FlowDocumentScrollViewer viewer)
@@ -45,6 +49,9 @@ public static class FlowDocumentHelper
             {
                 viewer.Document = new FlowDocument();
             }
+            RenderOptions.SetBitmapScalingMode(viewer, BitmapScalingMode.HighQuality);
+            viewer.SnapsToDevicePixels = true;
+            viewer.UseLayoutRounding = true;
             LoadContentIntoDocument(viewer.Document, content);
         }
     }
@@ -71,6 +78,7 @@ public static class FlowDocumentHelper
                     {
                         var block = parsedDoc.Blocks.FirstBlock;
                         parsedDoc.Blocks.Remove(block);
+                        ApplyHighQualityToBlock(block);
                         doc.Blocks.Add(block);
                     }
                     return;
@@ -92,6 +100,45 @@ public static class FlowDocumentHelper
         catch
         {
             doc.Blocks.Add(new Paragraph(new Run(content)));
+        }
+    }
+
+    private static void ApplyHighQualityToBlock(TextElement element)
+    {
+        if (element is BlockUIContainer container && container.Child is Image img)
+        {
+            RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+            RenderOptions.SetEdgeMode(img, EdgeMode.Aliased);
+            img.SnapsToDevicePixels = true;
+            img.UseLayoutRounding = true;
+            img.Stretch = Stretch.Uniform;
+            if (double.IsNaN(img.MaxWidth) || img.MaxWidth <= 0)
+            {
+                img.MaxWidth = 520;
+            }
+        }
+        else if (element is Table table)
+        {
+            foreach (var group in table.RowGroups)
+            {
+                foreach (var row in group.Rows)
+                {
+                    foreach (var cell in row.Cells)
+                    {
+                        foreach (var b in cell.Blocks)
+                        {
+                            ApplyHighQualityToBlock(b);
+                        }
+                    }
+                }
+            }
+        }
+        else if (element is Section section)
+        {
+            foreach (var b in section.Blocks)
+            {
+                ApplyHighQualityToBlock(b);
+            }
         }
     }
 

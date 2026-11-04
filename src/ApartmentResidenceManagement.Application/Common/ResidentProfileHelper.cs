@@ -77,3 +77,4 @@ public static class ResidentProfileHelper
         return string.IsNullOrWhiteSpace(result) ? "resident" : result;
     }
 }
+

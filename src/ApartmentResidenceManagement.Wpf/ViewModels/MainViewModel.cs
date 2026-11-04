@@ -113,7 +113,16 @@ public class MainViewModel : ViewModelBase
     public int SelectedNotificationTab
     {
         get => _selectedNotificationTab;
-        set => SetProperty(ref _selectedNotificationTab, value);
+        set
+        {
+            if (SetProperty(ref _selectedNotificationTab, value))
+            {
+                if (value == 2)
+                {
+                    _ = LoadSentNotificationsAsync();
+                }
+            }
+        }
     }
 
     private int _unreadNotificationsCount;
@@ -182,8 +191,22 @@ public class MainViewModel : ViewModelBase
     public NotificationType NewNotificationType
     {
         get => _newNotificationType;
-        set => SetProperty(ref _newNotificationType, value);
+        set
+        {
+            if (SetProperty(ref _newNotificationType, value))
+            {
+                OnPropertyChanged(nameof(PreviewNoticeTypeIcon));
+            }
+        }
     }
+
+    public string PreviewNoticeTypeIcon => NewNotificationType switch
+    {
+        NotificationType.Maintenance => "🛠️",
+        NotificationType.FeeNotice => "💳",
+        NotificationType.UrgentNotice => "🚨",
+        _ => "📢"
+    };
 
     private NotificationPriority _newNotificationPriority = NotificationPriority.Normal;
     public NotificationPriority NewNotificationPriority
@@ -311,6 +334,34 @@ public class MainViewModel : ViewModelBase
     public ICommand OpenPreviewNoticeCommand { get; }
     public ICommand ClosePreviewNoticeCommand { get; }
     public ICommand ConfirmSendFromPreviewCommand { get; }
+    #endregion
+
+    #region Lịch sử gửi thông báo (Admin Sent History)
+    public ObservableCollection<SentNotificationItemViewModel> SentNotifications { get; } = new();
+    public ObservableCollection<SentNotificationItemViewModel> FilteredSentNotifications { get; } = new();
+
+    private string _sentNotificationSearchKeyword = string.Empty;
+    public string SentNotificationSearchKeyword
+    {
+        get => _sentNotificationSearchKeyword;
+        set
+        {
+            if (SetProperty(ref _sentNotificationSearchKeyword, value))
+            {
+                FilterSentNotifications();
+            }
+        }
+    }
+
+    private bool _isLoadingSentNotifications;
+    public bool IsLoadingSentNotifications
+    {
+        get => _isLoadingSentNotifications;
+        set => SetProperty(ref _isLoadingSentNotifications, value);
+    }
+
+    public ICommand RefreshSentNotificationsCommand { get; }
+    public ICommand OpenSentNotificationDetailCommand { get; }
     #endregion
 
     private string _toastMessage = string.Empty;
@@ -614,6 +665,15 @@ public class MainViewModel : ViewModelBase
             IsPreviewNoticeModalOpen = false;
             await SendAnnouncementAsync();
         });
+        RefreshSentNotificationsCommand = new AsyncRelayCommand(_ => LoadSentNotificationsAsync());
+        OpenSentNotificationDetailCommand = new RelayCommand(param =>
+        {
+            if (param is SentNotificationItemViewModel sentVm)
+            {
+                SelectedNotificationDetail = sentVm.ToNotificationDetail();
+                IsNotificationDetailModalOpen = true;
+            }
+        });
         CloseToastCommand = new RelayCommand(_ => IsToastVisible = false);
 
         LogoutCommand = new RelayCommand(_ => onLogout?.Invoke());
@@ -856,7 +916,8 @@ public class MainViewModel : ViewModelBase
             NewNotificationContent = string.Empty;
             foreach (var r in SelectableResidents) r.IsSelected = false;
 
-            SelectedNotificationTab = 0; // Quay về tab danh sách
+            SelectedNotificationTab = 2; // Chuyển sang tab Lịch sử gửi để kiểm tra ngay thông báo vừa phát hành
+            await LoadSentNotificationsAsync();
             await RefreshNotificationsAsync();
 
             ShowToast("Tạo và gửi thông báo tới cư dân thành công!");
@@ -959,6 +1020,60 @@ public class MainViewModel : ViewModelBase
         string names = string.Join(", ", selected.Take(3).Select(s => s.FullName));
         if (selected.Count > 3) names += $" và {selected.Count - 3} cư dân khác";
         return $"Cư dân được chọn ({selected.Count} người: {names})";
+    }
+
+    public async Task LoadSentNotificationsAsync()
+    {
+        if (_notificationService == null) return;
+
+        IsLoadingSentNotifications = true;
+        try
+        {
+            var sentList = await _notificationService.GetSentAnnouncementsAsync();
+            SentNotifications.Clear();
+            foreach (var n in sentList)
+            {
+                int totalRecipients = n.Recipients?.Count ?? 0;
+                int readRecipients = n.Recipients?.Count(r => r.IsRead) ?? 0;
+                SentNotifications.Add(new SentNotificationItemViewModel
+                {
+                    NotificationId = n.Id,
+                    Title = n.Title,
+                    Content = n.Content,
+                    Type = n.Type,
+                    Priority = n.Priority,
+                    TargetAudience = n.TargetAudience,
+                    CreatedAt = n.CreatedAt,
+                    RecipientCount = totalRecipients,
+                    ReadCount = readRecipients
+                });
+            }
+            FilterSentNotifications();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandlingService.Handle(ex);
+        }
+        finally
+        {
+            IsLoadingSentNotifications = false;
+        }
+    }
+
+    private void FilterSentNotifications()
+    {
+        FilteredSentNotifications.Clear();
+        var query = SentNotifications.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(SentNotificationSearchKeyword))
+        {
+            query = query.Where(n => VietnameseSearchHelper.MatchesSearch(SentNotificationSearchKeyword, n.Title, n.TypeName, n.TargetAudienceText));
+        }
+
+        foreach (var item in query)
+        {
+            FilteredSentNotifications.Add(item);
+        }
     }
 
     private void ShowToast(string message)

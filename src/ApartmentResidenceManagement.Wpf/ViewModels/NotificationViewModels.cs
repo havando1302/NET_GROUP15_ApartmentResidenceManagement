@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
 
@@ -149,5 +150,106 @@ public class SelectableResidentItemViewModel : ViewModelBase
     {
         get => _isSelected;
         set => SetProperty(ref _isSelected, value);
+    }
+}
+
+public class SentNotificationItemViewModel : ViewModelBase
+{
+    public int NotificationId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public NotificationType Type { get; set; }
+    public NotificationPriority Priority { get; set; }
+    public TargetAudienceType TargetAudience { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int RecipientCount { get; set; }
+    public int ReadCount { get; set; }
+
+    public string TargetAudienceText => TargetAudience switch
+    {
+        TargetAudienceType.All => "Toàn bộ cư dân",
+        TargetAudienceType.ActiveResidents => "Nhóm cư dân đang cư trú",
+        TargetAudienceType.MovedOutResidents => "Nhóm cư dân đã chuyển đi",
+        TargetAudienceType.SpecificResidents => $"Cư dân cụ thể ({RecipientCount} người)",
+        _ => "Toàn bộ cư dân"
+    };
+
+    public string ReadProgressText => $"{ReadCount}/{RecipientCount} đã đọc";
+
+    public string TypeIcon => Type switch
+    {
+        NotificationType.Maintenance => "🛠️",
+        NotificationType.FeeNotice => "💳",
+        NotificationType.UrgentNotice => "🚨",
+        NotificationType.ApprovalResult => "✅",
+        _ => "📢"
+    };
+
+    public string TypeName => Type switch
+    {
+        NotificationType.Maintenance => "Bảo trì",
+        NotificationType.FeeNotice => "Phí dịch vụ",
+        NotificationType.UrgentNotice => "Khẩn cấp",
+        NotificationType.ApprovalResult => "Kết quả duyệt",
+        _ => "Thông báo chung"
+    };
+
+    public string TypeBadgeBg => Type switch
+    {
+        NotificationType.Maintenance => "#FEF3C7",
+        NotificationType.FeeNotice => "#F3E8FF",
+        NotificationType.UrgentNotice => "#FEE2E2",
+        NotificationType.ApprovalResult => "#ECFDF5",
+        _ => "#EFF6FF"
+    };
+
+    public string TypeBadgeFg => Type switch
+    {
+        NotificationType.Maintenance => "#D97706",
+        NotificationType.FeeNotice => "#7C3AED",
+        NotificationType.UrgentNotice => "#DC2626",
+        NotificationType.ApprovalResult => "#059669",
+        _ => "#1D4ED8"
+    };
+
+    public string PriorityBadgeText => Priority switch
+    {
+        NotificationPriority.Urgent => "Khẩn",
+        NotificationPriority.Important => "Quan trọng",
+        _ => string.Empty
+    };
+
+    public bool HasPriorityBadge => Priority != NotificationPriority.Normal;
+
+    public string PriorityBadgeBg => Priority switch
+    {
+        NotificationPriority.Urgent => "#FEE2E2",
+        NotificationPriority.Important => "#FEF3C7",
+        _ => "#F1F5F9"
+    };
+
+    public string PriorityBadgeFg => Priority switch
+    {
+        NotificationPriority.Urgent => "#DC2626",
+        NotificationPriority.Important => "#B45309",
+        _ => "#64748B"
+    };
+
+    public string CreatedAtText => CreatedAt.ToString("dd/MM/yyyy HH:mm");
+
+    public NotificationItemViewModel ToNotificationDetail()
+    {
+        return new NotificationItemViewModel
+        {
+            NotificationId = NotificationId,
+            Title = Title,
+            Content = Content,
+            Type = Type,
+            Priority = Priority,
+            TargetAudience = TargetAudience,
+            CreatedAt = CreatedAt,
+            IsRead = true,
+            SenderName = "Ban quản lý"
+        };
     }
 }

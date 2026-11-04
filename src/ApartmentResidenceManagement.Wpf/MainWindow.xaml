@@ -870,6 +870,32 @@
                                 <!-- Tab 2: Soạn thông báo mới -->
                                 <RadioButton Content="✍️ Tạo thông báo mới" GroupName="NotifTabs"
                                              IsChecked="{Binding SelectedNotificationTab, Converter={StaticResource IntToBoolConverter}, ConverterParameter=1}"
+                                             Cursor="Hand" Margin="0,0,12,0" Padding="12,8">
+                                    <RadioButton.Style>
+                                        <Style TargetType="RadioButton">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="RadioButton">
+                                                        <Border x:Name="bd" Background="Transparent" BorderThickness="0,0,0,2" BorderBrush="Transparent" Padding="{TemplateBinding Padding}">
+                                                            <TextBlock x:Name="tb" Text="{TemplateBinding Content}" FontSize="13" FontWeight="SemiBold" Foreground="#64748B"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsChecked" Value="True">
+                                                                <Setter TargetName="bd" Property="BorderBrush" Value="#2563EB"/>
+                                                                <Setter TargetName="tb" Property="Foreground" Value="#2563EB"/>
+                                                                <Setter TargetName="tb" Property="FontWeight" Value="Bold"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </RadioButton.Style>
+                                </RadioButton>
+
+                                <!-- Tab 3: Lịch sử gửi thông báo -->
+                                <RadioButton Content="📜 Lịch sử gửi" GroupName="NotifTabs"
+                                             IsChecked="{Binding SelectedNotificationTab, Converter={StaticResource IntToBoolConverter}, ConverterParameter=2}"
                                              Cursor="Hand" Padding="12,8">
                                     <RadioButton.Style>
                                         <Style TargetType="RadioButton">
@@ -1264,6 +1290,150 @@
                                     </StackPanel>
                                 </ScrollViewer>
                             </Grid>
+
+                            <!-- ════════ TAB 3: LỊCH SỬ GỬI THÔNG BÁO (ADMIN SENT HISTORY) ════════ -->
+                            <Grid Visibility="{Binding SelectedNotificationTab, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=2}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/> <!-- Search & Refresh Bar -->
+                                    <RowDefinition Height="*"/>    <!-- Sent Announcements List -->
+                                </Grid.RowDefinitions>
+
+                                <!-- Thanh tìm kiếm & Làm mới -->
+                                <Grid Grid.Row="0" Margin="16,10,16,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="10,0" Margin="0,0,8,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="🔍" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBox Grid.Column="1" Text="{Binding SentNotificationSearchKeyword, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent" BorderThickness="0" FontSize="12.5" VerticalContentAlignment="Center" Height="36"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <Button Grid.Column="1" Command="{Binding RefreshSentNotificationsCommand}"
+                                            Background="#F1F5F9" Foreground="#334155" BorderBrush="#E2E8F0" BorderThickness="1"
+                                            Padding="12,0" Height="36" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border CornerRadius="10" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="🔄" FontSize="12" Margin="0,0,6,0"/>
+                                                        <TextBlock Text="Làm mới" FontSize="12" FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+
+                                <!-- ScrollViewer Danh sách Thông báo Đã Gửi -->
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="14,0,14,14">
+                                    <StackPanel>
+                                        <!-- Trạng thái trống -->
+                                        <Border Visibility="{Binding FilteredSentNotifications.Count, Converter={StaticResource ZeroToVisibilityConverter}}"
+                                                Padding="20,40" HorizontalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="📜" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                                <TextBlock Text="Chưa có thông báo nào đã phát hành" FontSize="14" FontWeight="SemiBold" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="Lịch sử các thông báo admin gửi cư dân sẽ được lưu trữ và hiển thị tại đây." FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- ItemsControl Danh sách Thông báo đã gửi -->
+                                        <ItemsControl ItemsSource="{Binding FilteredSentNotifications}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Margin="0,4" Padding="14,12" CornerRadius="12" BorderThickness="1" Background="White" BorderBrush="#E2E8F0" Cursor="Hand">
+                                                        <Border.InputBindings>
+                                                            <MouseBinding MouseAction="LeftClick"
+                                                                          Command="{Binding DataContext.OpenSentNotificationDetailCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          CommandParameter="{Binding}"/>
+                                                        </Border.InputBindings>
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="White"/>
+                                                                <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                                                        <Setter Property="BorderBrush" Value="#93C5FD"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- Icon tròn phân loại -->
+                                                            <Border Grid.Column="0" Width="38" Height="38" CornerRadius="19"
+                                                                    Background="{Binding TypeBadgeBg}" Margin="0,0,12,0" VerticalAlignment="Top">
+                                                                <TextBlock Text="{Binding TypeIcon}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+
+                                                            <!-- Nội dung thẻ lịch sử -->
+                                                            <StackPanel Grid.Column="1">
+                                                                <!-- Hàng tag phân loại & Ngày giờ -->
+                                                                <Grid Margin="0,0,0,4">
+                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                        <!-- Badge Phân loại -->
+                                                                        <Border Background="{Binding TypeBadgeBg}" CornerRadius="6" Padding="6,2" Margin="0,0,6,0">
+                                                                            <TextBlock Text="{Binding TypeName}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding TypeBadgeFg}"/>
+                                                                        </Border>
+                                                                        <!-- Badge Khẩn cấp / Quan trọng nếu có -->
+                                                                        <Border Background="{Binding PriorityBadgeBg}" CornerRadius="6" Padding="6,2" Margin="0,0,6,0"
+                                                                                Visibility="{Binding HasPriorityBadge, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                                            <TextBlock Text="{Binding PriorityBadgeText}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding PriorityBadgeFg}"/>
+                                                                        </Border>
+                                                                    </StackPanel>
+
+                                                                    <!-- Thời gian gửi (ngày + giờ) -->
+                                                                    <TextBlock Text="{Binding CreatedAtText}" FontSize="11" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                                </Grid>
+
+                                                                <!-- Tiêu đề thông báo -->
+                                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A" TextWrapping="Wrap" Margin="0,0,0,4"/>
+
+                                                                <!-- Hàng thông tin Đối tượng & Tiến độ đã đọc -->
+                                                                <Grid Margin="0,2,0,0">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <!-- Đối tượng gửi tới -->
+                                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                        <TextBlock Text="👥 " FontSize="11" VerticalAlignment="Center"/>
+                                                                        <TextBlock Text="{Binding TargetAudienceText}" FontSize="11.5" Foreground="#475569" TextTrimming="CharacterEllipsis"/>
+                                                                    </StackPanel>
+
+                                                                    <!-- Tiến độ đọc (Read Count / Total) -->
+                                                                    <Border Grid.Column="1" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="6" Padding="6,2">
+                                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                            <TextBlock Text="👁️ " FontSize="10" VerticalAlignment="Center"/>
+                                                                            <TextBlock Text="{Binding ReadProgressText}" FontSize="10.5" FontWeight="SemiBold" Foreground="#059669"/>
+                                                                        </StackPanel>
+                                                                    </Border>
+                                                                </Grid>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Border>
@@ -1281,11 +1451,11 @@
                     </Border.InputBindings>
                 </Border>
 
-                <!-- Thẻ Modal Xem trước giữa màn hình -->
-                <Border Width="640" MaxHeight="720" Background="White" CornerRadius="16" Padding="24"
+                <!-- Thẻ Modal Xem trước giữa màn hình (Chuẩn theo giao diện thông báo cư dân xem) -->
+                <Border Width="580" MaxHeight="640" Background="White" CornerRadius="16" Padding="24"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="32" ShadowDepth="8" Direction="270" Color="#000000" Opacity="0.25"/>
+                        <DropShadowEffect BlurRadius="30" ShadowDepth="6" Direction="270" Color="#000000" Opacity="0.25"/>
                     </Border.Effect>
 
                     <Grid>
@@ -1295,15 +1465,19 @@
                             <RowDefinition Height="Auto"/> <!-- Footer Actions -->
                         </Grid.RowDefinitions>
 
-                        <!-- Header Modal Xem trước -->
+                        <!-- Header Modal Xem trước: Chuẩn ảnh mẫu cư dân xem -->
                         <Grid Grid.Row="0" Margin="0,0,0,16">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Width="40" Height="40" CornerRadius="10" Background="#EFF6FF" Margin="0,0,12,0">
-                                    <TextBlock Text="👁️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Width="42" Height="42" CornerRadius="21" Background="{Binding PreviewNoticeTypeBadgeBg}" Margin="0,0,12,0">
+                                    <TextBlock Text="{Binding PreviewNoticeTypeIcon}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Xem trước thông báo trước khi gửi" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <TextBlock Text="Vui lòng kiểm tra kỹ tiêu đề, nội dung và đối tượng nhận trước khi phát hành" FontSize="11.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding PreviewNoticeTitle}" FontSize="16" FontWeight="Bold" Foreground="#0F172A" TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="Gửi bởi: Ban quản lý" FontSize="12" Foreground="#64748B" Margin="0,0,8,0"/>
+                                        <TextBlock Text="•" FontSize="12" Foreground="#94A3B8" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding PreviewNoticeAudienceText, StringFormat='Gửi tới: {0}'}" FontSize="12" Foreground="#2563EB" FontWeight="Medium" TextWrapping="Wrap"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
 
@@ -1313,80 +1487,58 @@
                             </Button>
                         </Grid>
 
-                        <!-- Khung nội dung xem trước tổng thể -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="480" Margin="0,0,0,18" Padding="0,0,8,0">
-                            <StackPanel>
-                                <!-- Thẻ tiêu đề & Metadata -->
-                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,12">
-                                    <StackPanel>
-                                        <!-- Hàng Badges: Loại + Mức độ ưu tiên -->
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                            <Border Background="{Binding PreviewNoticeTypeBadgeBg}" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
-                                                <TextBlock Text="{Binding PreviewNoticeTypeName}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding PreviewNoticeTypeBadgeFg}"/>
-                                            </Border>
-                                            <Border Background="{Binding PreviewNoticePriorityBadgeBg}" CornerRadius="6" Padding="8,3">
-                                                <TextBlock Text="{Binding PreviewNoticePriorityName}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding PreviewNoticePriorityBadgeFg}"/>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <!-- Tiêu đề thông báo -->
-                                        <TextBlock Text="{Binding PreviewNoticeTitle}" FontSize="16.5" FontWeight="Bold" Foreground="#0F172A" TextWrapping="Wrap" Margin="0,0,0,8"/>
-
-                                        <!-- Đối tượng nhận -->
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="👥 Đối tượng nhận: " FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
-                                            <TextBlock Text="{Binding PreviewNoticeAudienceText}" FontSize="12" Foreground="#2563EB" FontWeight="Medium" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Nội dung văn bản Rich Text (Bảng, Ảnh, Chữ đậm, Màu sắc...) -->
-                                <TextBlock Text="Nội dung hiển thị thực tế tới cư dân:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,6"/>
-                                <Border Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="12" Padding="18">
-                                    <RichTextBox helpers:FlowDocumentHelper.DocumentContent="{Binding PreviewNoticeContent}"
-                                                 IsReadOnly="True" IsDocumentEnabled="True" Focusable="True"
-                                                 Background="Transparent" BorderThickness="0"
-                                                 FontSize="13.5" FontFamily="Segoe UI" Foreground="#1E293B">
-                                        <FlowDocument PagePadding="0"/>
-                                    </RichTextBox>
-                                </Border>
-                            </StackPanel>
+                        <!-- Nội dung Rich Text (Chuẩn ảnh mẫu cư dân xem: Background #F8FAFC, padding 18, bo góc 12) -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="420" Margin="0,0,0,16" Padding="0,0,8,0">
+                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="18">
+                                <RichTextBox helpers:FlowDocumentHelper.DocumentContent="{Binding PreviewNoticeContent}"
+                                             IsReadOnly="True" IsDocumentEnabled="True" Focusable="True"
+                                             Background="Transparent" BorderThickness="0"
+                                             FontSize="13.5" FontFamily="Segoe UI" Foreground="#1E293B">
+                                    <FlowDocument PagePadding="0"/>
+                                </RichTextBox>
+                            </Border>
                         </ScrollViewer>
 
-                        <!-- Footer: Nút quay lại chỉnh sửa & Nút xác nhận phát hành -->
+                        <!-- Footer: Nút Đóng & Nút Xác nhận phát hành ngay -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="1.3*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <Button Grid.Column="0" Command="{Binding ClosePreviewNoticeCommand}" Content="✕ Quay lại chỉnh sửa"
-                                    Height="40" Background="#F1F5F9" Foreground="#334155" FontSize="13" FontWeight="SemiBold"
-                                    Cursor="Hand" BorderThickness="0">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border CornerRadius="10" Background="{TemplateBinding Background}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                            <Border Grid.Column="0" Background="#EFF6FF" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                                <TextBlock Text="👁️ Chế độ xem trước của cư dân" FontSize="11.5" Foreground="#1D4ED8" FontWeight="SemiBold"/>
+                            </Border>
 
-                            <Button Grid.Column="2" Command="{Binding ConfirmSendFromPreviewCommand}" Height="40"
-                                    Background="#2563EB" Foreground="White" FontSize="13.5" FontWeight="Bold"
-                                    Cursor="Hand" BorderThickness="0">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border CornerRadius="10" Background="{TemplateBinding Background}">
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="📤" Margin="0,0,8,0" FontSize="14"/>
-                                                <TextBlock Text="Xác nhận phát hành ngay" Foreground="White" FontWeight="Bold" FontSize="13.5"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button Command="{Binding ClosePreviewNoticeCommand}" Content="Đóng"
+                                        Width="90" Height="38" Background="#F1F5F9" Foreground="#334155" FontSize="13" FontWeight="SemiBold"
+                                        Cursor="Hand" BorderThickness="0" Margin="0,0,10,0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <Button Command="{Binding ConfirmSendFromPreviewCommand}" Height="38" Padding="16,0"
+                                        Background="#2563EB" Foreground="White" FontSize="13" FontWeight="Bold"
+                                        Cursor="Hand" BorderThickness="0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="8" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="📤" Margin="0,0,6,0" FontSize="13"/>
+                                                    <TextBlock Text="Phát hành ngay" Foreground="White" FontWeight="Bold" FontSize="13"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </Grid>
                 </Border>

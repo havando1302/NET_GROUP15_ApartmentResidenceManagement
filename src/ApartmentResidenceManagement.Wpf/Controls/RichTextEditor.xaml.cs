@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ApartmentResidenceManagement.Wpf.Helpers;
@@ -57,7 +59,6 @@ public partial class RichTextEditor : UserControl
         _isUpdating = true;
         try
         {
-            // Kiểm tra xem document có rỗng hoàn toàn không
             var textRange = new TextRange(EditorBox.Document.ContentStart, EditorBox.Document.ContentEnd);
             if (string.IsNullOrWhiteSpace(textRange.Text) && !HasNonTextBlocks(EditorBox.Document))
             {
@@ -146,8 +147,19 @@ public partial class RichTextEditor : UserControl
         }
     }
 
-    private void InsertTableBtn_Click(object sender, RoutedEventArgs e)
+    #region Quản lý Bảng tùy chỉnh (Insert & Delete Table như Word)
+    private void TableBtn_Click(object sender, RoutedEventArgs e)
     {
+        TablePickerPopup.PlacementTarget = TableBtn;
+        TablePickerPopup.IsOpen = !TablePickerPopup.IsOpen;
+    }
+
+    private void CreateTable_Click(object sender, RoutedEventArgs e)
+    {
+        int rows = int.TryParse(TableRowsInput.Text?.Trim(), out int r) ? Math.Clamp(r, 1, 30) : 3;
+        int cols = int.TryParse(TableColsInput.Text?.Trim(), out int c) ? Math.Clamp(c, 1, 10) : 3;
+        bool hasHeader = HasHeaderRowCheck.IsChecked == true;
+
         var table = new Table
         {
             CellSpacing = 0,
@@ -156,48 +168,168 @@ public partial class RichTextEditor : UserControl
             Margin = new Thickness(0, 8, 0, 8)
         };
 
-        table.Columns.Add(new TableColumn { Width = new GridLength(1.2, GridUnitType.Star) });
-        table.Columns.Add(new TableColumn { Width = new GridLength(2.0, GridUnitType.Star) });
+        for (int i = 0; i < cols; i++)
+        {
+            table.Columns.Add(new TableColumn { Width = new GridLength(1.0, GridUnitType.Star) });
+        }
 
         var rowGroup = new TableRowGroup();
 
-        // 1. Dòng tiêu đề bảng (Header)
-        var headerRow = new TableRow { Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9")) };
-        headerRow.Cells.Add(CreateTableCell("Hạng mục / Nội dung", isHeader: true, hasRightBorder: true, hasBottomBorder: true));
-        headerRow.Cells.Add(CreateTableCell("Chi tiết / Thời gian áp dụng", isHeader: true, hasRightBorder: false, hasBottomBorder: true));
-        rowGroup.Rows.Add(headerRow);
+        for (int rowIndex = 0; rowIndex < rows; rowIndex++)
+        {
+            bool isHeader = hasHeader && rowIndex == 0;
+            var row = new TableRow();
+            if (isHeader)
+            {
+                row.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
+            }
 
-        // 2. Các dòng dữ liệu mẫu (Data rows)
-        var row1 = new TableRow();
-        row1.Cells.Add(CreateTableCell("Thời gian thực hiện", isHeader: false, hasRightBorder: true, hasBottomBorder: true));
-        row1.Cells.Add(CreateTableCell("08:30 - 11:30 ngày 15/11/2026", isHeader: false, hasRightBorder: false, hasBottomBorder: true));
-        rowGroup.Rows.Add(row1);
-
-        var row2 = new TableRow();
-        row2.Cells.Add(CreateTableCell("Khu vực áp dụng", isHeader: false, hasRightBorder: true, hasBottomBorder: false));
-        row2.Cells.Add(CreateTableCell("Thang máy Tháp A và Tháp B", isHeader: false, hasRightBorder: false, hasBottomBorder: false));
-        rowGroup.Rows.Add(row2);
+            for (int colIndex = 0; colIndex < cols; colIndex++)
+            {
+                bool hasRightBorder = colIndex < cols - 1;
+                bool hasBottomBorder = rowIndex < rows - 1;
+                row.Cells.Add(CreateTableCell(string.Empty, isHeader, hasRightBorder, hasBottomBorder));
+            }
+            rowGroup.Rows.Add(row);
+        }
 
         table.RowGroups.Add(rowGroup);
-
         InsertBlockAtCaret(table);
+
+        // Đưa con trỏ vào ô đầu tiên để người dùng bắt đầu gõ
+        if (rowGroup.Rows.Count > 0 && rowGroup.Rows[0].Cells.Count > 0)
+        {
+            var firstCell = rowGroup.Rows[0].Cells[0];
+            if (firstCell.Blocks.FirstBlock != null)
+            {
+                EditorBox.CaretPosition = firstCell.Blocks.FirstBlock.ContentStart;
+            }
+        }
+
+        TablePickerPopup.IsOpen = false;
+        EditorBox.Focus();
+    }
+
+    private void DeleteTable_Click(object sender, RoutedEventArgs e)
+    {
+        var table = GetParentTable(EditorBox.CaretPosition);
+        if (table == null && !EditorBox.Selection.IsEmpty)
+        {
+            table = GetParentTable(EditorBox.Selection.Start) ?? GetParentTable(EditorBox.Selection.End);
+        }
+
+        if (table == null)
+        {
+            // Nếu không đứng trong bảng, tìm bảng gần nhất hoặc bảng cuối cùng
+            table = EditorBox.Document.Blocks.OfType<Table>().LastOrDefault();
+        }
+
+        if (table != null)
+        {
+            var prevBlock = table.PreviousBlock;
+            EditorBox.Document.Blocks.Remove(table);
+            if (prevBlock != null)
+            {
+                EditorBox.CaretPosition = prevBlock.ContentEnd;
+            }
+            EditorBox_TextChanged(EditorBox, null!);
+        }
+
+        TablePickerPopup.IsOpen = false;
+        EditorBox.Focus();
     }
 
     private static TableCell CreateTableCell(string text, bool isHeader, bool hasRightBorder, bool hasBottomBorder)
     {
-        var para = new Paragraph(isHeader ? new Bold(new Run(text)) : new Run(text))
+        Inline inline = isHeader ? new Bold(new Run(text)) : new Run(text);
+        var para = new Paragraph(inline)
         {
             Margin = new Thickness(0)
         };
 
         return new TableCell(para)
         {
-            Padding = new Thickness(10, 6, 10, 6),
+            Padding = new Thickness(10, 8, 10, 8),
             BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CBD5E1")),
             BorderThickness = new Thickness(0, 0, hasRightBorder ? 1 : 0, hasBottomBorder ? 1 : 0)
         };
     }
 
+    private void EditorBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Back)
+        {
+            // Trường hợp 1: Con trỏ ở đầu đoạn văn ngay sau một Table
+            var caret = EditorBox.CaretPosition;
+            var currentBlock = caret.Paragraph as Block;
+            if (currentBlock != null && currentBlock.PreviousBlock is Table prevTable)
+            {
+                var textRange = new TextRange(currentBlock.ContentStart, currentBlock.ContentEnd);
+                if (string.IsNullOrWhiteSpace(textRange.Text) || caret.CompareTo(currentBlock.ContentStart) == 0)
+                {
+                    EditorBox.Document.Blocks.Remove(prevTable);
+                    e.Handled = true;
+                    EditorBox_TextChanged(EditorBox, null!);
+                    return;
+                }
+            }
+
+            // Trường hợp 2: Con trỏ ở đầu ô đầu tiên của bảng
+            var table = GetParentTable(caret);
+            if (table != null)
+            {
+                var firstCell = table.RowGroups.FirstOrDefault()?.Rows.FirstOrDefault()?.Cells.FirstOrDefault();
+                if (firstCell != null && caret.CompareTo(firstCell.ContentStart) <= 0)
+                {
+                    var prevBlock = table.PreviousBlock;
+                    EditorBox.Document.Blocks.Remove(table);
+                    if (prevBlock != null)
+                    {
+                        EditorBox.CaretPosition = prevBlock.ContentEnd;
+                    }
+                    e.Handled = true;
+                    EditorBox_TextChanged(EditorBox, null!);
+                    return;
+                }
+            }
+        }
+        else if (e.Key == Key.Delete)
+        {
+            // Trường hợp: Con trỏ ở cuối đoạn văn ngay trước một Table và bấm Delete
+            var caret = EditorBox.CaretPosition;
+            var currentBlock = caret.Paragraph as Block;
+            if (currentBlock != null && currentBlock.NextBlock is Table nextTable)
+            {
+                if (caret.CompareTo(currentBlock.ContentEnd) >= 0)
+                {
+                    EditorBox.Document.Blocks.Remove(nextTable);
+                    e.Handled = true;
+                    EditorBox_TextChanged(EditorBox, null!);
+                    return;
+                }
+            }
+        }
+    }
+
+    private static Table? GetParentTable(TextPointer pointer)
+    {
+        DependencyObject? current = pointer.Parent;
+        while (current != null)
+        {
+            if (current is Table table)
+                return table;
+            if (current is FrameworkContentElement fce)
+                current = fce.Parent;
+            else if (current is FrameworkElement fe)
+                current = fe.Parent;
+            else
+                break;
+        }
+        return null;
+    }
+    #endregion
+
+    #region Chèn Hình ảnh sắc nét (High Quality Image)
     private void InsertImageBtn_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
@@ -214,17 +346,24 @@ public partial class RichTextEditor : UserControl
                 bitmap.BeginInit();
                 bitmap.UriSource = new Uri(dialog.FileName, UriKind.Absolute);
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
                 bitmap.EndInit();
+                bitmap.Freeze();
 
                 var image = new Image
                 {
                     Source = bitmap,
-                    MaxWidth = 480,
-                    MaxHeight = 280,
+                    MaxWidth = 520,
                     Stretch = Stretch.Uniform,
-                    Margin = new Thickness(0, 6, 0, 6),
-                    HorizontalAlignment = HorizontalAlignment.Left
+                    Margin = new Thickness(0, 8, 0, 8),
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    SnapsToDevicePixels = true,
+                    UseLayoutRounding = true
                 };
+
+                // Áp dụng thuật toán scale ảnh chất lượng cao HighQuality, chống vỡ/răng cưa
+                RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+                RenderOptions.SetEdgeMode(image, EdgeMode.Aliased);
 
                 var container = new BlockUIContainer(image);
                 InsertBlockAtCaret(container);
@@ -235,6 +374,7 @@ public partial class RichTextEditor : UserControl
             }
         }
     }
+    #endregion
 
     private void InsertBlockAtCaret(Block newBlock)
     {

@@ -94,4 +94,17 @@ public class NotificationRepository : Repository<Notification>, INotificationRep
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Notification>> GetSentAnnouncementsAsync()
+    {
+        return await DbSet
+            .AsNoTracking()
+            .Include(n => n.Sender)
+            .Include(n => n.Recipients)
+                .ThenInclude(r => r.UserAccount)
+                    .ThenInclude(u => u.Resident)
+            .Where(n => n.Type != NotificationType.ApprovalRequest)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+    }
 }

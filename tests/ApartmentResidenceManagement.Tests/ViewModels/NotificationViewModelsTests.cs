@@ -143,4 +143,35 @@ public class NotificationViewModelsTests
         Assert.Equal("Hoàng Văn H", item.FullName);
         Assert.True(item.IsSelected);
     }
+
+    [Fact]
+    public void SentNotificationItemViewModel_CalculatesBadgesAndMapsToDetailCorrectly()
+    {
+        var sentVm = new SentNotificationItemViewModel
+        {
+            NotificationId = 88,
+            Title = "Bảo trì định kỳ",
+            Content = "<p>Nội dung</p>",
+            Type = NotificationType.Maintenance,
+            Priority = NotificationPriority.Urgent,
+            TargetAudience = TargetAudienceType.ActiveResidents,
+            CreatedAt = new DateTime(2026, 11, 15, 8, 30, 0),
+            RecipientCount = 20,
+            ReadCount = 15
+        };
+
+        Assert.Equal("🛠️", sentVm.TypeIcon);
+        Assert.Equal("Bảo trì", sentVm.TypeName);
+        Assert.Equal("Nhóm cư dân đang cư trú", sentVm.TargetAudienceText);
+        Assert.Equal("15/20 đã đọc", sentVm.ReadProgressText);
+        Assert.True(sentVm.HasPriorityBadge);
+        Assert.Equal("Khẩn", sentVm.PriorityBadgeText);
+
+        var detail = sentVm.ToNotificationDetail();
+        Assert.Equal(88, detail.NotificationId);
+        Assert.Equal("Bảo trì định kỳ", detail.Title);
+        Assert.Equal("<p>Nội dung</p>", detail.Content);
+        Assert.True(detail.IsRead);
+        Assert.Equal("Ban quản lý", detail.SenderName);
+    }
 }

@@ -13,4 +13,5 @@ public interface INotificationRepository : IRepository<Notification>
     Task AddRecipientsAsync(IEnumerable<NotificationRecipient> recipients);
     Task<Notification?> GetWithRecipientsAsync(int notificationId);
     Task<IEnumerable<NotificationRecipient>> GetAdminApprovalNotificationsAsync(int adminAccountId);
+    Task<IEnumerable<Notification>> GetSentAnnouncementsAsync();
 }

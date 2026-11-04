@@ -45,4 +45,9 @@ public interface IAppNotificationService
         bool isApproved,
         string title,
         string content);
+
+    /// <summary>
+    /// Lấy danh sách lịch sử các thông báo đã phát hành gửi đến cư dân.
+    /// </summary>
+    Task<IEnumerable<Notification>> GetSentAnnouncementsAsync();
 }

@@ -188,16 +188,77 @@
 
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="4,2"/>
 
-                    <!-- 8. Chèn Bảng (Insert Table) -->
-                    <Button x:Name="InsertTableBtn" Click="InsertTableBtn_Click" Style="{StaticResource ToolbarBtn}" ToolTip="Chèn bảng dữ liệu mẫu">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⊞" FontSize="13" Margin="0,0,3,0" Foreground="#2563EB"/>
-                            <TextBlock Text="Bảng" FontSize="11.5" FontWeight="SemiBold" Foreground="#334155"/>
-                        </StackPanel>
-                    </Button>
+                    <!-- 8. Chèn Bảng Tùy chỉnh (Insert Custom Table & Delete Table) -->
+                    <Grid>
+                        <Button x:Name="TableBtn" Click="TableBtn_Click" Style="{StaticResource ToolbarBtn}" ToolTip="Chèn bảng dữ liệu (tùy chỉnh số hàng, số cột)">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⊞" FontSize="13" Margin="0,0,3,0" Foreground="#2563EB"/>
+                                <TextBlock Text="Bảng" FontSize="11.5" FontWeight="SemiBold" Foreground="#334155"/>
+                            </StackPanel>
+                        </Button>
 
-                    <!-- 9. Chèn Ảnh (Insert Image) -->
-                    <Button x:Name="InsertImageBtn" Click="InsertImageBtn_Click" Style="{StaticResource ToolbarBtn}" ToolTip="Chèn hình ảnh từ máy tính">
+                        <!-- Popup Tùy chọn Bảng (Hàng, Cột, Xóa bảng) -->
+                        <Popup x:Name="TablePickerPopup" StaysOpen="False" AllowsTransparency="True" Placement="Bottom">
+                            <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,4,0,0">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="14" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.16"/>
+                                </Border.Effect>
+                                <StackPanel Width="230">
+                                    <TextBlock Text="Chèn bảng dữ liệu (Table)" FontSize="12.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,8"/>
+
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                            <TextBlock Text="Số hàng (dòng):" FontSize="11" Foreground="#64748B" Margin="0,0,0,3"/>
+                                            <TextBox x:Name="TableRowsInput" Text="3" Height="26" FontSize="12" Padding="6,2" VerticalContentAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                            <TextBlock Text="Số cột:" FontSize="11" Foreground="#64748B" Margin="0,0,0,3"/>
+                                            <TextBox x:Name="TableColsInput" Text="3" Height="26" FontSize="12" Padding="6,2" VerticalContentAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <CheckBox x:Name="HasHeaderRowCheck" Content="Có dòng tiêu đề (Header)" IsChecked="True" FontSize="11.5" Foreground="#334155" Margin="0,0,0,10"/>
+
+                                    <!-- Nút Chèn Bảng & Xóa Bảng -->
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="Chèn bảng" Height="28" Background="#2563EB" Foreground="White" FontWeight="SemiBold" FontSize="11.5" BorderThickness="0" Cursor="Hand" Click="CreateTable_Click" Margin="0,0,6,0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border CornerRadius="4" Background="{TemplateBinding Background}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+
+                                        <Button Grid.Column="1" Content="🗑 Xóa bảng" Height="28" Padding="8,2" Background="#FEE2E2" Foreground="#DC2626" FontWeight="SemiBold" FontSize="11" BorderThickness="0" Cursor="Hand" Click="DeleteTable_Click" ToolTip="Xóa bảng hiện tại">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border CornerRadius="4" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
+                                    <TextBlock Text="💡 Bạn có thể bấm phím Backspace hoặc nút 'Xóa bảng' để xóa bảng." FontSize="10" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
+
+                    <!-- 9. Chèn Ảnh Sắc Nét (Insert High Quality Image) -->
+                    <Button x:Name="InsertImageBtn" Click="InsertImageBtn_Click" Style="{StaticResource ToolbarBtn}" ToolTip="Chèn hình ảnh sắc nét từ máy tính">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🖼" FontSize="13" Margin="0,0,3,0"/>
                             <TextBlock Text="Ảnh" FontSize="11.5" FontWeight="SemiBold" Foreground="#334155"/>
@@ -215,7 +276,12 @@
                          MinHeight="170" MaxHeight="270"
                          FontSize="13.5" FontFamily="Segoe UI" Foreground="#0F172A"
                          Padding="14,10" BorderThickness="0" Background="White"
-                         TextChanged="EditorBox_TextChanged">
+                         RenderOptions.BitmapScalingMode="HighQuality"
+                         RenderOptions.EdgeMode="Aliased"
+                         SnapsToDevicePixels="True"
+                         UseLayoutRounding="True"
+                         TextChanged="EditorBox_TextChanged"
+                         PreviewKeyDown="EditorBox_PreviewKeyDown">
                 <FlowDocument PagePadding="0">
                     <Paragraph Margin="0,0,0,4">
                         <Run Text=""/>

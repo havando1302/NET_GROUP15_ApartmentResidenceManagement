@@ -196,4 +196,9 @@ public class AppNotificationService : IAppNotificationService
 
         return notification;
     }
+
+    public async Task<IEnumerable<Notification>> GetSentAnnouncementsAsync()
+    {
+        return await _unitOfWork.Notifications.GetSentAnnouncementsAsync();
+    }
 }

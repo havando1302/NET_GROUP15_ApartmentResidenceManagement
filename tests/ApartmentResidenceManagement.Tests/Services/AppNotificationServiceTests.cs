@@ -233,4 +233,22 @@ public class AppNotificationServiceTests
         _mockNotifRepo.Verify(n => n.MarkAllAsReadAsync(101), Times.Once);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task GetSentAnnouncementsAsync_CallsRepository()
+    {
+        // Arrange
+        var sampleList = new List<Notification>
+        {
+            new Notification { Id = 1, Title = "Thông báo 1", Type = NotificationType.General }
+        };
+        _mockNotifRepo.Setup(r => r.GetSentAnnouncementsAsync()).ReturnsAsync(sampleList);
+
+        // Act
+        var result = await _service.GetSentAnnouncementsAsync();
+
+        // Assert
+        Assert.Single(result);
+        _mockNotifRepo.Verify(r => r.GetSentAnnouncementsAsync(), Times.Once);
+    }
 }
