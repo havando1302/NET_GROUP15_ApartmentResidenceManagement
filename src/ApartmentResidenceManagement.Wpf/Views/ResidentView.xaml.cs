@@ -50,6 +50,15 @@ public partial class ResidentView : UserControl
         }
     }
 
+    private void OnDetailPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (sender is ScrollViewer scv)
+        {
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+            e.Handled = true;
+        }
+    }
+
     private void OnResidentRowPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         // Bỏ qua nếu người dùng bấm trực tiếp vào Button thao tác (👁, ✏️, 🗑️)

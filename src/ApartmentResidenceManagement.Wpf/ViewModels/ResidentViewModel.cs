@@ -109,6 +109,10 @@ public class ResidentListItemViewModel : ViewModelBase
         set => SetProperty(ref _apartmentNumber, value);
     }
 
+    public string ApartmentFloor { get; set; } = string.Empty;
+    public string RelationshipText { get; set; } = string.Empty;
+    public int FamilyMembersCount { get; set; } = 0;
+
     private int? _apartmentId;
     public int? ApartmentId
     {
@@ -136,6 +140,13 @@ public class ResidentListItemViewModel : ViewModelBase
             : "Chưa có thông tin";
         set { }
     }
+
+    // Phương tiện & Tài khoản
+    public int VehiclesCount { get; set; } = 0;
+    public string VehiclesSummary { get; set; } = "Chưa đăng ký phương tiện";
+    public bool HasAccount { get; set; } = false;
+    public string AccountUsername { get; set; } = "---";
+    public string AccountStatusText { get; set; } = "Chưa có tài khoản";
 
     // Trạng thái cư trú: "Đang cư trú", "Đã chuyển đi", "Chưa đăng ký"
     private string _statusText = "Chưa đăng ký";
@@ -222,6 +233,7 @@ public class ResidentViewModel : ViewModelBase
     private readonly AccountService _accountService;
     private readonly ResidenceService? _residenceService;
     private readonly ApartmentService? _apartmentService;
+    private readonly VehicleService? _vehicleService;
     private readonly SemaphoreSlim _loadLock = new(1, 1);
 
     // Dữ liệu gốc
@@ -575,6 +587,9 @@ public class ResidentViewModel : ViewModelBase
     public ICommand LoadResidentsCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ViewResidentDetailCommand { get; }
+    public ICommand CloseDetailCommand { get; }
+    public ICommand ToggleDetailCommand { get; }
+
     public ICommand OpenAddFormCommand { get; }
     public ICommand OpenEditFormCommand { get; }
     public ICommand SaveResidentCommand { get; }
@@ -598,7 +613,7 @@ public class ResidentViewModel : ViewModelBase
     #endregion
 
     public ResidentViewModel(ResidentService residentService, AccountService accountService)
-        : this(residentService, accountService, null, null)
+        : this(residentService, accountService, null, null, null)
     {
     }
 
@@ -607,11 +622,22 @@ public class ResidentViewModel : ViewModelBase
         AccountService accountService,
         ResidenceService? residenceService,
         ApartmentService? apartmentService)
+        : this(residentService, accountService, residenceService, apartmentService, null)
+    {
+    }
+
+    public ResidentViewModel(
+        ResidentService residentService,
+        AccountService accountService,
+        ResidenceService? residenceService,
+        ApartmentService? apartmentService,
+        VehicleService? vehicleService)
     {
         _residentService = residentService;
         _accountService = accountService;
         _residenceService = residenceService;
         _apartmentService = apartmentService;
+        _vehicleService = vehicleService;
 
         LoadResidentsCommand = new AsyncRelayCommand(_ => LoadDataAsync());
         RefreshCommand = new AsyncRelayCommand(_ => LoadDataAsync());
@@ -623,6 +649,16 @@ public class ResidentViewModel : ViewModelBase
                 SelectedResidentItem = item;
                 IsDetailPanelOpen = true;
             }
+        });
+
+        CloseDetailCommand = new RelayCommand(_ =>
+        {
+            IsDetailPanelOpen = false;
+        });
+
+        ToggleDetailCommand = new RelayCommand(_ =>
+        {
+            IsDetailPanelOpen = !IsDetailPanelOpen;
         });
 
         OpenAddFormCommand = new AsyncRelayCommand(_ => OpenAddFormAsync());
@@ -765,7 +801,7 @@ public class ResidentViewModel : ViewModelBase
 
             var residentList = (await _residentService.GetAllResidentsAsync()).ToList();
 
-            // Lấy danh sách lịch sử cư trú và căn hộ
+            // 1. Lấy danh sách lịch sử cư trú và căn hộ
             List<ResidenceHistory> historyList = new();
             if (_residenceService != null)
             {
@@ -773,10 +809,7 @@ public class ResidentViewModel : ViewModelBase
                 {
                     historyList = (await _residenceService.GetAllResidencesAsync()).ToList();
                 }
-                catch
-                {
-                    // Fallback an toàn nếu có lỗi
-                }
+                catch { }
             }
 
             List<Apartment> apartmentList = new();
@@ -786,16 +819,51 @@ public class ResidentViewModel : ViewModelBase
                 {
                     apartmentList = (await _apartmentService.GetAllApartmentsAsync()).ToList();
                 }
-                catch
+                catch { }
+            }
+
+            // 2. Lấy danh sách phương tiện
+            List<Vehicle> vehicleList = new();
+            if (_vehicleService != null)
+            {
+                try
                 {
-                    // Fallback
+                    vehicleList = (await _vehicleService.GetAllVehiclesAsync()).ToList();
                 }
+                catch { }
+            }
+
+            // 3. Lấy danh sách tài khoản
+            List<UserAccount> accountList = new();
+            if (_accountService != null)
+            {
+                try
+                {
+                    accountList = (await _accountService.GetAllAccountsWithResidentAsync()).ToList();
+                }
+                catch { }
             }
 
             // Gom nhóm lịch sử cư trú theo ResidentId
             var historyGroup = historyList
                 .GroupBy(h => h.ResidentId)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(h => h.StartDate).ToList());
+
+            // Đếm số thành viên đang cư trú trong từng căn hộ
+            var activeAptMemberCounts = historyList
+                .Where(h => h.IsActive)
+                .GroupBy(h => h.ApartmentId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ResidentId).Distinct().Count());
+
+            // Gom nhóm phương tiện theo OwnerId
+            var vehiclesByResident = vehicleList
+                .GroupBy(v => v.OwnerId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Gom nhóm tài khoản theo ResidentId
+            var accountsByResident = accountList
+                .Where(a => a.ResidentId.HasValue)
+                .ToDictionary(a => a.ResidentId!.Value, a => a);
 
             var items = new List<ResidentListItemViewModel>();
             int stt = 1;
@@ -804,9 +872,9 @@ public class ResidentViewModel : ViewModelBase
             {
                 var item = new ResidentListItemViewModel(r, stt++);
 
+                // Cư trú & Lịch sử
                 if (historyGroup.TryGetValue(r.Id, out var rHistories) && rHistories.Count > 0)
                 {
-                    // Map danh sách lịch sử hiển thị
                     int hStt = 1;
                     item.Histories = rHistories.Select(h => new ResidenceHistoryItemViewModel
                     {
@@ -819,18 +887,23 @@ public class ResidentViewModel : ViewModelBase
                         IsActive = h.IsActive
                     }).ToList();
 
-                    // Tìm bản ghi đang cư trú (active)
                     var activeResidence = rHistories.FirstOrDefault(h => h.IsActive);
                     if (activeResidence != null)
                     {
                         item.ApartmentNumber = activeResidence.Apartment?.ApartmentNumber ?? $"Căn hộ {activeResidence.ApartmentId}";
                         item.ApartmentId = activeResidence.ApartmentId;
+                        item.ApartmentFloor = activeResidence.Apartment != null ? $"Tầng {activeResidence.Apartment.Floor}" : "";
+                        item.RelationshipText = GetRelationshipVietnamese(activeResidence.RelationshipType);
                         item.ResidencyStartDate = activeResidence.StartDate;
                         item.StatusText = "Đang cư trú";
+
+                        if (activeAptMemberCounts.TryGetValue(activeResidence.ApartmentId, out int mCount))
+                        {
+                            item.FamilyMembersCount = mCount;
+                        }
                     }
                     else
                     {
-                        // Đã từng cư trú nhưng hiện không còn cư trú
                         item.ApartmentNumber = "-";
                         item.ApartmentId = null;
                         item.ResidencyStartDate = null;
@@ -839,11 +912,36 @@ public class ResidentViewModel : ViewModelBase
                 }
                 else
                 {
-                    // Chưa từng đăng ký cư trú
                     item.ApartmentNumber = "-";
                     item.ApartmentId = null;
                     item.ResidencyStartDate = null;
                     item.StatusText = "Chưa đăng ký";
+                }
+
+                // Phương tiện
+                if (vehiclesByResident.TryGetValue(r.Id, out var rVehicles) && rVehicles.Count > 0)
+                {
+                    item.VehiclesCount = rVehicles.Count;
+                    item.VehiclesSummary = string.Join(", ", rVehicles.Select(v => $"{v.LicensePlate} ({GetVehicleTypeName(v.VehicleType)})"));
+                }
+                else
+                {
+                    item.VehiclesCount = 0;
+                    item.VehiclesSummary = "Chưa đăng ký";
+                }
+
+                // Tài khoản
+                if (accountsByResident.TryGetValue(r.Id, out var rAccount))
+                {
+                    item.HasAccount = true;
+                    item.AccountUsername = rAccount.Username;
+                    item.AccountStatusText = rAccount.IsActive ? "Đang hoạt động" : "Đã bị khóa";
+                }
+                else
+                {
+                    item.HasAccount = false;
+                    item.AccountUsername = "---";
+                    item.AccountStatusText = "Chưa cấp tài khoản";
                 }
 
                 items.Add(item);
@@ -851,7 +949,7 @@ public class ResidentViewModel : ViewModelBase
 
             _allResidentItems = items;
 
-            // Tính toán 4 KPI chuẩn
+            // Tính toán 4 KPI
             TotalResidentsCount = _allResidentItems.Count;
             ActiveResidentsCount = _allResidentItems.Count(r => r.StatusText == "Đang cư trú");
             MovedOutResidentsCount = _allResidentItems.Count(r => r.StatusText == "Đã chuyển đi");
@@ -890,6 +988,17 @@ public class ResidentViewModel : ViewModelBase
             IsLoading = false;
             _loadLock.Release();
         }
+    }
+
+    private static string GetVehicleTypeName(VehicleType type)
+    {
+        return type switch
+        {
+            VehicleType.Car => "Ô tô",
+            VehicleType.Moto => "Xe máy",
+            VehicleType.Bicycle => "Xe đạp",
+            _ => "Khác"
+        };
     }
 
     private void UpdateApartmentFilterOptions()

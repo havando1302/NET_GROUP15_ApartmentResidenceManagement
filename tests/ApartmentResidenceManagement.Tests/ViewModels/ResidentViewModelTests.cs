@@ -310,5 +310,51 @@ public class ResidentViewModelTests
         vm.SelectPreviousItemOrPreviousPage();
         Assert.Equal(1, vm.SelectedResidentItem?.Id);
     }
+
+    [Fact]
+    public void CloseDetailCommand_ShouldSetIsDetailPanelOpenToFalse()
+    {
+        var vm = new ResidentViewModel(_residentService, _accountService, _residenceService, _apartmentService);
+        Assert.True(vm.IsDetailPanelOpen);
+
+        vm.CloseDetailCommand.Execute(null);
+
+        Assert.False(vm.IsDetailPanelOpen);
+    }
+
+    [Fact]
+    public void ToggleDetailCommand_ShouldToggleIsDetailPanelOpen()
+    {
+        var vm = new ResidentViewModel(_residentService, _accountService, _residenceService, _apartmentService);
+        Assert.True(vm.IsDetailPanelOpen);
+
+        vm.ToggleDetailCommand.Execute(null);
+        Assert.False(vm.IsDetailPanelOpen);
+
+        vm.ToggleDetailCommand.Execute(null);
+        Assert.True(vm.IsDetailPanelOpen);
+    }
+
+    [Fact]
+    public async Task ViewResidentDetailCommand_ShouldSetSelectedItemAndOpenDetailPanel()
+    {
+        var (residents, histories, apartments) = CreateSampleData();
+        _mockResidentRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(residents);
+        _mockHistoryRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(histories);
+        _mockApartmentRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(apartments);
+
+        var vm = new ResidentViewModel(_residentService, _accountService, _residenceService, _apartmentService);
+        await vm.LoadDataAsync();
+
+        // Close the panel first
+        vm.IsDetailPanelOpen = false;
+
+        var targetItem = vm.PagedResidents.First(r => r.Id == 2);
+        vm.ViewResidentDetailCommand.Execute(targetItem);
+
+        Assert.True(vm.IsDetailPanelOpen);
+        Assert.Equal(2, vm.SelectedResidentItem?.Id);
+    }
 }
+
 
