@@ -370,13 +370,41 @@ public class FamilyMembersViewModel : ViewModelBase
     public string EditSuccessMessage
     {
         get => _editSuccessMessage;
-        set => SetProperty(ref _editSuccessMessage, value);
+        set
+        {
+            if (SetProperty(ref _editSuccessMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _editErrorMessage = string.Empty;
+                    _addRequestErrorMessage = string.Empty;
+                    _addRequestSuccessMessage = string.Empty;
+                    OnPropertyChanged(nameof(EditErrorMessage));
+                    OnPropertyChanged(nameof(AddRequestErrorMessage));
+                    OnPropertyChanged(nameof(AddRequestSuccessMessage));
+                }
+            }
+        }
     }
 
     public string EditErrorMessage
     {
         get => _editErrorMessage;
-        set => SetProperty(ref _editErrorMessage, value);
+        set
+        {
+            if (SetProperty(ref _editErrorMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _editSuccessMessage = string.Empty;
+                    _addRequestErrorMessage = string.Empty;
+                    _addRequestSuccessMessage = string.Empty;
+                    OnPropertyChanged(nameof(EditSuccessMessage));
+                    OnPropertyChanged(nameof(AddRequestErrorMessage));
+                    OnPropertyChanged(nameof(AddRequestSuccessMessage));
+                }
+            }
+        }
     }
 
     public List<string> AvailableStatuses { get; } = new()
@@ -508,13 +536,41 @@ public class FamilyMembersViewModel : ViewModelBase
     public string AddRequestErrorMessage
     {
         get => _addRequestErrorMessage;
-        set => SetProperty(ref _addRequestErrorMessage, value);
+        set
+        {
+            if (SetProperty(ref _addRequestErrorMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _editSuccessMessage = string.Empty;
+                    _editErrorMessage = string.Empty;
+                    _addRequestSuccessMessage = string.Empty;
+                    OnPropertyChanged(nameof(EditSuccessMessage));
+                    OnPropertyChanged(nameof(EditErrorMessage));
+                    OnPropertyChanged(nameof(AddRequestSuccessMessage));
+                }
+            }
+        }
     }
 
     public string AddRequestSuccessMessage
     {
         get => _addRequestSuccessMessage;
-        set => SetProperty(ref _addRequestSuccessMessage, value);
+        set
+        {
+            if (SetProperty(ref _addRequestSuccessMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _editSuccessMessage = string.Empty;
+                    _editErrorMessage = string.Empty;
+                    _addRequestErrorMessage = string.Empty;
+                    OnPropertyChanged(nameof(EditSuccessMessage));
+                    OnPropertyChanged(nameof(EditErrorMessage));
+                    OnPropertyChanged(nameof(AddRequestErrorMessage));
+                }
+            }
+        }
     }
 
     public bool IsSubmittingRequest

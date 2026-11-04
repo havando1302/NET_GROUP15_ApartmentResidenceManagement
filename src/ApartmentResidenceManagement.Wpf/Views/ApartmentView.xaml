@@ -959,8 +959,7 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Thông báo lỗi khi submit form -->
-                    <controls:NotificationBanner Grid.Row="2" Message="{Binding ErrorMessage}" Kind="Error" Margin="0,0,0,16"/>
+
 
                     <!-- Cụm nút Hủy và Lưu -->
                     <Grid Grid.Row="3">
@@ -978,7 +977,7 @@
         </Grid>
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+                    Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
             <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
         </StackPanel>
     </Grid>

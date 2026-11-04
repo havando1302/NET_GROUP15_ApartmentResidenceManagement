@@ -326,7 +326,16 @@ public class StatisticsViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _errorMessage, value))
+            {
                 HasError = !string.IsNullOrEmpty(value);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _successMessage = string.Empty;
+                    _hasSuccess = false;
+                    OnPropertyChanged(nameof(SuccessMessage));
+                    OnPropertyChanged(nameof(HasSuccess));
+                }
+            }
         }
     }
     public bool HasError { get => _hasError; set => SetProperty(ref _hasError, value); }
@@ -337,7 +346,16 @@ public class StatisticsViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _successMessage, value))
+            {
                 HasSuccess = !string.IsNullOrEmpty(value);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _errorMessage = string.Empty;
+                    _hasError = false;
+                    OnPropertyChanged(nameof(ErrorMessage));
+                    OnPropertyChanged(nameof(HasError));
+                }
+            }
         }
     }
     public bool HasSuccess { get => _hasSuccess; set => SetProperty(ref _hasSuccess, value); }

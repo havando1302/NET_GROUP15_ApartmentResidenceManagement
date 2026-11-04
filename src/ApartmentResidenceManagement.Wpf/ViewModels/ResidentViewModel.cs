@@ -557,6 +557,11 @@ public class ResidentViewModel : ViewModelBase
             if (SetProperty(ref _errorMessage, value))
             {
                 HasError = !string.IsNullOrEmpty(value);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _successMessage = string.Empty;
+                    OnPropertyChanged(nameof(SuccessMessage));
+                }
             }
         }
     }
@@ -564,7 +569,19 @@ public class ResidentViewModel : ViewModelBase
     public string SuccessMessage
     {
         get => _successMessage;
-        set => SetProperty(ref _successMessage, value);
+        set
+        {
+            if (SetProperty(ref _successMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _errorMessage = string.Empty;
+                    _hasError = false;
+                    OnPropertyChanged(nameof(ErrorMessage));
+                    OnPropertyChanged(nameof(HasError));
+                }
+            }
+        }
     }
 
     public bool HasError

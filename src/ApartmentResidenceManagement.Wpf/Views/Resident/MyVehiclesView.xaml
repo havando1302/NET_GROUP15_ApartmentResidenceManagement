@@ -569,8 +569,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <controls:NotificationBanner Grid.Row="0" Message="{Binding ErrorMessage}"
-                                                     Kind="Error" Margin="0,0,0,14"/>
+
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -587,7 +586,7 @@
         </Grid>
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+                    Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
             <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
         </StackPanel>
     </Grid>

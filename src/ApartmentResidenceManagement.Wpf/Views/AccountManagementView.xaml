@@ -923,8 +923,7 @@
                                  Height="36" FontSize="13" VerticalContentAlignment="Center" Padding="8,0"/>
                     </StackPanel>
 
-                    <TextBlock Text="{Binding ResetPasswordErrorMessage}" Foreground="#DC2626" FontSize="12" Margin="0,0,0,12"
-                               Visibility="{Binding ResetPasswordErrorMessage, Converter={StaticResource BoolToVis}}" TextWrapping="Wrap"/>
+
 
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
@@ -1012,8 +1011,7 @@
                                  Height="36" FontSize="13" VerticalContentAlignment="Center" Padding="8,0"/>
                     </StackPanel>
 
-                    <TextBlock Text="{Binding CreateAccountErrorMessage}" Foreground="#DC2626" FontSize="12" Margin="0,0,0,12"
-                               Visibility="{Binding CreateAccountErrorMessage, Converter={StaticResource BoolToVis}}" TextWrapping="Wrap"/>
+
 
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
@@ -1048,7 +1046,7 @@
         </Grid>
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+                    Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
             <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
             <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
         </StackPanel>

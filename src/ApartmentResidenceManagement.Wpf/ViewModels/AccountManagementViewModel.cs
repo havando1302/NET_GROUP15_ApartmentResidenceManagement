@@ -294,13 +294,33 @@ public class AccountManagementViewModel : ViewModelBase
     public string ErrorMessage
     {
         get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
+        set
+        {
+            if (SetProperty(ref _errorMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _successMessage = string.Empty;
+                    OnPropertyChanged(nameof(SuccessMessage));
+                }
+            }
+        }
     }
 
     public string SuccessMessage
     {
         get => _successMessage;
-        set => SetProperty(ref _successMessage, value);
+        set
+        {
+            if (SetProperty(ref _successMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _errorMessage = string.Empty;
+                    OnPropertyChanged(nameof(ErrorMessage));
+                }
+            }
+        }
     }
 
     // Reset Password Modal Properties
@@ -325,7 +345,16 @@ public class AccountManagementViewModel : ViewModelBase
     public string ResetPasswordErrorMessage
     {
         get => _resetPasswordErrorMessage;
-        set => SetProperty(ref _resetPasswordErrorMessage, value);
+        set
+        {
+            if (SetProperty(ref _resetPasswordErrorMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    ErrorMessage = value;
+                }
+            }
+        }
     }
 
     // Create Account Modal Properties
@@ -376,7 +405,16 @@ public class AccountManagementViewModel : ViewModelBase
     public string CreateAccountErrorMessage
     {
         get => _createAccountErrorMessage;
-        set => SetProperty(ref _createAccountErrorMessage, value);
+        set
+        {
+            if (SetProperty(ref _createAccountErrorMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    ErrorMessage = value;
+                }
+            }
+        }
     }
     #endregion
 

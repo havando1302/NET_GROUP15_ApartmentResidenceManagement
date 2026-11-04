@@ -1142,19 +1142,7 @@
 
                     <Rectangle Height="1" Fill="#F1F5F9" Margin="0,0,0,18"/>
 
-                    <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
-                            Padding="12,10" Margin="0,0,0,16"
-                            Visibility="{Binding HasModalError, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="22"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{Binding ModalErrorMessage}" Foreground="#DC2626" FontSize="12.5" FontWeight="SemiBold"
-                                       TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </Grid>
-                    </Border>
+
 
                     <!-- Số điện thoại -->
                     <StackPanel Margin="0,0,0,14">
@@ -1232,7 +1220,7 @@
         </Grid>
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+                    Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
             <controls:NotificationBanner Message="{Binding SuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
             <controls:NotificationBanner Message="{Binding ErrorMessage}" Kind="Error"/>
         </StackPanel>

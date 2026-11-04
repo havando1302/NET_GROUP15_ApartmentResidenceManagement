@@ -578,7 +578,19 @@ public class ResidencyViewModel : ViewModelBase
     public string RequestSuccessMessage
     {
         get => _requestSuccessMessage;
-        set => SetProperty(ref _requestSuccessMessage, value);
+        set
+        {
+            if (SetProperty(ref _requestSuccessMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _errorMessage = string.Empty;
+                    _hasError = false;
+                    OnPropertyChanged(nameof(ErrorMessage));
+                    OnPropertyChanged(nameof(HasError));
+                }
+            }
+        }
     }
 
     public string ErrorMessage
@@ -589,6 +601,11 @@ public class ResidencyViewModel : ViewModelBase
             if (SetProperty(ref _errorMessage, value))
             {
                 HasError = !string.IsNullOrEmpty(value);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _requestSuccessMessage = string.Empty;
+                    OnPropertyChanged(nameof(RequestSuccessMessage));
+                }
             }
         }
     }

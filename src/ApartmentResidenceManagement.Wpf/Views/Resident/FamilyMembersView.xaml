@@ -473,7 +473,7 @@
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <TextBlock Text="{Binding AddRequestErrorMessage}" FontSize="12.5" Foreground="#DC2626" FontWeight="SemiBold" TextWrapping="Wrap"/>
+
                     </Border>
 
                     <!-- 1. Họ và tên thành viên -->
@@ -625,7 +625,7 @@
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <TextBlock Text="{Binding EditErrorMessage}" FontSize="12.5" Foreground="#DC2626" FontWeight="SemiBold"/>
+
                     </Border>
 
                     <!-- Họ và tên (Readonly) -->
@@ -805,7 +805,7 @@
         </Grid>
         <!-- FLOATING TOAST NOTIFICATIONS (GÓC DƯỚI BÊN PHẢI - 3S) -->
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    Margin="0,0,28,24" Panel.ZIndex="9999" IsHitTestVisible="True">
+                    Margin="0,0,28,24" Panel.ZIndex="99999" IsHitTestVisible="True">
             <controls:NotificationBanner Message="{Binding EditSuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
             <controls:NotificationBanner Message="{Binding AddRequestSuccessMessage}" Kind="Success" Margin="0,0,0,8"/>
             <controls:NotificationBanner Message="{Binding AddRequestErrorMessage}" Kind="Error"/>

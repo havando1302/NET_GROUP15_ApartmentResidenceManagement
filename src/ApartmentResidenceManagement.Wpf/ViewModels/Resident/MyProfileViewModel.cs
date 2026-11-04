@@ -388,7 +388,18 @@ public class MyProfileViewModel : ViewModelBase
     public string SuccessMessage
     {
         get => _successMessage;
-        set => SetProperty(ref _successMessage, value);
+        set
+        {
+            if (SetProperty(ref _successMessage, value))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _errorMessage = string.Empty;
+                    OnPropertyChanged(nameof(ErrorMessage));
+                    OnPropertyChanged(nameof(IsBackgroundErrorVisible));
+                }
+            }
+        }
     }
 
     public string ErrorMessage
@@ -399,6 +410,11 @@ public class MyProfileViewModel : ViewModelBase
             if (SetProperty(ref _errorMessage, value))
             {
                 OnPropertyChanged(nameof(IsBackgroundErrorVisible));
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _successMessage = string.Empty;
+                    OnPropertyChanged(nameof(SuccessMessage));
+                }
             }
         }
     }
