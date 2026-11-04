@@ -55,3 +55,4 @@ public class VietnameseSearchHelperTests
         Assert.False(VietnameseSearchHelper.MatchesSearch("minh 9999", fullName, apartment, code));
     }
 }
+

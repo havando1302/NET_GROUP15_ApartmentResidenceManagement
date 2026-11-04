@@ -74,3 +74,4 @@ public static class VietnameseSearchHelper
         return true;
     }
 }
+

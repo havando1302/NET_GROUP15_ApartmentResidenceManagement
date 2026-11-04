@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:enums="clr-namespace:ApartmentResidenceManagement.Domain.Enums;assembly=ApartmentResidenceManagement.Domain"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="950"
              Background="{StaticResource PageBgBrush}">
@@ -198,12 +199,71 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Tìm kiếm -->
-                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <StackPanel Grid.Column="0" Margin="0,0,14,0">
                         <TextBlock Text="Tìm kiếm xe" FontSize="11" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
-                        <TextBox Style="{StaticResource FormTextBox}"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Tag="Tìm kiếm theo Biển số xe, Hiệu xe..."/>
+                        <Border Background="#F8FAFC" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Height="38">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="34"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <iconPacks:PackIconMaterial Grid.Column="0" Kind="Magnify" Width="15" Height="15" Foreground="#94A3B8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="Transparent" BorderThickness="0" VerticalAlignment="Center" FontSize="13"
+                                         Foreground="{StaticResource TextDarkBrush}" Padding="0,0,4,0"/>
+                                <TextBlock Grid.Column="1" Text="Tìm theo biển số, hãng xe, màu xe..." FontSize="12.5" Foreground="#94A3B8"
+                                           VerticalAlignment="Center" IsHitTestVisible="False" Margin="4,0,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SearchText}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SearchText}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <Button Grid.Column="2" Command="{Binding ClearSearchCommand}"
+                                        Cursor="Hand" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                        Margin="0,0,8,0" Width="20" Height="20" Background="Transparent"
+                                        BorderThickness="0" ToolTip="Xóa tìm kiếm">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" CornerRadius="10" Width="18" Height="18">
+                                                            <iconPacks:PackIconMaterial Kind="CloseCircle" Width="13" Height="13" Foreground="#94A3B8"
+                                                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#F1F5F9"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SearchText}" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SearchText}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
                     <!-- Lọc Loại xe -->
@@ -326,6 +386,42 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
+                            <!-- Hình ảnh xe -->
+                            <DataGridTemplateColumn Header="Hình ảnh" Width="70">
+                                <DataGridTemplateColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ResidentGridHeader}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTemplateColumn.HeaderStyle>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Width="34" Height="34" CornerRadius="6" Background="#F1F5F9"
+                                                BorderBrush="#E2E8F0" BorderThickness="1" ClipToBounds="True"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Grid>
+                                                <Image Source="{Binding ImagePath}" Stretch="UniformToFill"
+                                                       Visibility="{Binding ImagePath, Converter={StaticResource BoolToVis}}"/>
+                                                <TextBlock FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="🏍"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Car}">
+                                                                    <Setter Property="Text" Value="🚗"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding VehicleType}" Value="{x:Static enums:VehicleType.Bicycle}">
+                                                                    <Setter Property="Text" Value="🚲"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <!-- Biển Số Xe (Căn giữa, in đậm) -->
                             <DataGridTextColumn Header="Biển số xe" Binding="{Binding LicensePlate}" Width="2*">
                                 <DataGridTextColumn.HeaderStyle>
@@ -412,42 +508,50 @@
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
-                            <DataGridTemplateColumn Header="Trạng thái" Width="1.5*">
+                            <DataGridTemplateColumn Header="Trạng thái" Width="1.6*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Center">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="#FFF3E0"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Approved}">
-                                                            <Setter Property="Background" Value="#E8F5E9"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
-                                                            <Setter Property="Background" Value="#FFEBEE"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock FontSize="12" FontWeight="SemiBold">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="Chờ duyệt"/>
-                                                        <Setter Property="Foreground" Value="#E65100"/>
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#FFF3E0"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Approved}">
-                                                                <Setter Property="Text" Value="Đã duyệt"/>
-                                                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                                <Setter Property="Background" Value="#E8F5E9"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
-                                                                <Setter Property="Text" Value="Từ chối"/>
-                                                                <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                                                <Setter Property="Background" Value="#FFEBEE"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Border>
+                                                </Border.Style>
+                                                <TextBlock FontSize="12" FontWeight="SemiBold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Chờ duyệt"/>
+                                                            <Setter Property="Foreground" Value="#E65100"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Approved}">
+                                                                    <Setter Property="Text" Value="Đã duyệt"/>
+                                                                    <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
+                                                                    <Setter Property="Text" Value="Từ chối"/>
+                                                                    <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                            <!-- Hiển thị lý do từ chối nếu có -->
+                                            <TextBlock Text="{Binding RejectReason, StringFormat='Lý do: {0}'}"
+                                                       FontSize="11" Foreground="#DC2626" TextTrimming="CharacterEllipsis"
+                                                       MaxWidth="130" HorizontalAlignment="Center" Margin="0,2,0,0"
+                                                       ToolTip="{Binding RejectReason}"
+                                                       Visibility="{Binding RejectReason, Converter={StaticResource BoolToVis}}"/>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -522,6 +626,19 @@
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
+                        <!-- Cảnh báo lý do từ chối trước đó nếu có -->
+                        <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
+                                Padding="12,8" Margin="0,0,0,14"
+                                Visibility="{Binding EditingVehicle.RejectReason, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="⚠️ Lý do bị từ chối duyệt trước đó:" FontSize="11.5" FontWeight="Bold" Foreground="#DC2626"/>
+                                <TextBlock Text="{Binding EditingVehicle.RejectReason}" FontSize="12" Foreground="#991B1B"
+                                           Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                <TextBlock Text="Vui lòng kiểm tra lại thông tin và bấm Lưu để gửi duyệt lại."
+                                           FontSize="11" Foreground="#64748B" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
                         <!-- Biển số xe -->
                         <StackPanel Margin="0,0,0,14">
                             <TextBlock Text="Biển số xe (Ví dụ: 30A-12345)" FontSize="11" FontWeight="SemiBold"

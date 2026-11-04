@@ -139,6 +139,7 @@ public class MyVehiclesViewModel : ViewModelBase
     public ICommand CancelFormCommand { get; }
     public ICommand DeleteVehicleCommand { get; }
     public ICommand SelectImageCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     #endregion
 
     public MyVehiclesViewModel(VehicleService vehicleService, ResidenceService residenceService)
@@ -146,6 +147,7 @@ public class MyVehiclesViewModel : ViewModelBase
         _vehicleService = vehicleService;
         _residenceService = residenceService;
         LoadVehiclesCommand = new AsyncRelayCommand(_ => LoadMyVehiclesAsync());
+        ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty);
         OpenAddFormCommand = new RelayCommand(_ => OpenAddForm());
         OpenEditFormCommand = new RelayCommand(v => { if (v is Vehicle veh) OpenEditForm(veh); });
         SaveVehicleCommand = new AsyncRelayCommand(_ => SaveVehicleAsync());
@@ -270,7 +272,8 @@ public class MyVehiclesViewModel : ViewModelBase
             ImagePath = vehicle.ImagePath,
             RegistrationDate = vehicle.RegistrationDate,
             OwnerId = vehicle.OwnerId,
-            RegistrationStatus = vehicle.RegistrationStatus
+            RegistrationStatus = vehicle.RegistrationStatus,
+            RejectReason = vehicle.RejectReason
         };
         IsFormOpen = true;
     }

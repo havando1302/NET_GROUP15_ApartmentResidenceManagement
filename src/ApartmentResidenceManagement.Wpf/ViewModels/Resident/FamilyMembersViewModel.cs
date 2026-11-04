@@ -5,9 +5,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ApartmentResidenceManagement.Application.Common;
 using ApartmentResidenceManagement.Application.Services;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
+using ApartmentResidenceManagement.Domain.Exceptions;
 using ApartmentResidenceManagement.Wpf.Commands;
 
 namespace ApartmentResidenceManagement.Wpf.ViewModels;
@@ -16,9 +18,11 @@ public class AccordionFamilyMemberItem : ViewModelBase
 {
     private bool _isExpanded;
     private string _phoneNumber = string.Empty;
+    private string _email = string.Empty;
     private string _hometown = string.Empty;
     private string _status = "Đang cư trú";
 
+    public int ResidentId { get; set; }
     public string AvatarIcon { get; set; } = "👨";
     public string? AvatarImagePath { get; set; }
     public bool HasAvatarImage => !string.IsNullOrEmpty(AvatarImagePath);
@@ -39,6 +43,12 @@ public class AccordionFamilyMemberItem : ViewModelBase
     {
         get => _phoneNumber;
         set => SetProperty(ref _phoneNumber, value);
+    }
+
+    public string Email
+    {
+        get => _email;
+        set => SetProperty(ref _email, value);
     }
 
     public string Status
@@ -235,6 +245,7 @@ public class FamilyMembersViewModel : ViewModelBase
     private string _editMemberFullName = string.Empty;
     private string _editMemberRelationship = string.Empty;
     private string _editMemberPhone = string.Empty;
+    private string _editMemberEmail = string.Empty;
     private string _editMemberHometown = string.Empty;
     private string _editMemberStatus = "Đang cư trú";
     private string _editSuccessMessage = string.Empty;
@@ -274,6 +285,7 @@ public class FamilyMembersViewModel : ViewModelBase
     private readonly SemaphoreSlim _loadLock = new(1, 1);
     private readonly ResidenceService? _residenceService;
     private readonly MemberRequestService? _memberRequestService;
+    private readonly ResidentService? _residentService;
 
     #region Properties
     public string ApartmentNumber
@@ -353,6 +365,12 @@ public class FamilyMembersViewModel : ViewModelBase
     {
         get => _editMemberPhone;
         set => SetProperty(ref _editMemberPhone, value);
+    }
+
+    public string EditMemberEmail
+    {
+        get => _editMemberEmail;
+        set => SetProperty(ref _editMemberEmail, value);
     }
 
     public string EditMemberHometown
@@ -637,6 +655,7 @@ public class FamilyMembersViewModel : ViewModelBase
 
     #region Commands
     public ICommand RefreshCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     public ICommand OpenEditMemberModalCommand { get; }
     public ICommand CloseEditMemberModalCommand { get; }
     public ICommand SaveMemberEditCommand { get; }
@@ -649,16 +668,18 @@ public class FamilyMembersViewModel : ViewModelBase
     public ICommand CloseRequestDetailModalCommand { get; }
     #endregion
 
-    public FamilyMembersViewModel() : this(null, null)
+    public FamilyMembersViewModel() : this(null, null, null)
     {
     }
 
-    public FamilyMembersViewModel(ResidenceService? residenceService, MemberRequestService? memberRequestService = null)
+    public FamilyMembersViewModel(ResidenceService? residenceService, MemberRequestService? memberRequestService = null, ResidentService? residentService = null)
     {
         _residenceService = residenceService;
         _memberRequestService = memberRequestService;
+        _residentService = residentService;
 
         RefreshCommand = new AsyncRelayCommand(_ => LoadDataAsync());
+        ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty);
 
         OpenEditMemberModalCommand = new RelayCommand(p =>
         {
@@ -668,6 +689,7 @@ public class FamilyMembersViewModel : ViewModelBase
                 EditMemberFullName = member.FullName;
                 EditMemberRelationship = member.Relationship;
                 EditMemberPhone = member.PhoneNumber == "Chưa cập nhật" || member.PhoneNumber == "---" ? "" : member.PhoneNumber;
+                EditMemberEmail = member.Email == "Chưa cập nhật" || member.Email == "---" ? "" : member.Email;
                 EditMemberHometown = member.Hometown;
                 EditMemberStatus = member.Status;
                 EditErrorMessage = string.Empty;
@@ -679,29 +701,59 @@ public class FamilyMembersViewModel : ViewModelBase
         {
             IsEditMemberModalOpen = false;
             _editingMember = null;
+            EditMemberEmail = string.Empty;
             EditErrorMessage = string.Empty;
         });
 
-        SaveMemberEditCommand = new RelayCommand(_ =>
+        SaveMemberEditCommand = new AsyncRelayCommand(async _ =>
         {
             if (_editingMember == null) return;
 
-            if (!string.IsNullOrWhiteSpace(EditMemberPhone))
+            string? phoneToSave = string.IsNullOrWhiteSpace(EditMemberPhone) ? null : EditMemberPhone.Trim();
+            string? emailToSave = string.IsNullOrWhiteSpace(EditMemberEmail) ? null : EditMemberEmail.Trim();
+
+            if (!string.IsNullOrWhiteSpace(phoneToSave))
             {
-                if (!Regex.IsMatch(EditMemberPhone.Trim(), @"^0\d{9}$"))
+                if (!Regex.IsMatch(phoneToSave, @"^0\d{9}$"))
                 {
                     EditErrorMessage = "Số điện thoại phải gồm 10 chữ số bắt đầu bằng số 0.";
                     return;
                 }
             }
 
-            _editingMember.PhoneNumber = string.IsNullOrWhiteSpace(EditMemberPhone) ? "Chưa cập nhật" : EditMemberPhone.Trim();
-            _editingMember.Status = EditMemberStatus;
+            if (!string.IsNullOrWhiteSpace(emailToSave))
+            {
+                if (!Regex.IsMatch(emailToSave, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                {
+                    EditErrorMessage = "Địa chỉ email không đúng định dạng hợp lệ.";
+                    return;
+                }
+            }
 
-            IsEditMemberModalOpen = false;
-            EditSuccessMessage = $"Cập nhật thông tin thành viên {_editingMember.FullName} thành công!";
-            _editingMember = null;
-            FilterMembers();
+            try
+            {
+                if (_residentService != null && _editingMember.ResidentId > 0)
+                {
+                    await _residentService.UpdateContactAsync(_editingMember.ResidentId, phoneToSave, emailToSave);
+                }
+
+                _editingMember.PhoneNumber = string.IsNullOrWhiteSpace(phoneToSave) ? "Chưa cập nhật" : phoneToSave;
+                _editingMember.Email = string.IsNullOrWhiteSpace(emailToSave) ? "Chưa cập nhật" : emailToSave;
+                _editingMember.Status = EditMemberStatus;
+
+                IsEditMemberModalOpen = false;
+                EditSuccessMessage = $"Cập nhật thông tin thành viên {_editingMember.FullName} thành công!";
+                _editingMember = null;
+                FilterMembers();
+            }
+            catch (BusinessRuleException ex)
+            {
+                EditErrorMessage = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                EditErrorMessage = $"Lỗi khi lưu thông tin: {ex.Message}";
+            }
         });
 
         OpenAddRequestModalCommand = new RelayCommand(_ =>
@@ -972,6 +1024,7 @@ public class FamilyMembersViewModel : ViewModelBase
 
                     _allMembers.Add(new AccordionFamilyMemberItem
                     {
+                        ResidentId = res?.Id ?? 0,
                         AvatarIcon = isOwner ? "👨" : "👤",
                         AvatarImagePath = avatarPath,
                         FullName = res != null ? res.FullName : "Thành viên",
@@ -981,6 +1034,7 @@ public class FamilyMembersViewModel : ViewModelBase
                         Gender = genderStr,
                         IdentityCard = !string.IsNullOrWhiteSpace(res?.IdentityCard) ? res.IdentityCard : "Chưa cập nhật",
                         PhoneNumber = !string.IsNullOrWhiteSpace(res?.PhoneNumber) ? res.PhoneNumber : "Chưa cập nhật",
+                        Email = !string.IsNullOrWhiteSpace(res?.Email) ? res.Email : "Chưa cập nhật",
                         Hometown = hometownStr,
                         Status = "Đang cư trú",
                         IsExpanded = false
@@ -1144,12 +1198,13 @@ public class FamilyMembersViewModel : ViewModelBase
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            string keyword = SearchText.Trim().ToLowerInvariant();
-            query = query.Where(m =>
-                m.FullName.ToLowerInvariant().Contains(keyword) ||
-                m.Relationship.ToLowerInvariant().Contains(keyword) ||
-                m.IdentityCard.ToLowerInvariant().Contains(keyword) ||
-                m.PhoneNumber.ToLowerInvariant().Contains(keyword));
+            query = query.Where(m => VietnameseSearchHelper.MatchesSearch(SearchText,
+                m.FullName,
+                m.Relationship,
+                m.IdentityCard == "Chưa cập nhật" ? null : m.IdentityCard,
+                m.PhoneNumber == "Chưa cập nhật" ? null : m.PhoneNumber,
+                m.Email == "Chưa cập nhật" ? null : m.Email,
+                m.Hometown == "Chưa cập nhật" ? null : m.Hometown));
         }
 
         foreach (var item in query)

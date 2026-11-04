@@ -5,6 +5,7 @@ using ApartmentResidenceManagement.Application.Services;
 using ApartmentResidenceManagement.Domain.Entities;
 using ApartmentResidenceManagement.Domain.Enums;
 using ApartmentResidenceManagement.Domain.Interfaces;
+using ApartmentResidenceManagement.Wpf.Commands;
 using ApartmentResidenceManagement.Wpf.ViewModels;
 using Moq;
 using Xunit;
@@ -18,8 +19,10 @@ public class ResidentPortalTests
     private readonly Mock<IApartmentRepository> _mockApartmentRepo;
     private readonly Mock<IResidenceHistoryRepository> _mockResidenceHistoryRepo;
     private readonly Mock<IMemberRegistrationRequestRepository> _mockRequestRepo;
+    private readonly Mock<IVehicleRepository> _mockVehicleRepo;
     private readonly ResidenceService _residenceService;
     private readonly ResidentService _residentService;
+    private readonly VehicleService _vehicleService;
     private readonly MemberRequestService _memberRequestService;
 
     public ResidentPortalTests()
@@ -29,14 +32,17 @@ public class ResidentPortalTests
         _mockApartmentRepo = new Mock<IApartmentRepository>();
         _mockResidenceHistoryRepo = new Mock<IResidenceHistoryRepository>();
         _mockRequestRepo = new Mock<IMemberRegistrationRequestRepository>();
+        _mockVehicleRepo = new Mock<IVehicleRepository>();
 
         _mockUow.Setup(u => u.Residents).Returns(_mockResidentRepo.Object);
         _mockUow.Setup(u => u.Apartments).Returns(_mockApartmentRepo.Object);
         _mockUow.Setup(u => u.ResidenceHistories).Returns(_mockResidenceHistoryRepo.Object);
         _mockUow.Setup(u => u.MemberRegistrationRequests).Returns(_mockRequestRepo.Object);
+        _mockUow.Setup(u => u.Vehicles).Returns(_mockVehicleRepo.Object);
 
         _residenceService = new ResidenceService(_mockUow.Object);
         _residentService = new ResidentService(_mockUow.Object);
+        _vehicleService = new VehicleService(_mockUow.Object);
         _memberRequestService = new MemberRequestService(_mockUow.Object, _residenceService);
     }
 
@@ -734,6 +740,139 @@ public class ResidentPortalTests
         Assert.Equal(2, vm.TotalResidencyCount);
         Assert.Equal(2, vm.TimelineEvents.Count);
         Assert.True(vm.HasHistory);
+    }
+    #endregion
+
+    #region Sync & Consistency Tests (Admin & Resident Alignment)
+    [Fact]
+    public void MyVehiclesViewModel_ClearSearchCommand_ClearsSearchText()
+    {
+        // Arrange
+        var vm = new MyVehiclesViewModel(_vehicleService, _residenceService);
+        vm.SearchText = "29A-123.45";
+
+        // Act
+        vm.ClearSearchCommand.Execute(null);
+
+        // Assert
+        Assert.Equal(string.Empty, vm.SearchText);
+    }
+
+    [Fact]
+    public void FamilyMembersViewModel_ClearSearchCommand_ClearsSearchText()
+    {
+        // Arrange
+        var vm = new FamilyMembersViewModel(_residenceService, _memberRequestService, _residentService);
+        vm.SearchText = "Nguyễn Văn";
+
+        // Act
+        vm.ClearSearchCommand.Execute(null);
+
+        // Assert
+        Assert.Equal(string.Empty, vm.SearchText);
+    }
+
+    [Fact]
+    public async Task FamilyMembersViewModel_SaveMemberEditCommand_SavesToDatabaseViaResidentService()
+    {
+        // Arrange
+        int resId = 1;
+        SetupMockResidenceData(resId);
+        var residentInDb = new Resident
+        {
+            Id = 202,
+            FullName = "Trần Thị Hoa",
+            PhoneNumber = "0911223344",
+            Email = "hoa@apartment.vn"
+        };
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(202)).ReturnsAsync(residentInDb);
+
+        var vm = new FamilyMembersViewModel(_residenceService, _memberRequestService, _residentService);
+        var account = CreateSampleUserAccount(resId);
+        vm.Initialize(account);
+        await vm.LoadFamilyMembersAsync();
+
+        var memberItem = vm.FilteredMembers.First(m => m.ResidentId == 202);
+        vm.OpenEditMemberModalCommand.Execute(memberItem);
+
+        // Act: Update phone and email
+        vm.EditMemberPhone = "0999888777";
+        vm.EditMemberEmail = "hoa.tran@apartment.vn";
+        await ((AsyncRelayCommand)vm.SaveMemberEditCommand).ExecuteAsync(null);
+
+        // Assert
+        Assert.False(vm.IsEditMemberModalOpen);
+        Assert.Equal("0999888777", residentInDb.PhoneNumber);
+        Assert.Equal("hoa.tran@apartment.vn", residentInDb.Email);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task VehicleService_UpdateVehicleRegistrationAsync_ResetsRejectReasonToNull()
+    {
+        // Arrange
+        int ownerId = 1;
+        SetupMockResidenceData(ownerId);
+        var existingVehicle = new Vehicle
+        {
+            Id = 10,
+            OwnerId = ownerId,
+            LicensePlate = "29A-999.99",
+            VehicleType = VehicleType.Moto,
+            Brand = "Honda",
+            Color = "Đỏ",
+            RegistrationStatus = VehicleRegistrationStatus.Rejected,
+            RejectReason = "Giấy tờ xe không rõ ràng"
+        };
+
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId, FullName = "Nguyễn Văn Minh" });
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(existingVehicle);
+        _mockVehicleRepo.Setup(r => r.GetByLicensePlateAsync("29A-999.99")).ReturnsAsync(existingVehicle);
+
+        var updatedVehicle = new Vehicle
+        {
+            Id = 10,
+            OwnerId = ownerId,
+            LicensePlate = "29A-999.99",
+            VehicleType = VehicleType.Moto,
+            Brand = "Honda",
+            Color = "Đen",
+            ImagePath = "new_image.jpg"
+        };
+
+        // Act: Resident re-submits updated registration
+        await _vehicleService.UpdateVehicleRegistrationAsync(ownerId, updatedVehicle);
+
+        // Assert
+        Assert.Equal(VehicleRegistrationStatus.Pending, existingVehicle.RegistrationStatus);
+        Assert.Null(existingVehicle.RejectReason);
+        Assert.Equal("Đen", existingVehicle.Color);
+        Assert.Equal("new_image.jpg", existingVehicle.ImagePath);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public void MyVehiclesViewModel_OpenEditForm_PreservesRejectReason()
+    {
+        // Arrange
+        var vm = new MyVehiclesViewModel(_vehicleService, _residenceService);
+        var vehicle = new Vehicle
+        {
+            Id = 15,
+            LicensePlate = "30E-123.45",
+            VehicleType = VehicleType.Car,
+            Brand = "Toyota",
+            Color = "Trắng",
+            RegistrationStatus = VehicleRegistrationStatus.Rejected,
+            RejectReason = "Hạn mức ô tô căn hộ đã vượt quy định"
+        };
+
+        // Act
+        vm.OpenEditFormCommand.Execute(vehicle);
+
+        // Assert
+        Assert.True(vm.IsFormOpen);
+        Assert.Equal("Hạn mức ô tô căn hộ đã vượt quy định", vm.EditingVehicle.RejectReason);
     }
     #endregion
 }

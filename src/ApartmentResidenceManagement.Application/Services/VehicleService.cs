@@ -84,6 +84,7 @@ public class VehicleService
         existing.Color = vehicle.Color;
         existing.ImagePath = vehicle.ImagePath;
         existing.RegistrationStatus = VehicleRegistrationStatus.Pending;
+        existing.RejectReason = null;
 
         _unitOfWork.Vehicles.Update(existing);
         await _unitOfWork.CompleteAsync();
