@@ -439,4 +439,11 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Sửa lỗi Binding Failures trên ComboBoxItem khi chạy Visual Studio -->
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
 </ResourceDictionary>

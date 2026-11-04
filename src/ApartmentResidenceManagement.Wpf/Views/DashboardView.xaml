@@ -1,129 +1,476 @@
 <UserControl x:Class="ApartmentResidenceManagement.Wpf.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:ApartmentResidenceManagement.Wpf.Controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="950"
-             Background="{StaticResource PageBgBrush}">
-    
+             d:DesignHeight="800" d:DesignWidth="1100"
+             Background="#F8FAFC">
+
     <UserControl.Resources>
-        <!-- Style cho Thẻ Thống Kê (Metric Card) -->
-        <Style x:Key="MetricCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="24"/>
-            <Setter Property="Margin" Value="12"/>
+        <!-- Card Style chuẩn hiện đại với DropShadow nhẹ -->
+        <Style x:Key="ModernDashboardCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.04"/>
+                    <DropShadowEffect BlurRadius="12" Direction="270" ShadowDepth="2" Color="#0F172A" Opacity="0.04"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- KPI Card Style -->
+        <Style x:Key="KpiCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="18,16"/>
+            <Setter Property="Margin" Value="0,0,14,0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" Direction="270" ShadowDepth="2" Color="#0F172A" Opacity="0.03"/>
                 </Setter.Value>
             </Setter>
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="24,20,24,20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>  <!-- Tiêu đề -->
-            <RowDefinition Height="Auto"/>  <!-- Metric Cards -->
-            <RowDefinition Height="*"/>     <!-- Chào mừng & Chú thích -->
-        </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="24,20,24,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- 1. Tiêu đề Dashboard -->
+                <RowDefinition Height="Auto"/>  <!-- 2. Thẻ KPI (4 thẻ) -->
+                <RowDefinition Height="Auto"/>  <!-- 3. Hàng biểu đồ (Donut + Bar) -->
+                <RowDefinition Height="Auto"/>  <!-- 4. Hàng việc cần xử lý & Hoạt động gần đây -->
+            </Grid.RowDefinitions>
 
-        <!-- Tiêu đề trang -->
-        <StackPanel Grid.Row="0" Margin="12,0,12,20">
-            <TextBlock Text="Bảng điều khiển tổng quan" FontSize="22" FontWeight="Bold"
-                       Foreground="{StaticResource TextDarkBrush}"/>
-            <TextBlock Text="Thống kê nhanh số liệu quản lý cư trú và căn hộ trong tòa nhà."
-                       FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
-        </StackPanel>
+            <!-- ══════════════════════════════════════════════════════════
+                 1. TIÊU ĐỀ TRANG TỔNG QUAN
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <!-- Metric Cards -->
-        <UniformGrid Grid.Row="1" Columns="3">
-            
-            <!-- CARD 1: CĂN HỘ -->
-            <Border Style="{StaticResource MetricCard}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="TỔNG SỐ CĂN HỘ" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                    <TextBlock Grid.Row="1" Text="{Binding TotalApartments}" FontSize="36" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,8,0,12"/>
-                    
-                    <StackPanel Grid.Row="2">
-                        <Separator Background="{StaticResource BorderBrush}" Margin="0,0,0,12"/>
-                        <Grid Margin="0,3">
-                            <TextBlock Text="Đang cư trú:" Foreground="{StaticResource TextDarkBrush}" FontSize="12.5"/>
-                            <TextBlock Text="{Binding OccupiedApartments}" Foreground="{StaticResource SuccessBrush}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="12.5"/>
+                <Border Grid.Column="0" Width="44" Height="44" CornerRadius="12" Background="#EFF6FF" VerticalAlignment="Center">
+                    <iconPacks:PackIconMaterial Kind="ViewDashboardOutline" Width="22" Height="22" Foreground="#2563EB"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="Tổng quan hệ thống" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="Theo dõi tình hình cư trú và các hoạt động quản lý trong tòa chung cư."
+                               FontSize="13" Foreground="#64748B" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <!-- Nút Làm mới -->
+                <Button Grid.Column="2" Command="{Binding RefreshCommand}" Height="38" Padding="14,0" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <iconPacks:PackIconMaterial Kind="Refresh" Width="14" Height="14" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Làm mới" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 2. 4 THẺ THỐNG KÊ KPI (DB01)
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="1" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- KPI 1: Tổng căn hộ -->
+                <Border Grid.Column="0" Style="{StaticResource KpiCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#EFF6FF" VerticalAlignment="Center">
+                            <iconPacks:PackIconMaterial Kind="OfficeBuildingOutline" Width="24" Height="24" Foreground="#2563EB"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalApartments}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Tổng căn hộ" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- KPI 2: Căn hộ đang ở -->
+                <Border Grid.Column="1" Style="{StaticResource KpiCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#DCFCE7" VerticalAlignment="Center">
+                            <iconPacks:PackIconMaterial Kind="HomeAccount" Width="24" Height="24" Foreground="#16A34A"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding OccupiedApartments}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Căn hộ đang ở" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- KPI 3: Cư dân hiện tại -->
+                <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#F3E8FF" VerticalAlignment="Center">
+                            <iconPacks:PackIconMaterial Kind="AccountGroupOutline" Width="24" Height="24" Foreground="#7C3AED"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentResidents}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Cư dân hiện tại" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- KPI 4: Phương tiện chờ duyệt -->
+                <Border Grid.Column="3" Style="{StaticResource KpiCardStyle}" Margin="0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12" Background="#FEF3C7" VerticalAlignment="Center">
+                            <iconPacks:PackIconMaterial Kind="CarOutline" Width="24" Height="24" Foreground="#D97706"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding PendingVehicles}" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Phương tiện chờ duyệt" FontSize="12.5" FontWeight="Medium" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 3. HÀNG BIỂU ĐỒ (Donut Căn hộ + Bar Biến động 6 tháng)
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="2" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="420"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- BIỂU ĐỒ TRÒN: TÌNH TRẠNG SỬ DỤNG CĂN HỘ (DB02, UI01) -->
+                <Border Grid.Column="0" Style="{StaticResource ModernDashboardCard}" Margin="0,0,14,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header card -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <iconPacks:PackIconMaterial Kind="ChartArc" Width="18" Height="18" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Tình trạng sử dụng căn hộ" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Chart + Chú giải + Minh họa tòa nhà -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="170"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Biểu đồ hình tròn (Pie Chart) 2D Component -->
+                            <controls:DonutChart Grid.Column="0" Slices="{Binding ApartmentDonutSlices}"
+                                                 HoleRatio="0" Width="165" Height="165"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                            <!-- Chú giải tỷ lệ và số căn hộ -->
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                <!-- Đang ở -->
+                                <Border Background="#F8FAFC" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding OccupiedApartments, StringFormat='{}{0} căn đang ở'}" FontSize="12.5" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding OccupancyRateDisplay}" FontSize="12.5" FontWeight="Bold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Trống -->
+                                <Border Background="#F8FAFC" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="10" Height="10" CornerRadius="3" Background="#CBD5E1" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding VacantApartments, StringFormat='{}{0} căn trống'}" FontSize="12.5" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding VacantRateDisplay}" FontSize="12.5" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Đã bỏ hình ảnh tòa nhà theo yêu cầu -->
+                            </StackPanel>
                         </Grid>
-                        <Grid Margin="0,3">
-                            <TextBlock Text="Căn hộ trống:" Foreground="{StaticResource TextDarkBrush}" FontSize="12.5"/>
-                            <TextBlock Text="{Binding EmptyApartments}" Foreground="{StaticResource WarningBrush}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="12.5"/>
+                    </Grid>
+                </Border>
+
+                <!-- BIỂU ĐỒ CỘT: BIẾN ĐỘNG CƯ TRÚ 6 THÁNG GẦN ĐÂY (UI02) -->
+                <Border Grid.Column="1" Style="{StaticResource ModernDashboardCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header card + Chú giải màu cột -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <iconPacks:PackIconMaterial Kind="ChartBar" Width="18" Height="18" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Biến động cư trú 6 tháng gần đây" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Border Width="10" Height="10" CornerRadius="2" Background="#3B82F6" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Đăng ký mới" FontSize="12" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                                <Border Width="10" Height="10" CornerRadius="2" Background="#A855F7" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Kết thúc cư trú" FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Grid>
-                        <Grid Margin="0,3">
-                            <TextBlock Text="Bảo trì, sửa chữa:" Foreground="{StaticResource TextDarkBrush}" FontSize="12.5"/>
-                            <TextBlock Text="{Binding MaintenanceApartments}" Foreground="{StaticResource DangerBrush}" FontWeight="Bold" HorizontalAlignment="Right" FontSize="12.5"/>
+
+                        <!-- Modern Bar Chart 2D Component -->
+                        <controls:ModernBarChart Grid.Row="1" Categories="{Binding ResidenceTrendBars}" Height="200"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 4. HÀNG DƯỚI: CÔNG VIỆC CẦN XỬ LÝ & HOẠT ĐỘNG CƯ TRÚ
+            ══════════════════════════════════════════════════════════ -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="420"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- CÔNG VIỆC CẦN XỬ LÝ (DB04) -->
+                <Border Grid.Column="0" Style="{StaticResource ModernDashboardCard}" Margin="0,0,14,0">
+                    <StackPanel>
+                        <!-- Header -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <iconPacks:PackIconMaterial Kind="ClipboardListOutline" Width="18" Height="18" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Công việc cần xử lý" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Action Item 1: Phương tiện chờ duyệt -->
+                        <Border Background="#F8FAFC" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="14,12" Margin="0,0,0,12" Cursor="Hand">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="vehicle"/>
+                            </Border.InputBindings>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Center">
+                                    <iconPacks:PackIconMaterial Kind="CarOutline" Width="20" Height="20" Foreground="#2563EB"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="Phương tiện chờ duyệt" FontSize="13.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    <TextBlock Text="{Binding PendingVehicles, StringFormat='{}Có {0} yêu cầu đăng ký phương tiện mới.'}"
+                                               FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <!-- Badge số lượng -->
+                                <Border Grid.Column="2" Background="#FEF3C7" CornerRadius="12" Padding="8,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding PendingVehicles}" FontSize="12" FontWeight="Bold" Foreground="#D97706"/>
+                                </Border>
+
+                                <iconPacks:PackIconMaterial Grid.Column="3" Kind="ChevronRight" Width="14" Height="14" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Action Item 2: Yêu cầu thêm thành viên chờ duyệt -->
+                        <Border Background="#F8FAFC" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1" Padding="14,12" Cursor="Hand">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="residency_requests"/>
+                            </Border.InputBindings>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Center">
+                                    <iconPacks:PackIconMaterial Kind="AccountPlusOutline" Width="20" Height="20" Foreground="#2563EB"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="Yêu cầu thêm thành viên" FontSize="13.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    <TextBlock Text="{Binding PendingMemberRequestsCount, StringFormat='{}Có {0} yêu cầu đăng ký thành viên mới chờ duyệt.'}"
+                                               FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <!-- Badge số lượng -->
+                                <Border Grid.Column="2" Background="#FEF3C7" CornerRadius="12" Padding="8,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding PendingMemberRequestsCount}" FontSize="12" FontWeight="Bold" Foreground="#D97706"/>
+                                </Border>
+
+                                <iconPacks:PackIconMaterial Grid.Column="3" Kind="ChevronRight" Width="14" Height="14" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- HOẠT ĐỘNG CƯ TRÚ GẦN ĐÂY (DB03) -->
+                <Border Grid.Column="1" Style="{StaticResource ModernDashboardCard}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <iconPacks:PackIconMaterial Kind="ClockOutline" Width="18" Height="18" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Hoạt động cư trú gần đây" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Nút Xem tất cả -->
+                            <Button HorizontalAlignment="Right" Command="{Binding NavigateCommand}" CommandParameter="residency"
+                                    Background="Transparent" BorderThickness="1" BorderBrush="#E2E8F0" Padding="12,4" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Xem tất cả" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,4,0"/>
+                                                <iconPacks:PackIconMaterial Kind="ArrowRight" Width="12" Height="12" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </Grid>
-                    </StackPanel>
-                </Grid>
-            </Border>
- 
-            <!-- CARD 2: CƯ DÂN -->
-            <Border Style="{StaticResource MetricCard}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="CƯ DÂN ĐĂNG KÝ" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                    <TextBlock Grid.Row="1" Text="{Binding TotalResidents}" FontSize="36" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,8,0,12"/>
+                        <!-- Danh sách 5 hoạt động gần đây -->
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding RecentActivities}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="130"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Row="2">
-                        <Separator Background="{StaticResource BorderBrush}" Margin="0,0,0,12"/>
-                        <TextBlock Text="Tổng số nhân khẩu, cư dân đã được khai báo hồ sơ cư trú hợp lệ trong hệ thống."
-                                   TextWrapping="Wrap" Foreground="{StaticResource TextDarkBrush}" FontSize="12.5" LineHeight="18"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                                            <!-- Icon loại hoạt động -->
+                                            <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#EFF6FF"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ActivityType}" Value="New">
+                                                                <Setter Property="Background" Value="#DCFCE7"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding ActivityType}" Value="Transfer">
+                                                                <Setter Property="Background" Value="#EFF6FF"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding ActivityType}" Value="End">
+                                                                <Setter Property="Background" Value="#FEE2E2"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
 
-            <!-- CARD 3: PHƯƠNG TIỆN -->
-            <Border Style="{StaticResource MetricCard}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                                                <!-- Icon bên trong -->
+                                                <iconPacks:PackIconMaterial Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <iconPacks:PackIconMaterial.Style>
+                                                        <Style TargetType="iconPacks:PackIconMaterial">
+                                                            <Setter Property="Kind" Value="SwapHorizontal"/>
+                                                            <Setter Property="Foreground" Value="#2563EB"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ActivityType}" Value="New">
+                                                                    <Setter Property="Kind" Value="Plus"/>
+                                                                    <Setter Property="Foreground" Value="#16A34A"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding ActivityType}" Value="Transfer">
+                                                                    <Setter Property="Kind" Value="SwapHorizontal"/>
+                                                                    <Setter Property="Foreground" Value="#2563EB"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding ActivityType}" Value="End">
+                                                                    <Setter Property="Kind" Value="Minus"/>
+                                                                    <Setter Property="Foreground" Value="#DC2626"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </iconPacks:PackIconMaterial.Style>
+                                                </iconPacks:PackIconMaterial>
+                                            </Border>
 
-                    <TextBlock Grid.Row="0" Text="PHƯƠNG TIỆN ĐĂNG KÝ" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                    <TextBlock Grid.Row="1" Text="{Binding TotalVehicles}" FontSize="36" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,8,0,12"/>
+                                            <!-- Tên cư dân -->
+                                            <TextBlock Grid.Column="1" Text="{Binding ResidentName}" FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="#0F172A" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
-                    <StackPanel Grid.Row="2">
-                        <Separator Background="{StaticResource BorderBrush}" Margin="0,0,0,12"/>
-                        <TextBlock Text="Tổng số phương tiện cá nhân (ô tô, xe máy, xe đạp) gửi tại các bãi đỗ xe tòa nhà."
-                                   TextWrapping="Wrap" Foreground="{StaticResource TextDarkBrush}" FontSize="12.5" LineHeight="18"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                                            <!-- Mô tả sự kiện -->
+                                            <TextBlock Grid.Column="2" Text="{Binding Description}" FontSize="13"
+                                                       Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
-        </UniformGrid>
-
-        <!-- Chào mừng & Chú thích -->
-        <Border Grid.Row="2" Background="{StaticResource CardBgBrush}" CornerRadius="10" Margin="12,16,12,12" Padding="32">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="8" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.03"/>
-            </Border.Effect>
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="🏢 HỆ THỐNG QUẢN LÝ CHUNG CƯ" FontSize="20" FontWeight="Bold"
-                           Foreground="{StaticResource TextDarkBrush}" HorizontalAlignment="Center"/>
-                <TextBlock Text="Chào mừng bạn đến với phân hệ Quản trị viên. Hãy chọn các danh mục ở thanh menu bên trái để thực hiện quản lý căn hộ, cư dân, cư trú, phương tiện và xem các báo cáo thống kê."
-                           FontSize="13.5" Foreground="{StaticResource TextMutedBrush}" TextAlignment="Center"
-                           TextWrapping="Wrap" MaxWidth="600" Margin="0,12,0,0" LineHeight="20"/>
-            </StackPanel>
-        </Border>
-    </Grid>
+                                            <!-- Ngày diễn ra -->
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <iconPacks:PackIconMaterial Kind="CalendarBlankOutline" Width="12" Height="12" Foreground="#94A3B8"
+                                                                            VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                <TextBlock Text="{Binding DateDisplay}" FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
 </UserControl>
