@@ -404,7 +404,7 @@ public class AccountService
     /// <summary>
     /// Cư dân tự yêu cầu gửi mã OTP khôi phục mật khẩu trực tiếp về Email đã đăng ký.
     /// </summary>
-    public async Task<(string MaskedEmail, string OtpCode)> SendRecoveryOtpByUsernameOrEmailAsync(string usernameOrEmail)
+    public async Task<OtpSendResult> SendRecoveryOtpByUsernameOrEmailAsync(string usernameOrEmail)
     {
         if (string.IsNullOrWhiteSpace(usernameOrEmail))
         {
@@ -462,13 +462,22 @@ public class AccountService
         await _unitOfWork.CompleteAsync();
 
         string recipientName = resident?.FullName ?? account.Username;
+        bool isRealEmailSent = false;
+        string? emailError = null;
         if (_emailService != null)
         {
-            await _emailService.SendOtpEmailAsync(email, recipientName, otpCode, 5);
+            try
+            {
+                isRealEmailSent = await _emailService.SendOtpEmailAsync(email, recipientName, otpCode, 5);
+            }
+            catch (Exception ex)
+            {
+                emailError = ex.Message;
+            }
         }
 
         string maskedEmail = MaskEmail(email);
-        return (maskedEmail, otpCode);
+        return new OtpSendResult(maskedEmail, otpCode, isRealEmailSent, emailError);
     }
 
     public static string MaskEmail(string email)

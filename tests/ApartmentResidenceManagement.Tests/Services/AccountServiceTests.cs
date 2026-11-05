@@ -404,6 +404,33 @@ public class AccountServiceTests
     }
 
     [Fact]
+    public async Task SendRecoveryOtpByUsernameOrEmailAsync_WithMockEmailService_ReturnsRealEmailSentStatus()
+    {
+        // Arrange
+        string username = "resident_real_mail";
+        int residentId = 18;
+        var account = new UserAccount { Id = 8, Username = username, ResidentId = residentId, IsActive = true };
+        var resident = new Resident { Id = residentId, FullName = "Le Thi Real", Email = "lethireal@gmail.com" };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(residentId)).ReturnsAsync(resident);
+
+        var mockEmail = new Mock<IEmailService>();
+        mockEmail.Setup(e => e.SendOtpEmailAsync("lethireal@gmail.com", "Le Thi Real", It.IsAny<string>(), 5))
+                 .ReturnsAsync(true);
+
+        var serviceWithEmail = new AccountService(_mockUow.Object, _mockHasher.Object, mockEmail.Object);
+
+        // Act
+        var (maskedEmail, otpCode, isRealEmailSent) = await serviceWithEmail.SendRecoveryOtpByUsernameOrEmailAsync(username);
+
+        // Assert
+        Assert.True(isRealEmailSent);
+        Assert.Equal("l***l@gmail.com", maskedEmail);
+        mockEmail.Verify(e => e.SendOtpEmailAsync("lethireal@gmail.com", "Le Thi Real", otpCode, 5), Times.Once);
+    }
+
+    [Fact]
     public async Task SendRecoveryOtpByUsernameOrEmailAsync_AccountHasNoEmail_ShouldThrowBusinessRuleException()
     {
         // Arrange

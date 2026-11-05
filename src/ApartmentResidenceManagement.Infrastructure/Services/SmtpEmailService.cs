@@ -17,10 +17,27 @@ public class SmtpEmailService : IEmailService
         _configuration = configuration;
     }
 
+    public bool IsConfigured
+    {
+        get
+        {
+            string username = _configuration["EmailSettings:Username"] ?? "";
+            string password = _configuration["EmailSettings:Password"] ?? "";
+            return !string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password);
+        }
+    }
+
     public async Task<bool> SendOtpEmailAsync(string toEmail, string recipientName, string otpCode, int expiryMinutes = 5)
     {
         if (string.IsNullOrWhiteSpace(toEmail))
         {
+            return false;
+        }
+
+        // Nếu chưa cấu hình tài khoản SMTP thực tế (môi trường phát triển / thử nghiệm)
+        if (!IsConfigured)
+        {
+            Debug.WriteLine($"[EMAIL SIMULATION] Sent OTP [{otpCode}] to {toEmail} for {recipientName} (SMTP credentials not configured in appsettings.json)");
             return false;
         }
 
@@ -83,13 +100,6 @@ public class SmtpEmailService : IEmailService
 </body>
 </html>";
 
-        // Nếu chưa cấu hình tài khoản SMTP thực tế (môi trường phát triển / thử nghiệm)
-        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-        {
-            Debug.WriteLine($"[EMAIL SIMULATION] Sent OTP [{otpCode}] to {toEmail} for {recipientName}");
-            return true;
-        }
-
         try
         {
             using var message = new MailMessage
@@ -115,8 +125,7 @@ public class SmtpEmailService : IEmailService
         catch (Exception ex)
         {
             Debug.WriteLine($"[EMAIL WARNING] Could not send via SMTP to {toEmail}: {ex.Message}");
-            return false;
+            throw new InvalidOperationException($"Lỗi kết nối máy chủ gửi thư SMTP ({ex.Message}). Vui lòng kiểm tra lại thông tin tài khoản Gmail / Mật khẩu ứng dụng trong appsettings.json.", ex);
         }
     }
 }
-

@@ -240,8 +240,16 @@ public class LoginViewModel : ViewModelBase
             SendOtpButtonText = "Đang gửi...";
             try
             {
-                var (maskedEmail, otpCode) = await _accountService.SendRecoveryOtpByUsernameOrEmailAsync(ForgotUsername.Trim());
-                ForgotSuccessMessage = $"Mã OTP đã được gửi đến email {maskedEmail}. Vui lòng kiểm tra hộp thư.";
+                var (maskedEmail, otpCode, isRealEmailSent) = await _accountService.SendRecoveryOtpByUsernameOrEmailAsync(ForgotUsername.Trim());
+                if (isRealEmailSent)
+                {
+                    ForgotSuccessMessage = $"Mã OTP đã được gửi thành công đến email {maskedEmail}. Vui lòng kiểm tra hộp thư đến (và mục Spam/Thư rác).";
+                }
+                else
+                {
+                    ForgotOtpCode = otpCode;
+                    ForgotSuccessMessage = $"[Chế độ thử nghiệm] Mã OTP: {otpCode}\n(Hệ thống tự động điền mã do chưa cấu hình tài khoản gửi Gmail trong appsettings.json).";
+                }
                 SendOtpButtonText = "Gửi lại mã";
             }
             catch (BusinessRuleException ex)
