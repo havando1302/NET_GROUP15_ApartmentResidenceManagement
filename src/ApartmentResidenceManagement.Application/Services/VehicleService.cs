@@ -12,9 +12,9 @@ namespace ApartmentResidenceManagement.Application.Services;
 
 public class VehicleService
 {
-    public const int MaxCarsPerApartment = 1;
-    public const int MaxMotosPerApartment = 2;
-    public const int MaxBicyclesPerApartment = 2;
+    public const int MaxCarsPerApartment = 2;
+    public const int MaxMotosPerApartment = 3;
+    public const int MaxBicyclesPerApartment = 3;
 
     private readonly IUnitOfWork _unitOfWork;
 
@@ -687,4 +687,4 @@ public class VehicleService
 
         return (approvedCar, pendingCar, MaxCarsPerApartment, approvedMoto, pendingMoto, MaxMotosPerApartment);
     }
-}
+}

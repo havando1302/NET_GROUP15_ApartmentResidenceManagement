@@ -318,19 +318,20 @@ public class VehicleServiceTests
 [Fact]
     public async Task SubmitVehicleRegistration_ExceedsCarQuota_ShouldThrowBusinessRuleException()
     {
-        // Arrange: Căn hộ 1 đã có 1 ô tô Approved
+        // Arrange: Căn hộ 1 đã có 2 ô tô Approved (đạt hạn mức mới 2 ô tô / căn hộ)
         int ownerId = 10;
         int apartmentId = 1;
         _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
         _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(ownerId))
             .ReturnsAsync(new ResidenceHistory { ResidentId = ownerId, ApartmentId = apartmentId, Apartment = new Apartment { Id = apartmentId, ApartmentNumber = "P.101" } });
 
-        var existingCar = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
-        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { existingCar });
+        var car1 = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        var car2 = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { car1, car2 });
 
         var newCar = new Vehicle { OwnerId = ownerId, LicensePlate = "30A-99999", VehicleType = VehicleType.Car, ImagePath = "/test.jpg" };
 
-        // Act & Assert: Đăng ký xe ô tô thứ 2 phải bị chặn do vượt hạn mức (1 ô tô / căn hộ)
+        // Act & Assert: Đăng ký xe ô tô thứ 3 phải bị chặn do vượt hạn mức (2 ô tô / căn hộ)
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(newCar));
         Assert.Contains("hạn mức", ex.Message.ToLowerInvariant());
     }
@@ -338,7 +339,7 @@ public class VehicleServiceTests
     [Fact]
     public async Task SubmitVehicleRegistration_ExceedsMotoQuota_ShouldThrowBusinessRuleException()
     {
-        // Arrange: Căn hộ 1 đã có 2 xe máy Approved
+        // Arrange: Căn hộ 1 đã có 3 xe máy Approved (đạt hạn mức mới 3 xe máy / căn hộ)
         int ownerId = 10;
         int apartmentId = 1;
         _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
@@ -347,32 +348,34 @@ public class VehicleServiceTests
 
         var moto1 = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Approved };
         var moto2 = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Approved };
-        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { moto1, moto2 });
+        var moto3 = new Vehicle { Id = 3, OwnerId = ownerId, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { moto1, moto2, moto3 });
 
-        var moto3 = new Vehicle { OwnerId = ownerId, LicensePlate = "29A1-99999", VehicleType = VehicleType.Moto, ImagePath = "/test.jpg" };
+        var moto4 = new Vehicle { OwnerId = ownerId, LicensePlate = "29A1-99999", VehicleType = VehicleType.Moto, ImagePath = "/test.jpg" };
 
-        // Act & Assert: Đăng ký xe máy thứ 3 phải bị chặn do vượt hạn mức (2 xe máy / căn hộ)
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(moto3));
+        // Act & Assert: Đăng ký xe máy thứ 4 phải bị chặn do vượt hạn mức (3 xe máy / căn hộ)
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(moto4));
         Assert.Contains("hạn mức", ex.Message.ToLowerInvariant());
     }
 
     [Fact]
     public async Task ReviewVehicle_ApproveExceedsCarQuota_ShouldThrowBusinessRuleException()
     {
-        // Arrange: Căn hộ 1 đã có 1 ô tô Approved khác
+        // Arrange: Căn hộ 1 đã có 2 ô tô Approved khác
         int ownerId = 10;
         int apartmentId = 1;
         _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
         _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(ownerId))
             .ReturnsAsync(new ResidenceHistory { ResidentId = ownerId, ApartmentId = apartmentId, Apartment = new Apartment { Id = apartmentId, ApartmentNumber = "P.101" } });
 
-        var approvedCar = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
-        var pendingCar = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Pending };
-        _mockVehicleRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(pendingCar);
-        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { approvedCar, pendingCar });
+        var approvedCar1 = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        var approvedCar2 = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        var pendingCar = new Vehicle { Id = 3, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(pendingCar);
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { approvedCar1, approvedCar2, pendingCar });
 
-        // Act & Assert: Duyệt thêm xe ô tô thứ 2 cho cùng căn hộ phải bị chặn
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ReviewVehicleAsync(2, VehicleRegistrationStatus.Approved));
+        // Act & Assert: Duyệt thêm xe ô tô thứ 3 cho cùng căn hộ phải bị chặn
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ReviewVehicleAsync(3, VehicleRegistrationStatus.Approved));
         Assert.Contains("hạn mức", ex.Message.ToLowerInvariant());
     }
 
@@ -398,4 +401,4 @@ public class VehicleServiceTests
         Assert.Equal(VehicleRegistrationStatus.Approved, pendingCar.RegistrationStatus);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
-}
+}
