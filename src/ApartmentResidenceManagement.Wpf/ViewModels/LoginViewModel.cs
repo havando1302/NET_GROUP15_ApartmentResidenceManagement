@@ -72,6 +72,84 @@ public class LoginViewModel : ViewModelBase
     public bool IsAdminSelected => SelectedRole == "Admin";
     public bool IsResidentSelected => SelectedRole == "Resident";
 
+    // Quên mật khẩu / Đặt lại mật khẩu bằng mã OTP (Mô hình 2)
+    private bool _isForgotPasswordOpen;
+    private string _forgotUsername = string.Empty;
+    private string _forgotOtpCode = string.Empty;
+    private string _forgotNewPassword = string.Empty;
+    private string _forgotConfirmPassword = string.Empty;
+    private string _forgotErrorMessage = string.Empty;
+    private string _forgotSuccessMessage = string.Empty;
+    private bool _isResettingPassword;
+
+    public bool IsForgotPasswordOpen
+    {
+        get => _isForgotPasswordOpen;
+        set => SetProperty(ref _isForgotPasswordOpen, value);
+    }
+
+    public string ForgotUsername
+    {
+        get => _forgotUsername;
+        set => SetProperty(ref _forgotUsername, value);
+    }
+
+    public string ForgotOtpCode
+    {
+        get => _forgotOtpCode;
+        set => SetProperty(ref _forgotOtpCode, value);
+    }
+
+    public string ForgotNewPassword
+    {
+        get => _forgotNewPassword;
+        set => SetProperty(ref _forgotNewPassword, value);
+    }
+
+    public string ForgotConfirmPassword
+    {
+        get => _forgotConfirmPassword;
+        set => SetProperty(ref _forgotConfirmPassword, value);
+    }
+
+    public string ForgotErrorMessage
+    {
+        get => _forgotErrorMessage;
+        set
+        {
+            if (SetProperty(ref _forgotErrorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasForgotError));
+            }
+        }
+    }
+
+    public bool HasForgotError => !string.IsNullOrEmpty(ForgotErrorMessage);
+
+    public string ForgotSuccessMessage
+    {
+        get => _forgotSuccessMessage;
+        set
+        {
+            if (SetProperty(ref _forgotSuccessMessage, value))
+            {
+                OnPropertyChanged(nameof(HasForgotSuccess));
+            }
+        }
+    }
+
+    public bool HasForgotSuccess => !string.IsNullOrEmpty(ForgotSuccessMessage);
+
+    public bool IsResettingPassword
+    {
+        get => _isResettingPassword;
+        set => SetProperty(ref _isResettingPassword, value);
+    }
+
+    public ICommand OpenForgotPasswordCommand { get; }
+    public ICommand CloseForgotPasswordCommand { get; }
+    public ICommand ConfirmResetPasswordCommand { get; }
+
     public bool RememberMe
     {
         get => _rememberMe;
@@ -113,6 +191,82 @@ public class LoginViewModel : ViewModelBase
                 pbox.Password = "resident123";
             }
             ErrorMessage = string.Empty;
+        });
+
+        OpenForgotPasswordCommand = new RelayCommand(_ =>
+        {
+            ForgotUsername = Username;
+            ForgotOtpCode = string.Empty;
+            ForgotNewPassword = string.Empty;
+            ForgotConfirmPassword = string.Empty;
+            ForgotErrorMessage = string.Empty;
+            ForgotSuccessMessage = string.Empty;
+            IsForgotPasswordOpen = true;
+        });
+
+        CloseForgotPasswordCommand = new RelayCommand(_ =>
+        {
+            IsForgotPasswordOpen = false;
+        });
+
+        ConfirmResetPasswordCommand = new AsyncRelayCommand(async _ =>
+        {
+            ForgotErrorMessage = string.Empty;
+            ForgotSuccessMessage = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(ForgotUsername))
+            {
+                ForgotErrorMessage = "Vui lòng nhập tên đăng nhập.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ForgotOtpCode))
+            {
+                ForgotErrorMessage = "Vui lòng nhập mã OTP 6 số do Ban quản lý cấp.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ForgotNewPassword))
+            {
+                ForgotErrorMessage = "Vui lòng nhập mật khẩu mới.";
+                return;
+            }
+
+            if (ForgotNewPassword.Length < 8)
+            {
+                ForgotErrorMessage = "Mật khẩu mới phải có tối thiểu 8 ký tự.";
+                return;
+            }
+
+            if (ForgotNewPassword != ForgotConfirmPassword)
+            {
+                ForgotErrorMessage = "Mật khẩu xác nhận không trùng khớp.";
+                return;
+            }
+
+            IsResettingPassword = true;
+            try
+            {
+                await _accountService.ResetPasswordWithOtpAsync(
+                    ForgotUsername.Trim(),
+                    ForgotOtpCode.Trim(),
+                    ForgotNewPassword);
+
+                ForgotSuccessMessage = "Đặt lại mật khẩu thành công! Bạn có thể đóng cửa sổ này và đăng nhập bằng mật khẩu mới.";
+                Username = ForgotUsername.Trim();
+            }
+            catch (BusinessRuleException ex)
+            {
+                ForgotErrorMessage = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                ForgotErrorMessage = $"Lỗi hệ thống: {ex.Message}";
+            }
+            finally
+            {
+                IsResettingPassword = false;
+            }
         });
 
         LoginCommand = new AsyncRelayCommand(ExecuteLoginAsync, CanExecuteLogin);

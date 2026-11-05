@@ -99,6 +99,41 @@ public class ResidentService
             throw new BusinessRuleException("Họ và tên cư dân không được để trống.");
         }
 
+        if (string.IsNullOrWhiteSpace(resident.IdentityCard))
+        {
+            throw new BusinessRuleException("Số CCCD/CMND là bắt buộc.");
+        }
+
+        if (!InputValidator.ValidateIdentityCard(resident.IdentityCard))
+        {
+            throw new BusinessRuleException("Số CCCD/CMND không hợp lệ (bắt buộc phải là 9 hoặc 12 chữ số).");
+        }
+
+        if (string.IsNullOrWhiteSpace(resident.PhoneNumber))
+        {
+            throw new BusinessRuleException("Số điện thoại liên hệ là bắt buộc.");
+        }
+
+        if (!InputValidator.ValidatePhone(resident.PhoneNumber))
+        {
+            throw new BusinessRuleException("Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).");
+        }
+
+        if (string.IsNullOrWhiteSpace(resident.Email))
+        {
+            throw new BusinessRuleException("Địa chỉ Email liên hệ là bắt buộc.");
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(resident.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            throw new BusinessRuleException("Địa chỉ Email không đúng định dạng hợp lệ.");
+        }
+
+        if (string.IsNullOrWhiteSpace(resident.HomeTown))
+        {
+            throw new BusinessRuleException("Quê quán / Hộ khẩu thường trú là bắt buộc.");
+        }
+
         ValidateFieldLengthsAndGender(resident);
 
         if (!InputValidator.ValidateDateOfBirth(resident.DateOfBirth))
@@ -106,25 +141,10 @@ public class ResidentService
             throw new BusinessRuleException("Ngày sinh không hợp lệ (không được ở tương lai hoặc quá 120 tuổi).");
         }
 
-        // Validate số điện thoại nếu có
-        if (!string.IsNullOrWhiteSpace(resident.PhoneNumber) && !InputValidator.ValidatePhone(resident.PhoneNumber))
+        var existingCccd = await _unitOfWork.Residents.GetByIdentityCardAsync(resident.IdentityCard);
+        if (existingCccd != null)
         {
-            throw new BusinessRuleException("Số điện thoại không hợp lệ.");
-        }
-
-        // Validate CCCD nếu có
-        if (!string.IsNullOrWhiteSpace(resident.IdentityCard))
-        {
-            if (!InputValidator.ValidateIdentityCard(resident.IdentityCard))
-            {
-                throw new BusinessRuleException("Số CCCD/CMND không hợp lệ (bắt buộc phải là 9 hoặc 12 số).");
-            }
-
-            var existing = await _unitOfWork.Residents.GetByIdentityCardAsync(resident.IdentityCard);
-            if (existing != null)
-            {
-                throw new BusinessRuleException($"Cư dân có số CCCD/CMND '{resident.IdentityCard}' đã tồn tại trong hệ thống.");
-            }
+            throw new BusinessRuleException($"Cư dân có số CCCD/CMND '{resident.IdentityCard}' đã tồn tại trong hệ thống.");
         }
 
         if (string.IsNullOrWhiteSpace(resident.AvatarPath))
@@ -153,6 +173,41 @@ public class ResidentService
             throw new BusinessRuleException("Họ và tên cư dân không được để trống.");
         }
 
+        if (string.IsNullOrWhiteSpace(resident.IdentityCard))
+        {
+            throw new BusinessRuleException("Số CCCD/CMND là bắt buộc.");
+        }
+
+        if (!InputValidator.ValidateIdentityCard(resident.IdentityCard))
+        {
+            throw new BusinessRuleException("Số CCCD/CMND không hợp lệ (bắt buộc phải là 9 hoặc 12 chữ số).");
+        }
+
+        if (string.IsNullOrWhiteSpace(resident.PhoneNumber))
+        {
+            throw new BusinessRuleException("Số điện thoại liên hệ là bắt buộc.");
+        }
+
+        if (!InputValidator.ValidatePhone(resident.PhoneNumber))
+        {
+            throw new BusinessRuleException("Số điện thoại không hợp lệ (phải gồm 10 chữ số và bắt đầu bằng số 0).");
+        }
+
+        if (string.IsNullOrWhiteSpace(resident.Email))
+        {
+            throw new BusinessRuleException("Địa chỉ Email liên hệ là bắt buộc.");
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(resident.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            throw new BusinessRuleException("Địa chỉ Email không đúng định dạng hợp lệ.");
+        }
+
+        if (string.IsNullOrWhiteSpace(resident.HomeTown))
+        {
+            throw new BusinessRuleException("Quê quán / Hộ khẩu thường trú là bắt buộc.");
+        }
+
         ValidateFieldLengthsAndGender(resident);
 
         if (!InputValidator.ValidateDateOfBirth(resident.DateOfBirth))
@@ -160,29 +215,14 @@ public class ResidentService
             throw new BusinessRuleException("Ngày sinh không hợp lệ.");
         }
 
-        if (!string.IsNullOrWhiteSpace(resident.PhoneNumber) && !InputValidator.ValidatePhone(resident.PhoneNumber))
+        if (existing.IdentityCard != resident.IdentityCard)
         {
-            throw new BusinessRuleException("Số điện thoại không hợp lệ.");
-        }
-
-        // Validate và kiểm tra trùng CCCD
-        if (!string.IsNullOrWhiteSpace(resident.IdentityCard))
-        {
-            if (!InputValidator.ValidateIdentityCard(resident.IdentityCard))
+            var duplicate = await _unitOfWork.Residents.GetByIdentityCardAsync(resident.IdentityCard);
+            if (duplicate != null && duplicate.Id != existing.Id)
             {
-                throw new BusinessRuleException("Số CCCD/CMND không hợp lệ.");
-            }
-
-            if (existing.IdentityCard != resident.IdentityCard)
-            {
-                var duplicate = await _unitOfWork.Residents.GetByIdentityCardAsync(resident.IdentityCard);
-                if (duplicate != null && duplicate.Id != existing.Id)
-                {
-                    throw new BusinessRuleException($"Số CCCD/CMND '{resident.IdentityCard}' đã được đăng ký bởi cư dân khác.");
-                }
+                throw new BusinessRuleException($"Số CCCD/CMND '{resident.IdentityCard}' đã được đăng ký bởi cư dân khác.");
             }
         }
-
         existing.FullName = resident.FullName;
         existing.DateOfBirth = resident.DateOfBirth;
         existing.Gender = resident.Gender;

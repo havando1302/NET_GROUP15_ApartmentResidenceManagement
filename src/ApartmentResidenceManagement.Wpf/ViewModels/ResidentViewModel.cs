@@ -1255,6 +1255,30 @@ public class ResidentViewModel : ViewModelBase
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(EditingResident.IdentityCard))
+        {
+            ErrorMessage = "Vui lòng nhập số CCCD / CMND (trường bắt buộc).";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditingResident.PhoneNumber))
+        {
+            ErrorMessage = "Vui lòng nhập số điện thoại liên hệ (trường bắt buộc).";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditingResident.HomeTown))
+        {
+            ErrorMessage = "Vui lòng nhập quê quán / hộ khẩu thường trú (trường bắt buộc).";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditingResident.Email))
+        {
+            ErrorMessage = "Vui lòng nhập địa chỉ email liên hệ (trường bắt buộc).";
+            return;
+        }
+
         try
         {
             if (EditingResident.Id == 0)

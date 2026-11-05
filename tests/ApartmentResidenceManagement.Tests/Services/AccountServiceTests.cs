@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ApartmentResidenceManagement.Domain.Entities;
@@ -37,7 +38,7 @@ public class AccountServiceTests
     {
         // Arrange
         string username = "testuser";
-        string password = "correctPassword";
+        string password = "CorrectPassword@123";
         var account = new UserAccount { Username = username, PasswordHash = "hashed_pass", IsActive = true };
 
         _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
@@ -56,11 +57,11 @@ public class AccountServiceTests
     {
         // Arrange
         string username = "testuser";
-        string password = "wrongPassword";
+        string password = "WrongPassword@123";
         var account = new UserAccount { Username = username, PasswordHash = "hashed_pass", IsActive = true };
 
         _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
-        _mockHasher.Setup(h => h.VerifyPassword(password, account.PasswordHash)).Returns(false); // verify thất bại
+        _mockHasher.Setup(h => h.VerifyPassword(password, account.PasswordHash)).Returns(false);
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, password));
@@ -72,13 +73,14 @@ public class AccountServiceTests
     {
         // Arrange
         string username = "testuser";
-        var account = new UserAccount { Username = username, IsActive = false }; // tài khoản bị khóa
+        var account = new UserAccount { Username = username, IsActive = false, LockReason = "Chưa đóng phí quản lý" };
 
         _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
 
         // Act & Assert
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "pass"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "Password@123"));
         Assert.Contains("đã bị khóa", ex.Message);
+        Assert.Contains("Chưa đóng phí quản lý", ex.Message);
     }
 
     [Fact]
@@ -86,8 +88,8 @@ public class AccountServiceTests
     {
         // Arrange
         int accountId = 1;
-        string oldPassword = "oldPassword123";
-        string newPassword = "newPassword456";
+        string oldPassword = "OldPassword@123";
+        string newPassword = "NewPassword@456";
         var account = new UserAccount { Id = accountId, PasswordHash = "old_hashed_pass" };
 
         _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
@@ -108,15 +110,15 @@ public class AccountServiceTests
     {
         // Arrange
         int accountId = 1;
-        string oldPassword = "wrongOldPassword";
-        string newPassword = "newPassword456";
+        string oldPassword = "WrongOldPassword@123";
+        string newPassword = "NewPassword@456";
         var account = new UserAccount { Id = accountId, PasswordHash = "old_hashed_pass" };
 
         _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
         _mockHasher.Setup(h => h.VerifyPassword(oldPassword, account.PasswordHash)).Returns(false);
 
         // Act & Assert
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => 
             _service.ChangePasswordAsync(accountId, oldPassword, newPassword));
         Assert.Contains("Mật khẩu cũ không chính xác", ex.Message);
     }
@@ -125,9 +127,9 @@ public class AccountServiceTests
     public async Task ChangePassword_WithShortNewPassword_ShouldThrowBusinessRuleException()
     {
         // Act & Assert
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.ChangePasswordAsync(1, "oldPassword", "123"));
-        Assert.Contains("phải có ít nhất 6 ký tự", ex.Message);
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => 
+            _service.ChangePasswordAsync(1, "OldPass@123", "Short@1"));
+        Assert.Contains("8 ký tự", ex.Message);
     }
 
     [Fact]
@@ -139,11 +141,11 @@ public class AccountServiceTests
         var existingAccount = new UserAccount { ResidentId = residentId };
 
         _mockResidentRepo.Setup(r => r.GetByIdAsync(residentId)).ReturnsAsync(resident);
-        _mockAccountRepo.Setup(r => r.GetByResidentIdAsync(residentId)).ReturnsAsync(existingAccount); // Đã có account
+        _mockAccountRepo.Setup(r => r.GetByResidentIdAsync(residentId)).ReturnsAsync(existingAccount);
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => 
-            _service.CreateResidentAccountAsync(residentId, "newuser", "newpass123"));
+            _service.CreateResidentAccountAsync(residentId, "newuser", "StrongPass@123"));
 
         Assert.Contains("đã có tài khoản đăng nhập", ex.Message);
     }
@@ -176,15 +178,30 @@ public class AccountServiceTests
     }
 
     [Fact]
+    public async Task ToggleAccountStatus_WithLockReason_ShouldPersistReason()
+    {
+        int accountId = 5;
+        var residentAccount = new UserAccount { Id = accountId, Username = "cudan_a", Role = UserRole.Resident, IsActive = true };
+
+        _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(residentAccount);
+
+        await _service.ToggleAccountStatusAsync(accountId, "Vi phạm nội quy chung cư");
+
+        Assert.False(residentAccount.IsActive);
+        Assert.Equal("Vi phạm nội quy chung cư", residentAccount.LockReason);
+        _mockAccountRepo.Verify(r => r.Update(residentAccount), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
     public async Task Login_AccountDeactivated_ThrowsBusinessRuleException_Regression()
     {
-        // Regression test for QA: Tai khoan bi vo hieu hoa phai chan dang nhap va bao loi
         string username = "deactivated_user";
         var account = new UserAccount { Username = username, PasswordHash = "hashed_pass", IsActive = false };
 
         _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "anyPassword"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "Password@123"));
         Assert.Contains("đã bị khóa", ex.Message);
     }
 
@@ -197,7 +214,7 @@ public class AccountServiceTests
             .ThrowsAsync(new System.Exception("Cannot connect to MySQL server"));
 
         // Act & Assert
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "resident123"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LoginAsync(username, "Resident@123"));
         Assert.Contains("Không thể kết nối cơ sở dữ liệu", ex.Message);
     }
 
@@ -206,7 +223,7 @@ public class AccountServiceTests
     {
         // Arrange
         int accountId = 5;
-        string newPassword = "newPassword123";
+        string newPassword = "NewPassword@123";
         var account = new UserAccount { Id = accountId, Username = "user5", PasswordHash = "old_hash" };
 
         _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
@@ -227,7 +244,7 @@ public class AccountServiceTests
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
             _service.ResetPasswordAsync(1, "12345"));
-        Assert.Contains("phải có ít nhất 6 ký tự", ex.Message);
+        Assert.Contains("8 ký tự", ex.Message);
     }
 
     [Fact]
@@ -240,7 +257,127 @@ public class AccountServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.CreateAccountAsync(username, "pass123456", UserRole.Admin, null));
+            _service.CreateAccountAsync(username, "Admin@123", UserRole.Admin, null));
         Assert.Contains("đã được sử dụng", ex.Message);
     }
+
+    #region Unit Tests cho Mô hình 2 (OTP Khôi phục 5 phút)
+    [Fact]
+    public async Task GenerateRecoveryOtpAsync_ValidAccount_ShouldGenerate6DigitOtpAnd5MinExpiry()
+    {
+        // Arrange
+        int accountId = 10;
+        var account = new UserAccount { Id = accountId, Username = "resident_10", IsActive = true };
+        _mockAccountRepo.Setup(r => r.GetByIdAsync(accountId)).ReturnsAsync(account);
+
+        // Act
+        var result = await _service.GenerateRecoveryOtpAsync(accountId);
+
+        // Assert
+        Assert.NotNull(result.OtpCode);
+        Assert.Equal(6, result.OtpCode.Length);
+        Assert.True(int.TryParse(result.OtpCode, out _)); // Phải là 6 chữ số
+        Assert.True(result.ExpiryTime > DateTime.Now.AddMinutes(4)); // Khoảng 5 phút
+        Assert.True(result.ExpiryTime <= DateTime.Now.AddMinutes(5).AddSeconds(5));
+
+        Assert.Equal(result.OtpCode, account.ResetOtpCode);
+        Assert.Equal(result.ExpiryTime, account.ResetOtpExpiry);
+        _mockAccountRepo.Verify(r => r.Update(account), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetPasswordWithOtpAsync_ValidOtpAndStrongPassword_ShouldResetPasswordAndClearOtp()
+    {
+        // Arrange
+        string username = "resident_user";
+        string otp = "123456";
+        string newPass = "StrongPassword@2026";
+        var account = new UserAccount
+        {
+            Id = 8,
+            Username = username,
+            ResetOtpCode = otp,
+            ResetOtpExpiry = DateTime.Now.AddMinutes(4) // Còn hạn
+        };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+        _mockHasher.Setup(h => h.HashPassword(newPass)).Returns("new_hash_strong");
+
+        // Act
+        await _service.ResetPasswordWithOtpAsync(username, otp, newPass);
+
+        // Assert
+        Assert.Equal("new_hash_strong", account.PasswordHash);
+        Assert.Null(account.ResetOtpCode);
+        Assert.Null(account.ResetOtpExpiry);
+        _mockAccountRepo.Verify(r => r.Update(account), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetPasswordWithOtpAsync_IncorrectOtp_ShouldThrowBusinessRuleException()
+    {
+        // Arrange
+        string username = "resident_user";
+        var account = new UserAccount
+        {
+            Id = 8,
+            Username = username,
+            ResetOtpCode = "123456",
+            ResetOtpExpiry = DateTime.Now.AddMinutes(4)
+        };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.ResetPasswordWithOtpAsync(username, "999999", "StrongPassword@2026"));
+        Assert.Contains("Mã xác thực OTP không chính xác", ex.Message);
+    }
+
+    [Fact]
+    public async Task ResetPasswordWithOtpAsync_ExpiredOtp_ShouldThrowBusinessRuleException()
+    {
+        // Arrange
+        string username = "resident_user";
+        string otp = "123456";
+        var account = new UserAccount
+        {
+            Id = 8,
+            Username = username,
+            ResetOtpCode = otp,
+            ResetOtpExpiry = DateTime.Now.AddMinutes(-1) // Đã quá hạn 5 phút
+        };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.ResetPasswordWithOtpAsync(username, otp, "StrongPassword@2026"));
+        Assert.Contains("hết hạn", ex.Message);
+    }
+
+    [Fact]
+    public async Task ResetPasswordWithOtpAsync_WeakPassword_ShouldThrowBusinessRuleException()
+    {
+        // Arrange
+        string username = "resident_user";
+        string otp = "123456";
+        var account = new UserAccount
+        {
+            Id = 8,
+            Username = username,
+            ResetOtpCode = otp,
+            ResetOtpExpiry = DateTime.Now.AddMinutes(4)
+        };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+
+        // Act & Assert - Mật khẩu không có ký tự đặc biệt
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.ResetPasswordWithOtpAsync(username, otp, "WeakPassword123"));
+        Assert.Contains("ký tự đặc biệt", ex.Message);
+    }
+    #endregion
 }

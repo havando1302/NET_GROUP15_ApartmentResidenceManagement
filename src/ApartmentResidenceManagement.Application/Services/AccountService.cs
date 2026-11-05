@@ -1,3 +1,4 @@
+using ApartmentResidenceManagement.Application.Validators;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,7 +56,10 @@ public class AccountService
 
         if (!account.IsActive)
         {
-            throw new BusinessRuleException("Tài khoản này đã bị khóa. Vui lòng liên hệ Admin.");
+            string msg = !string.IsNullOrWhiteSpace(account.LockReason)
+                ? $"Tài khoản này đã bị khóa. Lý do: {account.LockReason}. Vui lòng liên hệ Ban quản lý tòa nhà."
+                : "Tài khoản này đã bị khóa. Vui lòng liên hệ Ban quản lý tòa nhà.";
+            throw new BusinessRuleException(msg);
         }
 
         bool isValid = false;
@@ -88,9 +92,14 @@ public class AccountService
             throw new BusinessRuleException("Tên đăng nhập không được để trống.");
         }
 
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
         {
-            throw new BusinessRuleException("Mật khẩu không được để trống và phải có ít nhất 6 ký tự.");
+            throw new BusinessRuleException("Mật khẩu không được để trống và phải có ít nhất 8 ký tự.");
+        }
+
+        if (!InputValidator.ValidateStrongPassword(password))
+        {
+            throw new BusinessRuleException("Mật khẩu phải có tối thiểu 8 ký tự, gồm ít nhất 1 chữ in hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt (@, #, %, !).");
         }
 
         username = username.Trim();
@@ -135,7 +144,7 @@ public class AccountService
     }
 
     // 3. KHÓA / MỞ KHÓA TÀI KHOẢN
-    public async Task ToggleAccountStatusAsync(int accountId)
+    public async Task ToggleAccountStatusAsync(int accountId, string? lockReason = null)
     {
         var account = await _unitOfWork.UserAccounts.GetByIdAsync(accountId);
         if (account == null)
@@ -161,6 +170,14 @@ public class AccountService
         }
 
         account.IsActive = !account.IsActive;
+        if (!account.IsActive)
+        {
+            account.LockReason = string.IsNullOrWhiteSpace(lockReason) ? "Tạm khóa bởi Ban quản lý" : lockReason.Trim();
+        }
+        else
+        {
+            account.LockReason = null;
+        }
         _unitOfWork.UserAccounts.Update(account);
         await _unitOfWork.CompleteAsync();
     }
@@ -168,9 +185,14 @@ public class AccountService
     // 4. ĐỔI MẬT KHẨU
     public async Task ChangePasswordAsync(int accountId, string oldPassword, string newPassword)
     {
-        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
         {
-            throw new BusinessRuleException("Mật khẩu mới phải có ít nhất 6 ký tự.");
+            throw new BusinessRuleException("Mật khẩu mới phải có ít nhất 8 ký tự.");
+        }
+
+        if (!InputValidator.ValidateStrongPassword(newPassword))
+        {
+            throw new BusinessRuleException("Mật khẩu phải có tối thiểu 8 ký tự, gồm ít nhất 1 chữ in hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt (@, #, %, !).");
         }
 
         var account = await _unitOfWork.UserAccounts.GetByIdAsync(accountId);
@@ -204,9 +226,14 @@ public class AccountService
     // 7. ADMIN ĐẶT LẠI MẬT KHẨU
     public async Task ResetPasswordAsync(int accountId, string newPassword)
     {
-        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
         {
-            throw new BusinessRuleException("Mật khẩu mới phải có ít nhất 6 ký tự.");
+            throw new BusinessRuleException("Mật khẩu mới phải có ít nhất 8 ký tự.");
+        }
+
+        if (!InputValidator.ValidateStrongPassword(newPassword))
+        {
+            throw new BusinessRuleException("Mật khẩu phải có tối thiểu 8 ký tự, gồm ít nhất 1 chữ in hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt (@, #, %, !).");
         }
 
         var account = await _unitOfWork.UserAccounts.GetByIdAsync(accountId);
@@ -284,5 +311,82 @@ public class AccountService
         await _unitOfWork.CompleteAsync();
 
         return account;
+    }
+
+    /// <summary>
+    /// Ban quản lý cấp mã OTP khôi phục tài khoản (Recovery Code 6 số ngẫu nhiên, hiệu lực 5 phút).
+    /// </summary>
+    public async Task<(string OtpCode, DateTime ExpiryTime)> GenerateRecoveryOtpAsync(int accountId)
+    {
+        var account = await _unitOfWork.UserAccounts.GetByIdAsync(accountId);
+        if (account == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy tài khoản cần cấp mã khôi phục.");
+        }
+
+        // Sinh mã OTP 6 chữ số ngẫu nhiên
+        string otpCode = Random.Shared.Next(100000, 999999).ToString();
+        DateTime expiryTime = DateTime.Now.AddMinutes(5);
+
+        account.ResetOtpCode = otpCode;
+        account.ResetOtpExpiry = expiryTime;
+
+        _unitOfWork.UserAccounts.Update(account);
+        await _unitOfWork.CompleteAsync();
+
+        return (otpCode, expiryTime);
+    }
+
+    /// <summary>
+    /// Cư dân tự đặt lại mật khẩu mới bằng Mã xác thực OTP do Ban quản lý cấp (kiểm tra hạn 5 phút và mật khẩu mạnh).
+    /// </summary>
+    public async Task ResetPasswordWithOtpAsync(string username, string otpCode, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new BusinessRuleException("Vui lòng nhập tên đăng nhập.");
+        }
+
+        if (string.IsNullOrWhiteSpace(otpCode))
+        {
+            throw new BusinessRuleException("Vui lòng nhập mã xác thực OTP (6 chữ số).");
+        }
+
+        username = username.Trim();
+        otpCode = otpCode.Trim();
+
+        var account = await _unitOfWork.UserAccounts.GetByUsernameAsync(username);
+        if (account == null)
+        {
+            throw new BusinessRuleException("Tên đăng nhập hoặc mã xác thực OTP không chính xác.");
+        }
+
+        if (string.IsNullOrWhiteSpace(account.ResetOtpCode) || account.ResetOtpCode != otpCode)
+        {
+            throw new BusinessRuleException("Mã xác thực OTP không chính xác. Vui lòng kiểm tra lại mã được BQL cấp.");
+        }
+
+        if (!account.ResetOtpExpiry.HasValue || DateTime.Now > account.ResetOtpExpiry.Value)
+        {
+            throw new BusinessRuleException("Mã xác thực OTP đã hết hạn hiệu lực (chỉ có giá trị trong 5 phút). Vui lòng liên hệ Lễ tân tòa nhà để cấp mã mới.");
+        }
+
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+        {
+            throw new BusinessRuleException("Mật khẩu mới phải có tối thiểu 8 ký tự.");
+        }
+
+        if (!InputValidator.ValidateStrongPassword(newPassword))
+        {
+            throw new BusinessRuleException("Mật khẩu mới phải có tối thiểu 8 ký tự, gồm ít nhất 1 chữ in hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt (@, #, %, !).");
+        }
+
+        account.PasswordHash = _passwordHasher.HashPassword(newPassword.Trim());
+        // Sau khi đặt lại mật khẩu thành công, hủy mã OTP
+        account.ResetOtpCode = null;
+        account.ResetOtpExpiry = null;
+
+        _unitOfWork.UserAccounts.Update(account);
+        await _unitOfWork.CompleteAsync();
     }
 }

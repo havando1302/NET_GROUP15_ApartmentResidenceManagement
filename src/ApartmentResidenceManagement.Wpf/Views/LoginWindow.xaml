@@ -16,6 +16,7 @@
         Background="Transparent">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <!-- Shadow nhẹ cho card & button -->
         <DropShadowEffect x:Key="FloatingCardShadow" BlurRadius="28" Direction="270" ShadowDepth="8" Color="#0F172A" Opacity="0.08"/>
 
@@ -327,7 +328,12 @@
                             <CheckBox Content="Ghi nhớ đăng nhập" IsChecked="{Binding RememberMe}"
                                       FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
                             <TextBlock Text="Quên mật khẩu?" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB"
-                                       Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                       Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                       ToolTip="Cư dân liên hệ BQL nhận mã OTP để đặt lại mật khẩu">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding OpenForgotPasswordCommand}"/>
+                                </TextBlock.InputBindings>
+                            </TextBlock>
                         </Grid>
 
                         <!-- Nút ĐĂNG NHẬP -->
@@ -402,6 +408,128 @@
                     </StackPanel>
                 </ScrollViewer>
             </Border>
+        
+            <!-- ══════════════════════════════════════════════════ -->
+            <!-- POPUP QUÊN MẬT KHẨU / ĐẶT LẠI MẬT KHẨU BẰNG OTP (MÔ HÌNH 2) -->
+            <!-- ══════════════════════════════════════════════════ -->
+            <Grid Grid.ColumnSpan="2" Background="#85000000"
+                  Visibility="{Binding IsForgotPasswordOpen, Converter={StaticResource BoolToVis}}"
+                  Panel.ZIndex="200">
+                <Border Background="White" CornerRadius="16" Width="480" MaxHeight="620" Padding="28"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="32" Opacity="0.22" ShadowDepth="8" Color="#0F172A"/>
+                    </Border.Effect>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- Header -->
+                            <Grid Margin="0,0,0,14">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="🔑 " FontSize="18" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Đặt Lại Mật Khẩu (Mã Xác Thực OTP)" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Command="{Binding CloseForgotPasswordCommand}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                    <TextBlock Text="✕" FontSize="16" FontWeight="Bold" Foreground="#94A3B8"/>
+                                </Button>
+                            </Grid>
+
+                            <!-- Hướng dẫn mô hình 2 -->
+                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                                <TextBlock FontSize="12" Foreground="#475569" TextWrapping="Wrap" LineHeight="18">
+                                    <Run Text="📌 " FontWeight="Bold" Foreground="#2563EB"/>
+                                    <Run Text="Vui lòng liên hệ Lễ tân Ban Quản lý tại sảnh để được cấp "/>
+                                    <Run Text="Mã xác thực OTP (hiệu lực 5 phút)" FontWeight="Bold" Foreground="#1E40AF"/>
+                                    <Run Text=". Nhập mã và mật khẩu mới bên dưới để tự hoàn tất việc đổi mật khẩu."/>
+                                </TextBlock>
+                            </Border>
+
+                            <!-- Trường 1: Tên đăng nhập -->
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Tên đăng nhập (*):" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding ForgotUsername, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="38" FontSize="13" VerticalContentAlignment="Center" Padding="10,0"/>
+                            </StackPanel>
+
+                            <!-- Trường 2: Mã xác thực OTP -->
+                            <StackPanel Margin="0,0,0,10">
+                                <Grid Margin="0,0,0,5">
+                                    <TextBlock Text="Mã OTP 6 số do BQL cấp (*):" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                    <TextBlock Text="(Hiệu lực 5 phút)" FontSize="11" Foreground="#DC2626" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <TextBox Text="{Binding ForgotOtpCode, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="40" FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"
+                                         VerticalContentAlignment="Center" Padding="10,0"
+                                         MaxLength="6"/>
+                            </StackPanel>
+
+                            <!-- Trường 3: Mật khẩu mới -->
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Mật khẩu mới (*):" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding ForgotNewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="38" FontSize="13" VerticalContentAlignment="Center" Padding="10,0"/>
+                            </StackPanel>
+
+                            <!-- Trường 4: Xác nhận mật khẩu mới -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="Xác nhận mật khẩu mới (*):" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding ForgotConfirmPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="38" FontSize="13" VerticalContentAlignment="Center" Padding="10,0"/>
+                            </StackPanel>
+
+                            <!-- Quy tắc mật khẩu mạnh -->
+                            <Border Background="#FEF3C7" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,14">
+                                <TextBlock FontSize="11" Foreground="#92400E" TextWrapping="Wrap" LineHeight="16">
+                                    <Run Text="🔒 Yêu cầu mật khẩu mạnh:" FontWeight="Bold"/>
+                                    <Run Text=" Tối thiểu 8 ký tự, gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt (@, #, %, !)."/>
+                                </TextBlock>
+                            </Border>
+
+                            <!-- Thông báo lỗi nếu có -->
+                            <Border Background="#FEE2E2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,12"
+                                    Visibility="{Binding HasForgotError, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding ForgotErrorMessage}" FontSize="12" Foreground="#B91C1C" TextWrapping="Wrap" FontWeight="SemiBold"/>
+                            </Border>
+
+                            <!-- Thông báo thành công nếu có -->
+                            <Border Background="#DCFCE7" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,12"
+                                    Visibility="{Binding HasForgotSuccess, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding ForgotSuccessMessage}" FontSize="12" Foreground="#15803D" TextWrapping="Wrap" FontWeight="SemiBold"/>
+                            </Border>
+
+                            <!-- Buttons -->
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="1.4*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="Hủy bỏ" Command="{Binding CloseForgotPasswordCommand}"
+                                        Height="40" Margin="0,0,6,0" Background="#F1F5F9" Foreground="#475569" BorderThickness="0"
+                                        FontWeight="SemiBold" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button Grid.Column="1" Content="Xác nhận đổi mật khẩu" Command="{Binding ConfirmResetPasswordCommand}"
+                                        Height="40" Margin="6,0,0,0" Background="#2563EB" Foreground="White" BorderThickness="0"
+                                        FontWeight="Bold" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
         </Grid>
     </Border>
 </Window>

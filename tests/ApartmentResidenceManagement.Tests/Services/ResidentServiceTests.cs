@@ -33,7 +33,11 @@ public class ResidentServiceTests
         var resident = new Resident 
         { 
             FullName = "Nguyen Van A", 
-            DateOfBirth = DateTime.Now.AddDays(1) // Trong tương lai
+            DateOfBirth = DateTime.Now.AddDays(1), // Trong tương lai
+            IdentityCard = "001200000001",
+            PhoneNumber = "0912345678",
+            Email = "nguyenvana@gmail.com",
+            HomeTown = "Hà Nội"
         };
 
         // Act & Assert
@@ -49,7 +53,10 @@ public class ResidentServiceTests
         { 
             FullName = "Nguyen Van A", 
             DateOfBirth = new DateTime(1990, 1, 1),
-            PhoneNumber = "1234" // Lỗi định dạng
+            IdentityCard = "001200000001",
+            PhoneNumber = "1234", // Lỗi định dạng
+            Email = "nguyenvana@gmail.com",
+            HomeTown = "Hà Nội"
         };
 
         // Act & Assert
@@ -65,13 +72,84 @@ public class ResidentServiceTests
         { 
             FullName = "Nguyen Van A", 
             DateOfBirth = new DateTime(1990, 1, 1),
-            IdentityCard = "123456789012"
+            IdentityCard = "123456789012",
+            PhoneNumber = "0912345678",
+            Email = "nguyenvana@gmail.com",
+            HomeTown = "Hà Nội"
         };
         _mockResidentRepo.Setup(r => r.GetByIdentityCardAsync("123456789012")).ReturnsAsync(resident);
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateResidentAsync(resident));
         Assert.Contains("đã tồn tại trong hệ thống", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateResident_MissingIdentityCard_ShouldThrowBusinessRuleException()
+    {
+        var resident = new Resident
+        {
+            FullName = "Nguyen Van A",
+            DateOfBirth = new DateTime(1990, 1, 1),
+            IdentityCard = null,
+            PhoneNumber = "0912345678",
+            Email = "nguyenvana@gmail.com",
+            HomeTown = "Hà Nội"
+        };
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateResidentAsync(resident));
+        Assert.Contains("Số CCCD/CMND là bắt buộc", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateResident_MissingPhoneNumber_ShouldThrowBusinessRuleException()
+    {
+        var resident = new Resident
+        {
+            FullName = "Nguyen Van A",
+            DateOfBirth = new DateTime(1990, 1, 1),
+            IdentityCard = "001200000001",
+            PhoneNumber = null,
+            Email = "nguyenvana@gmail.com",
+            HomeTown = "Hà Nội"
+        };
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateResidentAsync(resident));
+        Assert.Contains("Số điện thoại liên hệ là bắt buộc", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateResident_MissingEmail_ShouldThrowBusinessRuleException()
+    {
+        var resident = new Resident
+        {
+            FullName = "Nguyen Van A",
+            DateOfBirth = new DateTime(1990, 1, 1),
+            IdentityCard = "001200000001",
+            PhoneNumber = "0912345678",
+            Email = null,
+            HomeTown = "Hà Nội"
+        };
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateResidentAsync(resident));
+        Assert.Contains("Email liên hệ là bắt buộc", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateResident_MissingHomeTown_ShouldThrowBusinessRuleException()
+    {
+        var resident = new Resident
+        {
+            FullName = "Nguyen Van A",
+            DateOfBirth = new DateTime(1990, 1, 1),
+            IdentityCard = "001200000001",
+            PhoneNumber = "0912345678",
+            Email = "nguyenvana@gmail.com",
+            HomeTown = null
+        };
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateResidentAsync(resident));
+        Assert.Contains("Quê quán / Hộ khẩu thường trú là bắt buộc", ex.Message);
     }
 
     [Fact]

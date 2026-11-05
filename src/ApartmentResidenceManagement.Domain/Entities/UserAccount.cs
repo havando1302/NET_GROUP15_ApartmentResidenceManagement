@@ -12,6 +12,9 @@ public class UserAccount
     public int? ResidentId { get; set; }
     public Resident? Resident { get; set; }
     public bool IsActive { get; set; } = true;
+    public string? LockReason { get; set; }
+    public string? ResetOtpCode { get; set; }
+    public DateTime? ResetOtpExpiry { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
 }

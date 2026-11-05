@@ -35,4 +35,17 @@ public static class InputValidator
         if (dob.Date < DateTime.Today.AddYears(-120)) return false;
         return true;
     }
+    public static bool ValidateStrongPassword(string? password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8) return false;
+        bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
+        foreach (char c in password)
+        {
+            if (char.IsUpper(c)) hasUpper = true;
+            else if (char.IsLower(c)) hasLower = true;
+            else if (char.IsDigit(c)) hasDigit = true;
+            else if (c == '@' || c == '#' || c == '%' || c == '!') hasSpecial = true;
+        }
+        return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
 }
