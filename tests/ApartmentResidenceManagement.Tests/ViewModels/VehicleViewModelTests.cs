@@ -202,4 +202,12 @@ public class VehicleViewModelTests
         Assert.Equal("#F1F5F9", item.StatusBgColor);
         Assert.True(item.IsCancelled);
     }
+[Fact]
+    public void CancelledVehiclesCount_PropertyChange_ShouldUpdateValue()
+    {
+        var vm = new VehicleViewModel(_vehicleService, _residentService, _residenceService);
+        vm.CancelledVehiclesCount = 7;
+        Assert.Equal(7, vm.CancelledVehiclesCount);
+    }
 }
+

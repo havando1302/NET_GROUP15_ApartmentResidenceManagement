@@ -12,6 +12,10 @@ namespace ApartmentResidenceManagement.Application.Services;
 
 public class VehicleService
 {
+    public const int MaxCarsPerApartment = 1;
+    public const int MaxMotosPerApartment = 2;
+    public const int MaxBicyclesPerApartment = 2;
+
     private readonly IUnitOfWork _unitOfWork;
 
     public VehicleService(IUnitOfWork unitOfWork)
@@ -99,6 +103,7 @@ public class VehicleService
         }
 
         await ValidateVehicleDataAsync(vehicle, existing.Id);
+        await ValidateVehicleQuotaAsync(vehicle, excludeVehicleId: existing.Id, isApprovalCheck: existing.RegistrationStatus == VehicleRegistrationStatus.Approved);
         existing.LicensePlate = vehicle.LicensePlate;
         existing.VehicleType = vehicle.VehicleType;
         existing.Brand = vehicle.Brand;
@@ -161,6 +166,7 @@ public class VehicleService
         }
 
         await ValidateVehicleDataAsync(vehicle, existing.Id);
+        await ValidateVehicleQuotaAsync(vehicle, excludeVehicleId: existing.Id, isApprovalCheck: false);
         existing.LicensePlate = vehicle.LicensePlate;
         existing.VehicleType = vehicle.VehicleType;
         existing.Brand = vehicle.Brand;
@@ -237,6 +243,7 @@ public class VehicleService
         if (status == VehicleRegistrationStatus.Approved)
         {
             await EnsureActiveResidenceAsync(vehicle.OwnerId);
+            await ValidateVehicleQuotaAsync(vehicle, excludeVehicleId: vehicle.Id, isApprovalCheck: true);
             vehicle.RejectReason = null;
         }
         else if (status == VehicleRegistrationStatus.Rejected)
@@ -469,6 +476,7 @@ public class VehicleService
     private async Task<Vehicle> CreateVehicleCoreAsync(Vehicle vehicle, VehicleRegistrationStatus status)
     {
         await ValidateVehicleDataAsync(vehicle);
+        await ValidateVehicleQuotaAsync(vehicle, isApprovalCheck: status == VehicleRegistrationStatus.Approved);
         vehicle.RegistrationStatus = status;
         if (vehicle.RegistrationDate == default)
         {
@@ -536,4 +544,147 @@ public class VehicleService
             throw new BusinessRuleException("Cư dân phải có cư trú đang hoạt động để đăng ký hoặc duyệt phương tiện.");
         }
     }
-}
+/// <summary>
+    /// Kiểm tra hạn mức phương tiện của căn hộ (Quota) theo quy định vận hành.
+    /// - Ô tô: Tối đa 1 xe / căn hộ.
+    /// - Xe máy: Tối đa 2 xe / căn hộ.
+    /// - Xe đạp: Tối đa 2 xe / căn hộ.
+    /// Các xe ở trạng thái Cancelled hoặc Rejected KHÔNG tính vào hạn mức (được hoàn trả).
+    /// </summary>
+    public async Task ValidateVehicleQuotaAsync(Vehicle vehicle, int? excludeVehicleId = null, bool isApprovalCheck = false)
+    {
+        var residence = await _unitOfWork.ResidenceHistories.GetActiveByResidentIdAsync(vehicle.OwnerId);
+        if (residence == null)
+        {
+            throw new BusinessRuleException("Cư dân phải có cư trú đang hoạt động để đăng ký hoặc duyệt phương tiện.");
+        }
+
+        int apartmentId = residence.ApartmentId;
+        string apartmentNumber = residence.Apartment?.ApartmentNumber ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(apartmentNumber) && _unitOfWork.Apartments != null)
+        {
+            try
+            {
+                var apt = await _unitOfWork.Apartments.GetByIdAsync(apartmentId);
+                if (apt != null)
+                {
+                    apartmentNumber = apt.ApartmentNumber;
+                }
+            }
+            catch { }
+        }
+        string aptDisplay = string.IsNullOrWhiteSpace(apartmentNumber) ? $"#{apartmentId}" : apartmentNumber;
+
+        // Lấy tất cả cư dân đang cư trú hoạt động trong cùng căn hộ
+        HashSet<int> residentIds = new() { vehicle.OwnerId };
+        try
+        {
+            var activeHistories = await _unitOfWork.ResidenceHistories.GetActiveByApartmentIdAsync(apartmentId);
+            if (activeHistories != null)
+            {
+                foreach (var h in activeHistories)
+                {
+                    residentIds.Add(h.ResidentId);
+                }
+            }
+        }
+        catch { }
+
+        // Lấy tất cả phương tiện của căn hộ này
+        IEnumerable<Vehicle>? allVehicles = null;
+        try
+        {
+            allVehicles = await _unitOfWork.Vehicles.GetAllWithDetailsAsync();
+        }
+        catch { }
+        if (allVehicles == null)
+        {
+            try
+            {
+                allVehicles = await _unitOfWork.Vehicles.GetAllAsync();
+            }
+            catch { }
+        }
+
+        var aptVehicles = (allVehicles ?? Enumerable.Empty<Vehicle>())
+            .Where(v => residentIds.Contains(v.OwnerId) && (!excludeVehicleId.HasValue || v.Id != excludeVehicleId.Value))
+            .ToList();
+
+        int maxAllowed = vehicle.VehicleType switch
+        {
+            VehicleType.Car => MaxCarsPerApartment,
+            VehicleType.Moto => MaxMotosPerApartment,
+            VehicleType.Bicycle => MaxBicyclesPerApartment,
+            _ => 1
+        };
+
+        string typeName = vehicle.VehicleType switch
+        {
+            VehicleType.Car => "ô tô",
+            VehicleType.Moto => "xe máy",
+            VehicleType.Bicycle => "xe đạp",
+            _ => "phương tiện"
+        };
+
+        if (isApprovalCheck)
+        {
+            // Khi duyệt: Chỉ đếm các xe đã Approved
+            int approvedCount = aptVehicles.Count(v => v.RegistrationStatus == VehicleRegistrationStatus.Approved && v.VehicleType == vehicle.VehicleType);
+            if (approvedCount >= maxAllowed)
+            {
+                throw new BusinessRuleException($"Không thể phê duyệt: Căn hộ {aptDisplay} đã đạt tối đa hạn mức {typeName} ({maxAllowed}/{maxAllowed} xe đã cấp phép). Vui lòng kiểm tra lại hồ sơ xe của căn hộ.");
+            }
+        }
+        else
+        {
+            // Khi đăng ký mới / cập nhật: Đếm các xe Approved HOẶC Pending (loại trừ Cancelled và Rejected)
+            int activeOrPendingCount = aptVehicles.Count(v =>
+                (v.RegistrationStatus == VehicleRegistrationStatus.Approved || v.RegistrationStatus == VehicleRegistrationStatus.Pending)
+                && v.VehicleType == vehicle.VehicleType);
+
+            if (activeOrPendingCount >= maxAllowed)
+            {
+                throw new BusinessRuleException($"Căn hộ {aptDisplay} đã sử dụng hết hạn mức {typeName} (tối đa {maxAllowed} xe/căn hộ). Căn hộ không thể đăng ký thêm {typeName}. Vui lòng liên hệ Ban quản lý nếu cần hỗ trợ.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Lấy thống kê số lượng xe và hạn mức của căn hộ
+    /// </summary>
+    public async Task<(int approvedCar, int pendingCar, int maxCar, int approvedMoto, int pendingMoto, int maxMoto)> GetApartmentVehicleQuotaSummaryAsync(int apartmentId)
+    {
+        HashSet<int> residentIds = new();
+        try
+        {
+            var activeHistories = await _unitOfWork.ResidenceHistories.GetActiveByApartmentIdAsync(apartmentId);
+            if (activeHistories != null)
+            {
+                foreach (var h in activeHistories)
+                {
+                    residentIds.Add(h.ResidentId);
+                }
+            }
+        }
+        catch { }
+
+        IEnumerable<Vehicle>? allVehicles = null;
+        try { allVehicles = await _unitOfWork.Vehicles.GetAllWithDetailsAsync(); } catch { }
+        if (allVehicles == null)
+        {
+            try { allVehicles = await _unitOfWork.Vehicles.GetAllAsync(); } catch { }
+        }
+
+        var aptVehicles = (allVehicles ?? Enumerable.Empty<Vehicle>())
+            .Where(v => residentIds.Contains(v.OwnerId))
+            .ToList();
+
+        int approvedCar = aptVehicles.Count(v => v.VehicleType == VehicleType.Car && v.RegistrationStatus == VehicleRegistrationStatus.Approved);
+        int pendingCar = aptVehicles.Count(v => v.VehicleType == VehicleType.Car && v.RegistrationStatus == VehicleRegistrationStatus.Pending);
+
+        int approvedMoto = aptVehicles.Count(v => (v.VehicleType == VehicleType.Moto || v.VehicleType == VehicleType.Bicycle) && v.RegistrationStatus == VehicleRegistrationStatus.Approved);
+        int pendingMoto = aptVehicles.Count(v => (v.VehicleType == VehicleType.Moto || v.VehicleType == VehicleType.Bicycle) && v.RegistrationStatus == VehicleRegistrationStatus.Pending);
+
+        return (approvedCar, pendingCar, MaxCarsPerApartment, approvedMoto, pendingMoto, MaxMotosPerApartment);
+    }
+}

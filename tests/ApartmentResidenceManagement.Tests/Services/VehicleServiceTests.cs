@@ -315,4 +315,87 @@ public class VehicleServiceTests
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteVehicleByOwnerAsync(ownerId, vehicleId));
         Assert.Contains("không thể tự xóa", ex.Message);
     }
-}
+[Fact]
+    public async Task SubmitVehicleRegistration_ExceedsCarQuota_ShouldThrowBusinessRuleException()
+    {
+        // Arrange: Căn hộ 1 đã có 1 ô tô Approved
+        int ownerId = 10;
+        int apartmentId = 1;
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(ownerId))
+            .ReturnsAsync(new ResidenceHistory { ResidentId = ownerId, ApartmentId = apartmentId, Apartment = new Apartment { Id = apartmentId, ApartmentNumber = "P.101" } });
+
+        var existingCar = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { existingCar });
+
+        var newCar = new Vehicle { OwnerId = ownerId, LicensePlate = "30A-99999", VehicleType = VehicleType.Car, ImagePath = "/test.jpg" };
+
+        // Act & Assert: Đăng ký xe ô tô thứ 2 phải bị chặn do vượt hạn mức (1 ô tô / căn hộ)
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(newCar));
+        Assert.Contains("hạn mức", ex.Message.ToLowerInvariant());
+    }
+
+    [Fact]
+    public async Task SubmitVehicleRegistration_ExceedsMotoQuota_ShouldThrowBusinessRuleException()
+    {
+        // Arrange: Căn hộ 1 đã có 2 xe máy Approved
+        int ownerId = 10;
+        int apartmentId = 1;
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(ownerId))
+            .ReturnsAsync(new ResidenceHistory { ResidentId = ownerId, ApartmentId = apartmentId, Apartment = new Apartment { Id = apartmentId, ApartmentNumber = "P.101" } });
+
+        var moto1 = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        var moto2 = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Moto, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { moto1, moto2 });
+
+        var moto3 = new Vehicle { OwnerId = ownerId, LicensePlate = "29A1-99999", VehicleType = VehicleType.Moto, ImagePath = "/test.jpg" };
+
+        // Act & Assert: Đăng ký xe máy thứ 3 phải bị chặn do vượt hạn mức (2 xe máy / căn hộ)
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.SubmitVehicleRegistrationAsync(moto3));
+        Assert.Contains("hạn mức", ex.Message.ToLowerInvariant());
+    }
+
+    [Fact]
+    public async Task ReviewVehicle_ApproveExceedsCarQuota_ShouldThrowBusinessRuleException()
+    {
+        // Arrange: Căn hộ 1 đã có 1 ô tô Approved khác
+        int ownerId = 10;
+        int apartmentId = 1;
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(ownerId))
+            .ReturnsAsync(new ResidenceHistory { ResidentId = ownerId, ApartmentId = apartmentId, Apartment = new Apartment { Id = apartmentId, ApartmentNumber = "P.101" } });
+
+        var approvedCar = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        var pendingCar = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(pendingCar);
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { approvedCar, pendingCar });
+
+        // Act & Assert: Duyệt thêm xe ô tô thứ 2 cho cùng căn hộ phải bị chặn
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.ReviewVehicleAsync(2, VehicleRegistrationStatus.Approved));
+        Assert.Contains("hạn mức", ex.Message.ToLowerInvariant());
+    }
+
+    [Fact]
+    public async Task ReviewVehicle_ApproveAfterCancellation_ShouldSucceedBecauseQuotaReleased()
+    {
+        // Arrange: Xe cũ đã Cancelled, nên hạn mức ô tô được hoàn trả
+        int ownerId = 10;
+        int apartmentId = 1;
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(ownerId)).ReturnsAsync(new Resident { Id = ownerId });
+        _mockResidenceRepo.Setup(r => r.GetActiveByResidentIdAsync(ownerId))
+            .ReturnsAsync(new ResidenceHistory { ResidentId = ownerId, ApartmentId = apartmentId, Apartment = new Apartment { Id = apartmentId, ApartmentNumber = "P.101" } });
+
+        var cancelledCar = new Vehicle { Id = 1, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Cancelled };
+        var pendingCar = new Vehicle { Id = 2, OwnerId = ownerId, VehicleType = VehicleType.Car, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(pendingCar);
+        _mockVehicleRepo.Setup(r => r.GetAllWithDetailsAsync()).ReturnsAsync(new List<Vehicle> { cancelledCar, pendingCar });
+
+        // Act: Duyệt xe mới
+        await _service.ReviewVehicleAsync(2, VehicleRegistrationStatus.Approved);
+
+        // Assert: Duyệt thành công vì xe cũ đã hủy hoàn trả quota
+        Assert.Equal(VehicleRegistrationStatus.Approved, pendingCar.RegistrationStatus);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+}
