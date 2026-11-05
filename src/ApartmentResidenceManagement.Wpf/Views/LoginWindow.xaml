@@ -426,22 +426,14 @@
                             <Grid Margin="0,0,0,14">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="🔑 " FontSize="18" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Đặt Lại Mật Khẩu (Mã Xác Thực OTP)" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Đặt lại mật khẩu" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Button Command="{Binding CloseForgotPasswordCommand}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand">
                                     <TextBlock Text="✕" FontSize="16" FontWeight="Bold" Foreground="#94A3B8"/>
                                 </Button>
                             </Grid>
 
-                            <!-- Hướng dẫn mô hình 2 -->
-                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
-                                <TextBlock FontSize="12" Foreground="#475569" TextWrapping="Wrap" LineHeight="18">
-                                    <Run Text="📌 " FontWeight="Bold" Foreground="#2563EB"/>
-                                    <Run Text="Vui lòng liên hệ Lễ tân Ban Quản lý tại sảnh để được cấp "/>
-                                    <Run Text="Mã xác thực OTP (hiệu lực 5 phút)" FontWeight="Bold" Foreground="#1E40AF"/>
-                                    <Run Text=". Nhập mã và mật khẩu mới bên dưới để tự hoàn tất việc đổi mật khẩu."/>
-                                </TextBlock>
-                            </Border>
+                            
 
                             <!-- Trường 1: Tên đăng nhập -->
                             <StackPanel Margin="0,0,0,10">
@@ -450,16 +442,32 @@
                                          Height="38" FontSize="13" VerticalContentAlignment="Center" Padding="10,0"/>
                             </StackPanel>
 
-                            <!-- Trường 2: Mã xác thực OTP -->
+                            <!-- Trường 2: Mã OTP -->
                             <StackPanel Margin="0,0,0,10">
-                                <Grid Margin="0,0,0,5">
-                                    <TextBlock Text="Mã OTP 6 số do BQL cấp (*):" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
-                                    <TextBlock Text="(Hiệu lực 5 phút)" FontSize="11" Foreground="#DC2626" HorizontalAlignment="Right"/>
+                                <TextBlock Text="Mã OTP (*):" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,5"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding ForgotOtpCode, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="38" FontSize="15" FontWeight="Bold" Foreground="#1D4ED8"
+                                             VerticalContentAlignment="Center" Padding="10,0"
+                                             MaxLength="6"/>
+                                    <Button Grid.Column="1" Command="{Binding SendOtpEmailCommand}"
+                                            Content="{Binding SendOtpButtonText}" Margin="8,0,0,0" Padding="12,0"
+                                            Height="38" Background="#EFF6FF" Foreground="#2563EB" BorderBrush="#BFDBFE" BorderThickness="1"
+                                            FontWeight="SemiBold" Cursor="Hand"
+                                            ToolTip="Gửi mã xác thực OTP về email đã đăng ký của cư dân">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
                                 </Grid>
-                                <TextBox Text="{Binding ForgotOtpCode, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="40" FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"
-                                         VerticalContentAlignment="Center" Padding="10,0"
-                                         MaxLength="6"/>
                             </StackPanel>
 
                             <!-- Trường 3: Mật khẩu mới -->

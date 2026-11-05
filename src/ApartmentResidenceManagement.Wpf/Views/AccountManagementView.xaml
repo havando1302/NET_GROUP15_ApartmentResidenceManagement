@@ -2242,7 +2242,7 @@
                     <Grid Margin="0,0,0,16">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="🛡️ " FontSize="18" VerticalAlignment="Center"/>
-                            <TextBlock Text="Cấp Mã Xác Thực OTP Khôi Phục" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            <TextBlock Text="Mã xác thực OTP" FontSize="16" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button Command="{Binding CloseOtpDialogCommand}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <TextBlock Text="✕" FontSize="15" FontWeight="Bold" Foreground="#94A3B8"/>
@@ -2271,21 +2271,13 @@
                     <!-- Box Mã OTP nổi bật -->
                     <Border Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1.5" CornerRadius="10" Padding="16,14" Margin="0,0,0,14">
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="MÃ OTP XÁC THỰC (6 CHỮ SỐ)" FontSize="11" FontWeight="Bold" Foreground="#1E40AF" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                            <TextBlock Text="Mã OTP" FontSize="12" FontWeight="Bold" Foreground="#1E40AF" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding GeneratedOtpCode}" FontSize="34" FontWeight="Bold" Foreground="#1D4ED8" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding OtpExpiryText}" FontSize="12" FontWeight="SemiBold" Foreground="#DC2626" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Hướng dẫn vận hành an toàn -->
-                    <Border Background="#FEF3C7" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,20">
-                        <StackPanel>
-                            <TextBlock Text="📌 Quy trình bảo mật Mô hình 2:" FontSize="12" FontWeight="Bold" Foreground="#92400E" Margin="0,0,0,4"/>
-                            <TextBlock Text="• Admin không trực tiếp đổi mật khẩu của cư dân để bảo vệ bí mật cá nhân." FontSize="11.5" Foreground="#78350F" TextWrapping="Wrap" Margin="0,0,0,3"/>
-                            <TextBlock Text="• Cung cấp mã OTP này cho cư dân tại quầy Lễ tân. Mã tự động hủy sau 5 phút." FontSize="11.5" Foreground="#78350F" TextWrapping="Wrap" Margin="0,0,0,3"/>
-                            <TextBlock Text="• Cư dân bấm 'Quên mật khẩu?' tại màn hình Đăng nhập để tự đặt mật khẩu mới." FontSize="11.5" Foreground="#78350F" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
+                    
 
                     <!-- Nút bấm -->
                     <Grid>

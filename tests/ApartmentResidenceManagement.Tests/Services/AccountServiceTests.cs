@@ -379,5 +379,72 @@ public class AccountServiceTests
             _service.ResetPasswordWithOtpAsync(username, otp, "WeakPassword123"));
         Assert.Contains("ký tự đặc biệt", ex.Message);
     }
+    [Fact]
+    public async Task SendRecoveryOtpByUsernameOrEmailAsync_ValidUsernameWithEmail_ShouldGenerateOtpAndSendEmail()
+    {
+        // Arrange
+        string username = "resident_1";
+        int residentId = 15;
+        var account = new UserAccount { Id = 3, Username = username, ResidentId = residentId, IsActive = true };
+        var resident = new Resident { Id = residentId, FullName = "Nguyen Van A", Email = "cudan1@gmail.com" };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(residentId)).ReturnsAsync(resident);
+
+        // Act
+        var (maskedEmail, otpCode) = await _service.SendRecoveryOtpByUsernameOrEmailAsync(username);
+
+        // Assert
+        Assert.Equal("c***1@gmail.com", maskedEmail);
+        Assert.Equal(6, otpCode.Length);
+        Assert.Equal(otpCode, account.ResetOtpCode);
+        Assert.NotNull(account.ResetOtpExpiry);
+        _mockAccountRepo.Verify(r => r.Update(account), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendRecoveryOtpByUsernameOrEmailAsync_AccountHasNoEmail_ShouldThrowBusinessRuleException()
+    {
+        // Arrange
+        string username = "resident_no_mail";
+        int residentId = 16;
+        var account = new UserAccount { Id = 4, Username = username, ResidentId = residentId, IsActive = true };
+        var resident = new Resident { Id = residentId, FullName = "Nguyen Van B", Email = null };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+        _mockResidentRepo.Setup(r => r.GetByIdAsync(residentId)).ReturnsAsync(resident);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.SendRecoveryOtpByUsernameOrEmailAsync(username));
+        Assert.Contains("chưa có địa chỉ Email", ex.Message);
+    }
+
+    [Fact]
+    public async Task SendRecoveryOtpByUsernameOrEmailAsync_AccountLocked_ShouldThrowBusinessRuleException()
+    {
+        // Arrange
+        string username = "locked_user";
+        int residentId = 17;
+        var account = new UserAccount { Id = 5, Username = username, ResidentId = residentId, IsActive = false, LockReason = "Vi phạm" };
+
+        _mockAccountRepo.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.SendRecoveryOtpByUsernameOrEmailAsync(username));
+        Assert.Contains("đã bị khóa", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("nguyenvana@gmail.com", "n***a@gmail.com")]
+    [InlineData("ab@gmail.com", "a***@gmail.com")]
+    [InlineData("admin@phenikaa.edu.vn", "a***n@phenikaa.edu.vn")]
+    public void MaskEmail_ShouldMaskCorrectly(string email, string expected)
+    {
+        string result = AccountService.MaskEmail(email);
+        Assert.Equal(expected, result);
+    }
     #endregion
 }

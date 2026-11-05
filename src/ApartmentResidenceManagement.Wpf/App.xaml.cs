@@ -6,6 +6,7 @@ using ApartmentResidenceManagement.Infrastructure.Data;
 using ApartmentResidenceManagement.Infrastructure.Repositories;
 using ApartmentResidenceManagement.Application.Security;
 using ApartmentResidenceManagement.Application.Services;
+using ApartmentResidenceManagement.Infrastructure.Services;
 using ApartmentResidenceManagement.Wpf.ViewModels;
 using ApartmentResidenceManagement.Wpf.Views;
 using ApartmentResidenceManagement.Wpf.Services;
@@ -61,6 +62,7 @@ public partial class App : System.Windows.Application
 
                 // 2. Đăng ký Core & Infrastructure Services (DAL)
                 services.AddTransient<IUnitOfWork, UnitOfWork>();
+                services.AddTransient<IEmailService, SmtpEmailService>();
 
                 // 3. Đăng ký Security Utility
                 services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();

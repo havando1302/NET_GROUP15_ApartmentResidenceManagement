@@ -14,11 +14,13 @@ public class AccountService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IEmailService? _emailService;
 
-    public AccountService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher)
+    public AccountService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher, IEmailService? emailService = null)
     {
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
+        _emailService = emailService;
     }
 
     // 1. ĐĂNG NHẬP
@@ -334,6 +336,16 @@ public class AccountService
         _unitOfWork.UserAccounts.Update(account);
         await _unitOfWork.CompleteAsync();
 
+        // Gửi email thông báo mã OTP cho cư dân nếu có email
+        if (_emailService != null && account.ResidentId.HasValue)
+        {
+            var resident = await _unitOfWork.Residents.GetByIdAsync(account.ResidentId.Value);
+            if (resident != null && !string.IsNullOrWhiteSpace(resident.Email))
+            {
+                _ = _emailService.SendOtpEmailAsync(resident.Email, resident.FullName, otpCode, 5);
+            }
+        }
+
         return (otpCode, expiryTime);
     }
 
@@ -388,5 +400,87 @@ public class AccountService
 
         _unitOfWork.UserAccounts.Update(account);
         await _unitOfWork.CompleteAsync();
+    }
+    /// <summary>
+    /// Cư dân tự yêu cầu gửi mã OTP khôi phục mật khẩu trực tiếp về Email đã đăng ký.
+    /// </summary>
+    public async Task<(string MaskedEmail, string OtpCode)> SendRecoveryOtpByUsernameOrEmailAsync(string usernameOrEmail)
+    {
+        if (string.IsNullOrWhiteSpace(usernameOrEmail))
+        {
+            throw new BusinessRuleException("Vui lòng nhập tên đăng nhập để nhận mã OTP qua email.");
+        }
+
+        usernameOrEmail = usernameOrEmail.Trim();
+
+        var account = await _unitOfWork.UserAccounts.GetByUsernameAsync(usernameOrEmail);
+        Resident? resident = null;
+
+        if (account != null && account.ResidentId.HasValue)
+        {
+            resident = await _unitOfWork.Residents.GetByIdAsync(account.ResidentId.Value);
+        }
+        else if (account == null)
+        {
+            // Tìm theo email nếu người dùng nhập địa chỉ email
+            var allResidents = await _unitOfWork.Residents.GetAllAsync();
+            resident = allResidents.FirstOrDefault(r => string.Equals(r.Email, usernameOrEmail, StringComparison.OrdinalIgnoreCase));
+            if (resident != null)
+            {
+                var allAccounts = await _unitOfWork.UserAccounts.GetAllAsync();
+                account = allAccounts.FirstOrDefault(a => a.ResidentId == resident.Id);
+            }
+        }
+
+        if (account == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy tài khoản tương ứng với thông tin đã nhập.");
+        }
+
+        if (!account.IsActive)
+        {
+            string lockMsg = !string.IsNullOrWhiteSpace(account.LockReason)
+                ? $"Tài khoản này đã bị khóa. Lý do: {account.LockReason}. Vui lòng liên hệ Ban quản lý tòa nhà."
+                : "Tài khoản này đã bị khóa. Vui lòng liên hệ Ban quản lý tòa nhà.";
+            throw new BusinessRuleException(lockMsg);
+        }
+
+        string? email = resident?.Email;
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new BusinessRuleException("Tài khoản này chưa có địa chỉ Email để nhận mã OTP. Vui lòng liên hệ Ban quản lý để cập nhật.");
+        }
+
+        // Sinh mã OTP 6 chữ số ngẫu nhiên
+        string otpCode = Random.Shared.Next(100000, 999999).ToString();
+        DateTime expiryTime = DateTime.Now.AddMinutes(5);
+
+        account.ResetOtpCode = otpCode;
+        account.ResetOtpExpiry = expiryTime;
+
+        _unitOfWork.UserAccounts.Update(account);
+        await _unitOfWork.CompleteAsync();
+
+        string recipientName = resident?.FullName ?? account.Username;
+        if (_emailService != null)
+        {
+            await _emailService.SendOtpEmailAsync(email, recipientName, otpCode, 5);
+        }
+
+        string maskedEmail = MaskEmail(email);
+        return (maskedEmail, otpCode);
+    }
+
+    public static string MaskEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@')) return email;
+        var parts = email.Split('@');
+        string name = parts[0];
+        string domain = parts[1];
+        if (name.Length <= 2)
+        {
+            return name[0] + "***@" + domain;
+        }
+        return name[0] + "***" + name[^1] + "@" + domain;
     }
 }

@@ -146,9 +146,24 @@ public class LoginViewModel : ViewModelBase
         set => SetProperty(ref _isResettingPassword, value);
     }
 
+    private string _sendOtpButtonText = "Gửi mã qua Email";
+    public string SendOtpButtonText
+    {
+        get => _sendOtpButtonText;
+        set => SetProperty(ref _sendOtpButtonText, value);
+    }
+
+    private bool _isSendingOtp;
+    public bool IsSendingOtp
+    {
+        get => _isSendingOtp;
+        set => SetProperty(ref _isSendingOtp, value);
+    }
+
     public ICommand OpenForgotPasswordCommand { get; }
     public ICommand CloseForgotPasswordCommand { get; }
     public ICommand ConfirmResetPasswordCommand { get; }
+    public ICommand SendOtpEmailCommand { get; }
 
     public bool RememberMe
     {
@@ -201,12 +216,48 @@ public class LoginViewModel : ViewModelBase
             ForgotConfirmPassword = string.Empty;
             ForgotErrorMessage = string.Empty;
             ForgotSuccessMessage = string.Empty;
+            SendOtpButtonText = "Gửi mã qua Email";
             IsForgotPasswordOpen = true;
         });
 
         CloseForgotPasswordCommand = new RelayCommand(_ =>
         {
             IsForgotPasswordOpen = false;
+        });
+
+        SendOtpEmailCommand = new AsyncRelayCommand(async _ =>
+        {
+            ForgotErrorMessage = string.Empty;
+            ForgotSuccessMessage = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(ForgotUsername))
+            {
+                ForgotErrorMessage = "Vui lòng nhập Tên đăng nhập trước khi yêu cầu gửi mã OTP.";
+                return;
+            }
+
+            IsSendingOtp = true;
+            SendOtpButtonText = "Đang gửi...";
+            try
+            {
+                var (maskedEmail, otpCode) = await _accountService.SendRecoveryOtpByUsernameOrEmailAsync(ForgotUsername.Trim());
+                ForgotSuccessMessage = $"Mã OTP đã được gửi đến email {maskedEmail}. Vui lòng kiểm tra hộp thư.";
+                SendOtpButtonText = "Gửi lại mã";
+            }
+            catch (BusinessRuleException ex)
+            {
+                ForgotErrorMessage = ex.Message;
+                SendOtpButtonText = "Gửi mã qua Email";
+            }
+            catch (Exception ex)
+            {
+                ForgotErrorMessage = $"Lỗi khi gửi email: {ex.Message}";
+                SendOtpButtonText = "Gửi mã qua Email";
+            }
+            finally
+            {
+                IsSendingOtp = false;
+            }
         });
 
         ConfirmResetPasswordCommand = new AsyncRelayCommand(async _ =>
