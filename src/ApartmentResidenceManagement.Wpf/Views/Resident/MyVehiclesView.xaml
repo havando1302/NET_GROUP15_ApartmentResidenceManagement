@@ -670,22 +670,23 @@
             </Border>
         </Grid>
 
-        <!-- ===== CỘT PHẢI: FORM ĐĂNG KÝ MODAL OVERLAY ===== -->
+        <!-- ===== FORM ĐĂNG KÝ / CẬP NHẬT PHƯƠNG TIỆN (MODAL OVERLAY ĐỒNG BỘ CHUẨN) ===== -->
         <Grid x:Name="VehicleFormOverlay" Grid.Column="0" Grid.ColumnSpan="2" Panel.ZIndex="200"
               Visibility="{Binding IsFormOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
 
-            <!-- Lớp phủ mờ -->
-            <Border Background="#66000000">
+            <!-- Lớp phủ mờ nền sẫm đồng bộ với toàn hệ thống -->
+            <Border Background="#990F172A">
                 <Border.InputBindings>
                     <MouseBinding MouseAction="LeftClick" Command="{Binding CancelFormCommand}"/>
                 </Border.InputBindings>
             </Border>
 
-            <!-- Card Dialog nổi ở trung tâm -->
-            <Border MaxWidth="410" Background="White" CornerRadius="10" Padding="24" Margin="16,24"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Center">
+            <!-- Card Dialog nổi ở trung tâm chuẩn form phần mềm -->
+            <Border Width="500" Background="White" CornerRadius="16" Padding="28,24" Margin="16,24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BorderBrush="#CBD5E1" BorderThickness="1">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="15" Direction="0" ShadowDepth="0" Color="#000000" Opacity="0.15"/>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="6" Color="#000000" Opacity="0.2"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -694,14 +695,25 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                        <Border Width="40" Height="4" CornerRadius="2"
-                                Background="{StaticResource PrimaryBlueBrush}"
-                                HorizontalAlignment="Left" Margin="0,0,0,10"/>
-                        <TextBlock Text="{Binding FormTitle}" FontSize="15" FontWeight="Bold"
-                                   Foreground="{StaticResource PrimaryDarkBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                    <!-- Header đồng bộ chuẩn phần mềm với Icon và Nút đóng ✕ -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🚗 " FontSize="18" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding FormTitle}" FontSize="17" FontWeight="Bold"
+                                           Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <Button Content="✕" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0"
+                                    FontSize="16" FontWeight="Bold" Foreground="#94A3B8" Cursor="Hand"
+                                    Command="{Binding CancelFormCommand}"/>
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="Nhập đầy đủ thông tin phương tiện để Ban quản lý toà nhà phê duyệt và cấp quyền gửi xe."
+                                   FontSize="12.5" Foreground="#64748B" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                    </Grid>
 
                     <!-- Body -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
@@ -720,19 +732,26 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Biển số xe -->
-                        <StackPanel Margin="0,0,0,14">
-                            <TextBlock Text="Biển số xe (Ví dụ: 30A-12345)" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                            <TextBox Style="{StaticResource FormTextBox}"
+                        <!-- Thông báo lỗi nhập liệu -->
+                        <Border Background="#FEE2E2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8"
+                                Padding="12,8" Margin="0,0,0,14"
+                                Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{Binding ErrorMessage}" FontSize="12" Foreground="#B91C1C" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- 1. Biển số xe -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Biển số xe (*) (Ví dụ: 30A-12345)" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="#334155" Margin="0,0,0,5"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
                                      Text="{Binding EditingVehicle.LicensePlate, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Loại xe -->
-                        <StackPanel Margin="0,0,0,14">
-                            <TextBlock Text="Loại phương tiện" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                            <ComboBox Style="{StaticResource FormComboBox}"
+                        <!-- 2. Loại xe -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Loại phương tiện (*)" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="#334155" Margin="0,0,0,5"/>
+                            <ComboBox Style="{StaticResource ModernComboBox}"
                                       ItemsSource="{Binding VehicleTypes}"
                                       SelectedItem="{Binding EditingVehicle.VehicleType}">
                                 <ComboBox.ItemTemplate>
@@ -759,44 +778,50 @@
                             </ComboBox>
                         </StackPanel>
 
-                        <!-- Hiệu xe -->
-                        <StackPanel Margin="0,0,0,14">
-                            <TextBlock Text="Hiệu xe / Hãng sản xuất" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                            <TextBox Style="{StaticResource FormTextBox}"
+                        <!-- 3. Hiệu xe -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Hiệu xe / Hãng sản xuất (*)" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="#334155" Margin="0,0,0,5"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
                                      Text="{Binding EditingVehicle.Brand, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Màu xe -->
-                        <StackPanel Margin="0,0,0,14">
-                            <TextBlock Text="Màu xe (Ví dụ: Đen, Trắng, Đỏ...)" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
-                            <TextBox Style="{StaticResource FormTextBox}"
+                        <!-- 4. Màu xe -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Màu xe (*) (Ví dụ: Đen, Trắng, Đỏ...)" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="#334155" Margin="0,0,0,5"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
                                      Text="{Binding EditingVehicle.Color, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Hình ảnh xe (Bắt buộc, xem trước sắc nét cạnh nút tải lên) -->
-                        <StackPanel Margin="0,0,0,16">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <TextBlock Text="Hình ảnh phương tiện" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}" Margin="0"/>
-                                <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold" FontSize="12"/>
-                                <TextBlock Text="(Bắt buộc tải ảnh thật)" Foreground="#64748B" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="10">
+                        <!-- 5. Hình ảnh xe (Đã bỏ note 'bắt buộc tải ảnh thật' và 'bắt buộc') -->
+                        <StackPanel Margin="0,0,0,14">
+                            <TextBlock Text="Hình ảnh phương tiện (*)" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="#334155" Margin="0,0,0,6"/>
+                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="12,10">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Content="📁 Tải ảnh lên..." Style="{StaticResource SecondaryBtn}"
-                                            Command="{Binding SelectImageCommand}" Height="36" Padding="12,0" Margin="0,0,12,0"/>
+                                    <Button Grid.Column="0" Content="📁 Tải ảnh lên..." Height="36" Padding="14,0"
+                                            Background="#EFF6FF" Foreground="#2563EB" BorderBrush="#DBEAFE" BorderThickness="1"
+                                            FontWeight="SemiBold" Cursor="Hand" Margin="0,0,12,0"
+                                            Command="{Binding SelectImageCommand}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
 
                                     <Grid Grid.Column="1" VerticalAlignment="Center">
                                         <!-- Khi đã chọn ảnh -->
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                                                     Visibility="{Binding HasSelectedImage, Converter={StaticResource BoolToVis}}">
-                                            <Border Width="50" Height="50" CornerRadius="8" Background="White"
+                                            <Border Width="46" Height="46" CornerRadius="8" Background="White"
                                                     BorderBrush="#CBD5E1" BorderThickness="1" ClipToBounds="True"
                                                     Cursor="Hand" ToolTip="Nhấn vào ảnh để xem phóng to rõ nét">
                                                 <Border.InputBindings>
@@ -810,7 +835,7 @@
                                             </Border>
 
                                             <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
-                                                <TextBlock Text="Đã chọn ảnh xe" FontSize="11.5" FontWeight="SemiBold" Foreground="#16A34A"/>
+                                                <TextBlock Text="Đã chọn ảnh xe" FontSize="12" FontWeight="SemiBold" Foreground="#16A34A"/>
                                                 <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                                     <Button Command="{Binding OpenImageZoomCommand}" CommandParameter="{Binding SelectedImagePath}"
                                                             Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Margin="0,0,8,0">
@@ -824,8 +849,8 @@
                                             </StackPanel>
                                         </StackPanel>
 
-                                        <!-- Khi chưa có ảnh -->
-                                        <TextBlock Text="Chưa chọn tệp ảnh nào (Bắt buộc)" FontSize="11.5" Foreground="#DC2626" FontStyle="Italic" VerticalAlignment="Center">
+                                        <!-- Khi chưa có ảnh (đã bỏ 'Bắt buộc') -->
+                                        <TextBlock Text="Chưa chọn tệp ảnh nào" FontSize="12" Foreground="#64748B" FontStyle="Italic" VerticalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -847,23 +872,35 @@
                     </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Validation stays inside the active dialog, above its actions. -->
-                    <Grid Grid.Row="2" Margin="0,20,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Content="Hủy" Style="{StaticResource SecondaryBtn}" Margin="0,0,6,0"
-                                    Command="{Binding CancelFormCommand}"/>
-                            <Button Grid.Column="1" Content="Lưu" Style="{StaticResource ResidentPrimaryBtn}" Margin="6,0,0,0"
-                                    Command="{Binding SaveVehicleCommand}"/>
-                        </Grid>
+                    <!-- Footer Buttons -->
+                    <Grid Grid.Row="2" Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1.4*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Hủy bỏ" Height="40" Background="#F1F5F9" Foreground="#475569"
+                                FontWeight="SemiBold" FontSize="13" BorderThickness="0" Cursor="Hand"
+                                Command="{Binding CancelFormCommand}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Grid.Column="2" Content="Lưu phương tiện" Height="40" Background="#2563EB" Foreground="White"
+                                FontWeight="SemiBold" FontSize="13" BorderThickness="0" Cursor="Hand"
+                                Command="{Binding SaveVehicleCommand}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
                     </Grid>
                 </Grid>
             </Border>

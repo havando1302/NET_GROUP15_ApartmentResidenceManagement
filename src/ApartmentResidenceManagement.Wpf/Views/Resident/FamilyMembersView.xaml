@@ -593,7 +593,7 @@
 
                     <!-- 3. Số CCCD / Mã định danh -->
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="Số CCCD / Mã định danh (12 số)" Style="{StaticResource ModalFormLabel}"/>
+                        <TextBlock Text="Số CCCD / Mã định danh (12 số) (*)" Style="{StaticResource ModalFormLabel}"/>
                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding NewMemberIdentityCard, UpdateSourceTrigger=PropertyChanged}"/>
                         <TextBlock Text="{Binding IdentityCardError}" Style="{StaticResource FieldErrorText}"/>
                     </StackPanel>
@@ -608,14 +608,14 @@
 
                         <!-- Số điện thoại -->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Số điện thoại" Style="{StaticResource ModalFormLabel}"/>
+                            <TextBlock Text="Số điện thoại (*)" Style="{StaticResource ModalFormLabel}"/>
                             <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding NewMemberPhoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="{Binding PhoneNumberError}" Style="{StaticResource FieldErrorText}"/>
                         </StackPanel>
 
                         <!-- Email -->
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Email" Style="{StaticResource ModalFormLabel}"/>
+                            <TextBlock Text="Email (*)" Style="{StaticResource ModalFormLabel}"/>
                             <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding NewMemberEmail, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="{Binding EmailError}" Style="{StaticResource FieldErrorText}"/>
                         </StackPanel>

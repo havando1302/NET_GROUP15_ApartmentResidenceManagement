@@ -33,7 +33,7 @@ public class MyVehiclesViewModel : ViewModelBase
     private Vehicle? _selectedVehicle;
     private Vehicle _editingVehicle = new();
     private bool _isFormOpen;
-    private string _formTitle = "ĐĂNG KÝ PHƯƠNG TIỆN MỚI";
+    private string _formTitle = "Đăng ký phương tiện mới";
 
     // Báo lỗi/Thành công
     private string _errorMessage = string.Empty;
@@ -344,7 +344,7 @@ public class MyVehiclesViewModel : ViewModelBase
     private void OpenAddForm()
     {
         ErrorMessage = string.Empty;
-        FormTitle = "ĐĂNG KÝ PHƯƠNG TIỆN MỚI";
+        FormTitle = "Đăng ký phương tiện mới";
         EditingVehicle = new Vehicle
         {
             VehicleType = VehicleType.Moto,
@@ -401,6 +401,18 @@ public class MyVehiclesViewModel : ViewModelBase
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(EditingVehicle.Brand))
+        {
+            ErrorMessage = "Vui lòng nhập hiệu xe / hãng sản xuất.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditingVehicle.Color))
+        {
+            ErrorMessage = "Vui lòng nhập màu xe.";
+            return;
+        }
+
         if (EditingVehicle.OwnerId == 0)
         {
             ErrorMessage = "Không thể xác định chủ sở hữu phương tiện.";
@@ -409,7 +421,7 @@ public class MyVehiclesViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(EditingVehicle.ImagePath))
         {
-            ErrorMessage = "Vui lòng tải lên hình ảnh phương tiện (danh mục ảnh là bắt buộc khi tạo đơn).";
+            ErrorMessage = "Vui lòng tải lên hình ảnh phương tiện.";
             return;
         }
 

@@ -608,6 +608,7 @@ public class ResidentPortalTests
         vm.NewMemberDateOfBirth = new DateTime(2008, 10, 10);
         vm.NewMemberIdentityCard = "012345678999";
         vm.NewMemberPhoneNumber = "0988776655";
+        vm.NewMemberEmail = "em@example.com";
         vm.SelectedRelationshipType = RelationshipType.FamilyMember;
         vm.NewMemberSpecificRelationship = "Em trai";
 

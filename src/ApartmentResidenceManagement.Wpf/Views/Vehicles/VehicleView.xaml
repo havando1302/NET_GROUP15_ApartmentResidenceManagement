@@ -1206,7 +1206,7 @@
                                     <TextBlock Text="Hình ảnh phương tiện" FontSize="12" FontWeight="SemiBold"
                                                Foreground="#475569" Margin="0"/>
                                     <TextBlock Text=" *" Foreground="#DC2626" FontWeight="Bold" FontSize="13"/>
-                                    <TextBlock Text="(Bắt buộc tải ảnh thật)" Foreground="#64748B" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                                    
                                 </StackPanel>
                                 <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="10">
                                     <Grid>
@@ -1261,7 +1261,7 @@
                                             </StackPanel>
 
                                             <!-- Khi chưa có ảnh -->
-                                            <TextBlock Text="Chưa chọn tệp ảnh nào (Bắt buộc)" FontSize="11.5" Foreground="#DC2626" FontStyle="Italic" VerticalAlignment="Center">
+                                            <TextBlock Text="Chưa chọn tệp ảnh nào" FontSize="11.5" Foreground="#DC2626" FontStyle="Italic" VerticalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>

@@ -846,54 +846,48 @@ public class FamilyMembersViewModel : ViewModelBase
             BirthDateError = string.Empty;
         }
 
-        // CCCD: nếu nhập CCCD 12 số, phải đúng 12 chữ số
-        if (!string.IsNullOrWhiteSpace(NewMemberIdentityCard))
+        // CCCD: Bắt buộc, đúng 12 chữ số
+        if (string.IsNullOrWhiteSpace(NewMemberIdentityCard))
         {
-            if (!Regex.IsMatch(NewMemberIdentityCard.Trim(), @"^\d{12}$"))
-            {
-                IdentityCardError = "CCCD phải gồm đúng 12 chữ số.";
-                isValid = false;
-            }
-            else
-            {
-                IdentityCardError = string.Empty;
-            }
+            IdentityCardError = "Vui lòng nhập Số CCCD / Mã định danh (trường bắt buộc).";
+            isValid = false;
+        }
+        else if (!Regex.IsMatch(NewMemberIdentityCard.Trim(), @"^\d{12}$"))
+        {
+            IdentityCardError = "CCCD phải gồm đúng 12 chữ số.";
+            isValid = false;
         }
         else
         {
             IdentityCardError = string.Empty;
         }
 
-        // Số điện thoại: nếu có, phải đúng 10 số bắt đầu bằng 0
-        if (!string.IsNullOrWhiteSpace(NewMemberPhoneNumber))
+        // Số điện thoại: Bắt buộc, đúng 10 số bắt đầu bằng 0
+        if (string.IsNullOrWhiteSpace(NewMemberPhoneNumber))
         {
-            if (!Regex.IsMatch(NewMemberPhoneNumber.Trim(), @"^0\d{9}$"))
-            {
-                PhoneNumberError = "Số điện thoại phải gồm 10 chữ số bắt đầu bằng số 0.";
-                isValid = false;
-            }
-            else
-            {
-                PhoneNumberError = string.Empty;
-            }
+            PhoneNumberError = "Vui lòng nhập số điện thoại liên hệ (trường bắt buộc).";
+            isValid = false;
+        }
+        else if (!Regex.IsMatch(NewMemberPhoneNumber.Trim(), @"^0\d{9}$"))
+        {
+            PhoneNumberError = "Số điện thoại phải gồm 10 chữ số bắt đầu bằng số 0.";
+            isValid = false;
         }
         else
         {
             PhoneNumberError = string.Empty;
         }
 
-        // Email: nếu có, kiểm tra định dạng hợp lệ
-        if (!string.IsNullOrWhiteSpace(NewMemberEmail))
+        // Email: Bắt buộc, đúng định dạng hợp lệ
+        if (string.IsNullOrWhiteSpace(NewMemberEmail))
         {
-            if (!Regex.IsMatch(NewMemberEmail.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-            {
-                EmailError = "Địa chỉ email không đúng định dạng hợp lệ.";
-                isValid = false;
-            }
-            else
-            {
-                EmailError = string.Empty;
-            }
+            EmailError = "Vui lòng nhập địa chỉ email liên hệ (trường bắt buộc).";
+            isValid = false;
+        }
+        else if (!Regex.IsMatch(NewMemberEmail.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            EmailError = "Địa chỉ email không đúng định dạng hợp lệ.";
+            isValid = false;
         }
         else
         {
