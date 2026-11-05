@@ -176,6 +176,8 @@ public class MyVehiclesViewModel : ViewModelBase
     public ICommand SaveVehicleCommand { get; }
     public ICommand CancelFormCommand { get; }
     public ICommand DeleteVehicleCommand { get; }
+    public ICommand CancelPendingRegistrationCommand { get; }
+    public ICommand RequestCancellationCommand { get; }
     public ICommand SelectImageCommand { get; }
     public ICommand ClearSearchCommand { get; }
     public ICommand OpenImageZoomCommand { get; }
@@ -194,6 +196,8 @@ public class MyVehiclesViewModel : ViewModelBase
         SaveVehicleCommand = new AsyncRelayCommand(_ => SaveVehicleAsync());
         CancelFormCommand = new RelayCommand(_ => CloseForm());
         DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
+        CancelPendingRegistrationCommand = new AsyncRelayCommand(CancelPendingRegistrationAsync);
+        RequestCancellationCommand = new AsyncRelayCommand(RequestCancellationAsync);
 
         OpenImageZoomCommand = new RelayCommand(p =>
         {
@@ -433,7 +437,7 @@ public class MyVehiclesViewModel : ViewModelBase
         }
     }
 
-    private async Task DeleteVehicleAsync(object? parameter)
+        private async Task CancelPendingRegistrationAsync(object? parameter)
     {
         if (parameter is not Vehicle vehicle) return;
         ErrorMessage = string.Empty;
@@ -445,8 +449,86 @@ public class MyVehiclesViewModel : ViewModelBase
         }
 
         var result = NotificationService.Show(
-            $"Bạn có chắc chắn muốn hủy đăng ký phương tiện biển số {vehicle.LicensePlate} không?",
-            "Xác nhận hủy đăng ký phương tiện",
+            $"Bạn có chắc chắn muốn hủy đơn đăng ký phương tiện biển số {vehicle.LicensePlate} không?",
+            "Xác nhận hủy đơn",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Question
+        );
+
+        if (result != System.Windows.MessageBoxResult.Yes) return;
+
+        try
+        {
+            await _vehicleService.CancelPendingVehicleRegistrationAsync(currentResident.Id, vehicle.Id);
+            await LoadMyVehiclesAsync();
+            NotificationService.Show("Đã hủy đơn đăng ký phương tiện thành công.", "Thành công", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+        }
+        catch (BusinessRuleException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Lỗi khi hủy đơn đăng ký phương tiện.";
+        }
+    }
+
+    private async Task RequestCancellationAsync(object? parameter)
+    {
+        if (parameter is not Vehicle vehicle) return;
+        ErrorMessage = string.Empty;
+
+        if (_account?.Resident is not { } currentResident)
+        {
+            ErrorMessage = "Không thể xác định tài khoản cư dân.";
+            return;
+        }
+
+        var result = NotificationService.Show(
+            $"Bạn có chắc chắn muốn gửi yêu cầu hủy đăng ký phương tiện biển số {vehicle.LicensePlate} tới Ban quản lý không?\n\nBan quản lý sẽ kiểm tra và hoàn tất thủ tục hủy chỗ đỗ xe cho bạn.",
+            "Xác nhận gửi yêu cầu hủy",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Question
+        );
+
+        if (result != System.Windows.MessageBoxResult.Yes) return;
+
+        try
+        {
+            await _vehicleService.RequestVehicleCancellationAsync(currentResident.Id, vehicle.Id, "Cư dân gửi yêu cầu hủy qua cổng cư dân");
+            await LoadMyVehiclesAsync();
+            NotificationService.Show("Yêu cầu hủy đăng ký phương tiện đã được gửi tới Ban quản lý tòa nhà thành công.", "Đã gửi yêu cầu", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+        }
+        catch (BusinessRuleException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Lỗi khi gửi yêu cầu hủy đăng ký phương tiện.";
+        }
+    }
+
+    private async Task DeleteVehicleAsync(object? parameter)
+    {
+        if (parameter is not Vehicle vehicle) return;
+        ErrorMessage = string.Empty;
+
+        if (_account?.Resident is not { } currentResident)
+        {
+            ErrorMessage = "Không thể xác định tài khoản cư dân.";
+            return;
+        }
+
+        if (vehicle.RegistrationStatus == VehicleRegistrationStatus.Approved)
+        {
+            ErrorMessage = "Phương tiện đã được phê duyệt, cư dân không thể tự xóa. Vui lòng bấm 'Yêu cầu hủy' để gửi yêu cầu tới Ban quản lý.";
+            return;
+        }
+
+        var result = NotificationService.Show(
+            $"Bạn có chắc chắn muốn xóa phương tiện biển số {vehicle.LicensePlate} khỏi danh sách không?",
+            "Xác nhận xóa phương tiện",
             System.Windows.MessageBoxButton.YesNo,
             System.Windows.MessageBoxImage.Warning
         );

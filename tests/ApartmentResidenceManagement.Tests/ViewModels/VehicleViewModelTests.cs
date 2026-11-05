@@ -190,4 +190,16 @@ public class VehicleViewModelTests
 
         Assert.Contains("bắt buộc", vm.ErrorMessage);
     }
+
+    [Fact]
+    public void VehicleItem_RegistrationStatusCancelled_ReturnsCorrectTextAndColors()
+    {
+        var v = new Vehicle { Id = 10, LicensePlate = "29A-12345", RegistrationStatus = VehicleRegistrationStatus.Cancelled };
+        var item = new VehicleItem(v, "101");
+
+        Assert.Equal("Đã hủy", item.RegistrationStatusText);
+        Assert.Equal("#64748B", item.StatusDotColor);
+        Assert.Equal("#F1F5F9", item.StatusBgColor);
+        Assert.True(item.IsCancelled);
+    }
 }

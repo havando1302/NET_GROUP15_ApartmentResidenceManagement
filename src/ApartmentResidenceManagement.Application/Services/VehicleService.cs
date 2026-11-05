@@ -108,6 +108,38 @@ public class VehicleService
 
         _unitOfWork.Vehicles.Update(existing);
         await _unitOfWork.CompleteAsync();
+
+        // Gửi thông báo tới cư dân sở hữu khi Ban quản trị cập nhật thông tin xe
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var ownerAcc = await _unitOfWork.UserAccounts.GetByResidentIdAsync(vehicle.OwnerId);
+                if (ownerAcc != null && ownerAcc.IsActive)
+                {
+                    var notif = new Notification
+                    {
+                        Title = $"Cập nhật hồ sơ phương tiện: {vehicle.LicensePlate}",
+                        Content = $"Ban quản lý tòa nhà đã cập nhật lại thông tin hồ sơ phương tiện biển số <color=#2563EB><b>{vehicle.LicensePlate}</b></color> của bạn. Vui lòng kiểm tra lại thông tin chi tiết trên ứng dụng.",
+                        Type = NotificationType.General,
+                        Priority = NotificationPriority.Normal,
+                        TargetAudience = TargetAudienceType.SpecificResidents,
+                        RelatedEntityType = "Vehicle",
+                        RelatedEntityId = vehicle.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    notif.Recipients.Add(new NotificationRecipient
+                    {
+                        UserAccountId = ownerAcc.Id,
+                        IsRead = false,
+                        CreatedAt = notif.CreatedAt
+                    });
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
     }
 
     public async Task UpdateVehicleRegistrationAsync(int ownerId, Vehicle vehicle)
@@ -139,6 +171,45 @@ public class VehicleService
 
         _unitOfWork.Vehicles.Update(existing);
         await _unitOfWork.CompleteAsync();
+
+        // Gửi thông báo tới Ban quản lý khi cư dân cập nhật lại thông tin/hình ảnh đơn đăng ký
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var adminAccounts = (await _unitOfWork.UserAccounts.GetAllAsync())
+                    .Where(u => u.Role == UserRole.Admin && u.IsActive)
+                    .ToList();
+                if (adminAccounts.Count > 0)
+                {
+                    var owner = await _unitOfWork.Residents.GetByIdAsync(ownerId);
+                    string ownerName = owner?.FullName ?? "Cư dân";
+                    var notif = new Notification
+                    {
+                        Title = $"Cập nhật đơn đăng ký xe: {vehicle.LicensePlate}",
+                        Content = $"Cư dân <b>{ownerName}</b> đã cập nhật lại thông tin/hình ảnh cho đơn đăng ký phương tiện biển số <color=#2563EB><b>{vehicle.LicensePlate}</b></color>. Vui lòng kiểm tra và phê duyệt.",
+                        Type = NotificationType.ApprovalRequest,
+                        Priority = NotificationPriority.Important,
+                        TargetAudience = TargetAudienceType.SystemAdmin,
+                        RelatedEntityType = "Vehicle",
+                        RelatedEntityId = existing.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    foreach (var admin in adminAccounts)
+                    {
+                        notif.Recipients.Add(new NotificationRecipient
+                        {
+                            UserAccountId = admin.Id,
+                            IsRead = false,
+                            CreatedAt = notif.CreatedAt
+                        });
+                    }
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
     }
 
     public async Task ReviewVehicleAsync(int vehicleId, VehicleRegistrationStatus status, string? rejectReason = null)
@@ -238,8 +309,161 @@ public class VehicleService
             throw new BusinessRuleException("Bạn chỉ được xóa phương tiện thuộc sở hữu của mình.");
         }
 
+        if (vehicle.RegistrationStatus == VehicleRegistrationStatus.Approved)
+        {
+            throw new BusinessRuleException("Phương tiện đã được phê duyệt, cư dân không thể tự xóa khỏi hệ thống. Vui lòng gửi yêu cầu hủy tới Ban quản lý.");
+        }
+
         _unitOfWork.Vehicles.Delete(vehicle);
         await _unitOfWork.CompleteAsync();
+    }
+
+    /// <summary>
+    /// Cư dân chủ động hủy đơn khi đơn còn đang ở trạng thái Chờ duyệt (Pending) -> chuyển sang Đã hủy (Cancelled).
+    /// </summary>
+    public async Task CancelPendingVehicleRegistrationAsync(int ownerId, int vehicleId)
+    {
+        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId);
+        if (vehicle == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy phương tiện cần hủy đơn.");
+        }
+
+        if (vehicle.OwnerId != ownerId)
+        {
+            throw new BusinessRuleException("Bạn chỉ được hủy đơn đăng ký phương tiện của chính mình.");
+        }
+
+        if (vehicle.RegistrationStatus == VehicleRegistrationStatus.Approved)
+        {
+            throw new BusinessRuleException("Phương tiện đã được phê duyệt, cư dân không thể tự hủy đăng ký. Vui lòng gửi yêu cầu hủy tới Ban quản lý.");
+        }
+
+        if (vehicle.RegistrationStatus == VehicleRegistrationStatus.Cancelled)
+        {
+            throw new BusinessRuleException("Đơn đăng ký phương tiện này đã được hủy trước đó.");
+        }
+
+        vehicle.RegistrationStatus = VehicleRegistrationStatus.Cancelled;
+        vehicle.RejectReason = "Cư dân chủ động hủy đơn đăng ký";
+        _unitOfWork.Vehicles.Update(vehicle);
+        await _unitOfWork.CompleteAsync();
+    }
+
+    /// <summary>
+    /// Cư dân gửi yêu cầu hủy đăng ký xe đã duyệt (Approved) tới Ban quản lý tòa nhà (kèm lý do).
+    /// </summary>
+    public async Task RequestVehicleCancellationAsync(int ownerId, int vehicleId, string? reason)
+    {
+        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId);
+        if (vehicle == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy phương tiện cần yêu cầu hủy.");
+        }
+
+        if (vehicle.OwnerId != ownerId)
+        {
+            throw new BusinessRuleException("Bạn chỉ được gửi yêu cầu hủy phương tiện của chính mình.");
+        }
+
+        if (vehicle.RegistrationStatus != VehicleRegistrationStatus.Approved)
+        {
+            throw new BusinessRuleException("Chỉ phương tiện đang hoạt động (Đã duyệt) mới có thể gửi yêu cầu hủy đăng ký.");
+        }
+
+        string cancelReason = string.IsNullOrWhiteSpace(reason) ? "Cư dân yêu cầu hủy đăng ký xe" : reason.Trim();
+        vehicle.RejectReason = $"[Yêu cầu hủy]: {cancelReason}";
+        _unitOfWork.Vehicles.Update(vehicle);
+        await _unitOfWork.CompleteAsync();
+
+        // Gửi thông báo yêu cầu hủy tới Ban quản trị
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var adminAccounts = (await _unitOfWork.UserAccounts.GetAllAsync())
+                    .Where(u => u.Role == UserRole.Admin && u.IsActive)
+                    .ToList();
+                if (adminAccounts.Count > 0)
+                {
+                    var owner = await _unitOfWork.Residents.GetByIdAsync(ownerId);
+                    string ownerName = owner?.FullName ?? "Cư dân";
+                    var notif = new Notification
+                    {
+                        Title = $"Yêu cầu hủy đăng ký xe: {vehicle.LicensePlate}",
+                        Content = $"Cư dân <b>{ownerName}</b> gửi yêu cầu hủy đăng ký phương tiện biển số <color=#DC2626><b>{vehicle.LicensePlate}</b></color>. Lý do: <b>{cancelReason}</b>. Vui lòng kiểm tra và xử lý.",
+                        Type = NotificationType.ApprovalRequest,
+                        Priority = NotificationPriority.Important,
+                        TargetAudience = TargetAudienceType.SystemAdmin,
+                        RelatedEntityType = "Vehicle",
+                        RelatedEntityId = vehicle.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    foreach (var admin in adminAccounts)
+                    {
+                        notif.Recipients.Add(new NotificationRecipient
+                        {
+                            UserAccountId = admin.Id,
+                            IsRead = false,
+                            CreatedAt = notif.CreatedAt
+                        });
+                    }
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
+    }
+
+    /// <summary>
+    /// Ban quản lý thực hiện Hủy đăng ký xe (chuyển sang Cancelled, giải phóng Quota căn hộ và thông báo cư dân).
+    /// </summary>
+    public async Task CancelVehicleRegistrationByAdminAsync(int vehicleId, string? reason)
+    {
+        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId);
+        if (vehicle == null)
+        {
+            throw new BusinessRuleException("Không tìm thấy phương tiện cần hủy đăng ký.");
+        }
+
+        string finalReason = string.IsNullOrWhiteSpace(reason) ? "Ban quản lý đã thu hồi đăng ký phương tiện" : reason.Trim();
+        vehicle.RegistrationStatus = VehicleRegistrationStatus.Cancelled;
+        vehicle.RejectReason = finalReason;
+        _unitOfWork.Vehicles.Update(vehicle);
+        await _unitOfWork.CompleteAsync();
+
+        // Gửi thông báo kết quả hủy về tài khoản cư dân
+        if (_unitOfWork.Notifications != null && _unitOfWork.UserAccounts != null)
+        {
+            try
+            {
+                var ownerAcc = await _unitOfWork.UserAccounts.GetByResidentIdAsync(vehicle.OwnerId);
+                if (ownerAcc != null && ownerAcc.IsActive)
+                {
+                    var notif = new Notification
+                    {
+                        Title = $"Đã hủy đăng ký phương tiện {vehicle.LicensePlate}",
+                        Content = $"Phương tiện biển số <color=#2563EB><b>{vehicle.LicensePlate}</b></color> ({vehicle.Brand} - {vehicle.Color}) đã được Ban quản lý hoàn tất thủ tục hủy đăng ký. Lý do: <color=#DC2626><b>{finalReason}</b></color>. Chỗ để xe của căn hộ đã được cập nhật lại.",
+                        Type = NotificationType.ApprovalResult,
+                        Priority = NotificationPriority.Important,
+                        TargetAudience = TargetAudienceType.SpecificResidents,
+                        RelatedEntityType = "Vehicle",
+                        RelatedEntityId = vehicle.Id,
+                        CreatedAt = DateTime.Now
+                    };
+                    notif.Recipients.Add(new NotificationRecipient
+                    {
+                        UserAccountId = ownerAcc.Id,
+                        IsRead = false,
+                        CreatedAt = notif.CreatedAt
+                    });
+                    await _unitOfWork.Notifications.AddAsync(notif);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+            catch { }
+        }
     }
 
     private async Task<Vehicle> CreateVehicleCoreAsync(Vehicle vehicle, VehicleRegistrationStatus status)

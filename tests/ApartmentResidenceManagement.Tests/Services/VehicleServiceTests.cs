@@ -245,4 +245,74 @@ public class VehicleServiceTests
         _mockVehicleRepo.Verify(r => r.Update(existing), Times.Once);
         _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task CancelPendingVehicleRegistrationAsync_ValidPending_ShouldChangeStatusToCancelled()
+    {
+        int ownerId = 10;
+        int vehicleId = 15;
+        var vehicle = new Vehicle { Id = vehicleId, OwnerId = ownerId, RegistrationStatus = VehicleRegistrationStatus.Pending };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(vehicleId)).ReturnsAsync(vehicle);
+
+        await _service.CancelPendingVehicleRegistrationAsync(ownerId, vehicleId);
+
+        Assert.Equal(VehicleRegistrationStatus.Cancelled, vehicle.RegistrationStatus);
+        Assert.Equal("Cư dân chủ động hủy đơn đăng ký", vehicle.RejectReason);
+        _mockVehicleRepo.Verify(r => r.Update(vehicle), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task CancelPendingVehicleRegistrationAsync_ApprovedVehicle_ShouldThrowBusinessRuleException()
+    {
+        int ownerId = 10;
+        int vehicleId = 16;
+        var vehicle = new Vehicle { Id = vehicleId, OwnerId = ownerId, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(vehicleId)).ReturnsAsync(vehicle);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CancelPendingVehicleRegistrationAsync(ownerId, vehicleId));
+        Assert.Contains("không thể tự hủy", ex.Message);
+    }
+
+    [Fact]
+    public async Task RequestVehicleCancellationAsync_ApprovedVehicle_ShouldSaveReason()
+    {
+        int ownerId = 10;
+        int vehicleId = 17;
+        var vehicle = new Vehicle { Id = vehicleId, OwnerId = ownerId, LicensePlate = "29A-88888", RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(vehicleId)).ReturnsAsync(vehicle);
+
+        await _service.RequestVehicleCancellationAsync(ownerId, vehicleId, "Bán xe cho người khác");
+
+        Assert.Equal("[Yêu cầu hủy]: Bán xe cho người khác", vehicle.RejectReason);
+        _mockVehicleRepo.Verify(r => r.Update(vehicle), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task CancelVehicleRegistrationByAdminAsync_ShouldSetCancelledStatus()
+    {
+        int vehicleId = 18;
+        var vehicle = new Vehicle { Id = vehicleId, OwnerId = 10, LicensePlate = "29A-99999", RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(vehicleId)).ReturnsAsync(vehicle);
+
+        await _service.CancelVehicleRegistrationByAdminAsync(vehicleId, "Cư dân chuyển nhà");
+
+        Assert.Equal(VehicleRegistrationStatus.Cancelled, vehicle.RegistrationStatus);
+        Assert.Equal("Cư dân chuyển nhà", vehicle.RejectReason);
+        _mockVehicleRepo.Verify(r => r.Update(vehicle), Times.Once);
+        _mockUow.Verify(u => u.CompleteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteVehicleByOwnerAsync_ApprovedVehicle_ShouldThrowBusinessRuleException()
+    {
+        int ownerId = 10;
+        int vehicleId = 19;
+        var vehicle = new Vehicle { Id = vehicleId, OwnerId = ownerId, RegistrationStatus = VehicleRegistrationStatus.Approved };
+        _mockVehicleRepo.Setup(r => r.GetByIdAsync(vehicleId)).ReturnsAsync(vehicle);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteVehicleByOwnerAsync(ownerId, vehicleId));
+        Assert.Contains("không thể tự xóa", ex.Message);
+    }
 }

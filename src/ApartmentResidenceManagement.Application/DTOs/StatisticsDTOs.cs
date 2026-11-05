@@ -144,6 +144,7 @@ public class VehicleReportDetailDto
         VehicleRegistrationStatus.Approved => "Đã duyệt",
         VehicleRegistrationStatus.Pending => "Chờ duyệt",
         VehicleRegistrationStatus.Rejected => "Từ chối",
+        VehicleRegistrationStatus.Cancelled => "Đã hủy",
         _ => "Chưa rõ"
     };
     public DateTime? RegistrationDate { get; set; }

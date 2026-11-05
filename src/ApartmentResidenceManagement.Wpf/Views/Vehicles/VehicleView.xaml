@@ -654,8 +654,8 @@
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
 
-                                    <!-- Cột 9: Thao tác (Icon mắt 👁 và icon bút chì ✏️) -->
-                                    <DataGridTemplateColumn Header="Thao tác" Width="90" MinWidth="85">
+                                    <!-- Cột 9: Thao tác (Xem chi tiết, Sửa, Hủy đăng ký) -->
+                                    <DataGridTemplateColumn Header="Thao tác" Width="125" MinWidth="115">
                                         <DataGridTemplateColumn.HeaderStyle>
                                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
                                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -680,6 +680,15 @@
                                                             CommandParameter="{Binding}"
                                                             ToolTip="Cập nhật phương tiện">
                                                         <TextBlock Text="✏️" FontSize="12" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+
+                                                    <!-- Nút Hủy đăng ký (Icon thùng rác 🗑️ đỏ) -->
+                                                    <Button Style="{StaticResource GridIconButton}"
+                                                            Background="#FEE2E2"
+                                                            Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Hủy đăng ký phương tiện">
+                                                        <TextBlock Text="🗑️" FontSize="11" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Button>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -1037,10 +1046,11 @@
                             </Button>
                         </Grid>
 
-                        <!-- Trường hợp 2: Đã phê duyệt hoặc Đã từ chối -> Hiển thị 1 nút Đóng duy nhất -->
-                        <Button Height="38" Background="#F1F5F9" Foreground="#334155"
-                                BorderBrush="#E2E8F0" BorderThickness="1" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
-                                Command="{Binding CloseDetailCommand}"
+                        <!-- Trường hợp 2: Đã phê duyệt hoặc Đã từ chối / Đã hủy -> Nút Hủy đăng ký -->
+                        <Button Height="38" Background="#FEE2E2" Foreground="#DC2626"
+                                BorderBrush="#FECDD3" BorderThickness="1" FontWeight="SemiBold" FontSize="13" Cursor="Hand"
+                                Command="{Binding DeleteVehicleCommand}" CommandParameter="{Binding SelectedVehicleItem}"
+                                ToolTip="Hủy đăng ký phương tiện này"
                                 Visibility="{Binding SelectedVehicleItem.IsReviewed, Converter={StaticResource BoolToVis}}">
                             <Button.Resources>
                                 <Style TargetType="Border">
@@ -1048,8 +1058,8 @@
                                 </Style>
                             </Button.Resources>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="✕" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Đóng" VerticalAlignment="Center"/>
+                                <TextBlock Text="🗑️" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Hủy đăng ký" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Grid>

@@ -535,6 +535,9 @@
                                                             <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
                                                                 <Setter Property="Background" Value="#FFEBEE"/>
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Cancelled}">
+                                                                <Setter Property="Background" Value="#F1F5F9"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
@@ -551,6 +554,10 @@
                                                                 <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
                                                                     <Setter Property="Text" Value="Từ chối"/>
                                                                     <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Cancelled}">
+                                                                    <Setter Property="Text" Value="Đã hủy"/>
+                                                                    <Setter Property="Foreground" Value="#64748B"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -578,18 +585,80 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <!-- Sửa -->
-                                            <Button Style="{StaticResource GridActionBtn}"
-                                                    Background="#FFF3E0" Foreground="#E65100"
-                                                    Content="Sửa" Margin="0,0,6,0"
+                                            <!-- Nút Sửa: Hiện khi xe Pending hoặc Rejected -->
+                                            <Button Background="#FFF3E0" Foreground="#E65100" Margin="0,0,6,0"
                                                     Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
-                                            <!-- Hủy đăng ký -->
-                                            <Button Style="{StaticResource GridActionBtn}"
-                                                    Background="#FFEBEE" Foreground="{StaticResource ErrorBrush}"
-                                                    Content="Hủy đăng ký"
+                                                    CommandParameter="{Binding}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource GridActionBtn}">
+                                                        <Setter Property="Content" Value="Sửa"/>
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Pending}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Rejected}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                <Setter Property="Content" Value="Sửa lại"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+
+                                            <!-- Nút Hủy đơn: Chỉ hiện khi xe Pending (Chờ duyệt) -->
+                                            <Button Background="#FEE2E2" Foreground="#DC2626" Margin="0,0,6,0"
+                                                    ToolTip="Hủy đơn đăng ký phương tiện"
+                                                    Command="{Binding DataContext.CancelPendingRegistrationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource GridActionBtn}">
+                                                        <Setter Property="Content" Value="Hủy đơn"/>
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Pending}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+
+                                            <!-- Nút Yêu cầu hủy: Chỉ hiện khi xe Approved (Đã duyệt) -->
+                                            <Button Background="#FFF3E0" Foreground="#D97706" Margin="0,0,6,0"
+                                                    ToolTip="Gửi yêu cầu hủy đăng ký xe tới Ban quản lý tòa nhà"
+                                                    Command="{Binding DataContext.RequestCancellationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource GridActionBtn}">
+                                                        <Setter Property="Content" Value="Yêu cầu hủy"/>
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Approved}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+
+                                            <!-- Nút Xóa: Hiện khi xe Cancelled để dọn lịch sử -->
+                                            <Button Background="#F1F5F9" Foreground="#64748B"
+                                                    ToolTip="Xóa phương tiện đã hủy khỏi danh sách"
                                                     Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
+                                                    CommandParameter="{Binding}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource GridActionBtn}">
+                                                        <Setter Property="Content" Value="Xóa"/>
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RegistrationStatus}" Value="{x:Static enums:VehicleRegistrationStatus.Cancelled}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

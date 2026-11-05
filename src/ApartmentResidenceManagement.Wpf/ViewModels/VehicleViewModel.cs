@@ -49,6 +49,7 @@ public class VehicleItem : ViewModelBase
         VehicleRegistrationStatus.Pending => "Chờ duyệt",
         VehicleRegistrationStatus.Approved => "Đã duyệt",
         VehicleRegistrationStatus.Rejected => "Từ chối",
+        VehicleRegistrationStatus.Cancelled => "Đã hủy",
         _ => "Không hợp lệ"
     };
 
@@ -57,6 +58,7 @@ public class VehicleItem : ViewModelBase
         VehicleRegistrationStatus.Pending => "#D97706",
         VehicleRegistrationStatus.Approved => "#16A34A",
         VehicleRegistrationStatus.Rejected => "#DC2626",
+        VehicleRegistrationStatus.Cancelled => "#64748B",
         _ => "#94A3B8"
     };
 
@@ -65,8 +67,11 @@ public class VehicleItem : ViewModelBase
         VehicleRegistrationStatus.Pending => "#FEF3C7",
         VehicleRegistrationStatus.Approved => "#DCFCE7",
         VehicleRegistrationStatus.Rejected => "#FEE2E2",
+        VehicleRegistrationStatus.Cancelled => "#F1F5F9",
         _ => "#F1F5F9"
     };
+
+    public bool IsCancelled => RegistrationStatus == VehicleRegistrationStatus.Cancelled;
 
     public string StatusFgColor => RegistrationStatus switch
     {
@@ -225,7 +230,7 @@ public class VehicleViewModel : ViewModelBase
     }
 
     public List<string> TypeFilterOptions { get; } = new() { "Tất cả", "Xe máy", "Ô tô", "Xe đạp" };
-    public List<string> StatusFilterOptions { get; } = new() { "Tất cả", "Chờ duyệt", "Đã duyệt", "Từ chối" };
+    public List<string> StatusFilterOptions { get; } = new() { "Tất cả", "Chờ duyệt", "Đã duyệt", "Từ chối", "Đã hủy" };
     public List<int> PageSizeOptions { get; } = new() { 8, 12, 16, 24 };
     #endregion
 
@@ -710,6 +715,10 @@ public class VehicleViewModel : ViewModelBase
         {
             filtered = filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Rejected);
         }
+        else if (SelectedStatusFilter == "Đã hủy")
+        {
+            filtered = filtered.Where(v => v.RegistrationStatus == VehicleRegistrationStatus.Cancelled);
+        }
 
         // 3. Lọc theo Text tìm kiếm thông minh tiếng Việt (Biển số, chủ xe, căn hộ, hiệu xe, màu xe)
         if (!string.IsNullOrWhiteSpace(SearchText))
@@ -1049,14 +1058,20 @@ public class VehicleViewModel : ViewModelBase
         }
     }
 
-    private async Task DeleteVehicleAsync(object? parameter)
+        private async Task DeleteVehicleAsync(object? parameter)
     {
-        if (parameter is not VehicleItem item) return;
+        VehicleItem? item = parameter as VehicleItem;
+        if (item == null && SelectedVehicleItem != null)
+        {
+            item = SelectedVehicleItem;
+        }
+
+        if (item == null) return;
         ErrorMessage = string.Empty;
 
         var result = NotificationService.Show(
-            $"Bạn có chắc chắn muốn xóa phương tiện có biển số {item.LicensePlate} của cư dân {item.OwnerName} không?",
-            "Xác nhận xóa phương tiện",
+            $"Bạn có chắc chắn muốn hủy đăng ký phương tiện biển số {item.LicensePlate} của cư dân {item.OwnerName} không?",
+            "Xác nhận hủy đăng ký phương tiện",
             System.Windows.MessageBoxButton.YesNo,
             System.Windows.MessageBoxImage.Warning
         );
@@ -1068,8 +1083,23 @@ public class VehicleViewModel : ViewModelBase
 
         try
         {
-            await _vehicleService.DeleteVehicleAsync(item.Id);
+            if (item.RegistrationStatus == VehicleRegistrationStatus.Approved)
+            {
+                await _vehicleService.CancelVehicleRegistrationByAdminAsync(item.Id, "Ban quản lý đã thu hồi đăng ký phương tiện");
+            }
+            else
+            {
+                await _vehicleService.DeleteVehicleAsync(item.Id);
+            }
+
+            if (SelectedVehicleItem?.Id == item.Id)
+            {
+                SelectedVehicleItem = null;
+                IsDetailPanelOpen = false;
+            }
+
             await LoadDataAsync();
+            SuccessMessage = $"Đã hủy đăng ký phương tiện biển số {item.LicensePlate} thành công.";
         }
         catch (BusinessRuleException ex)
         {
@@ -1077,7 +1107,7 @@ public class VehicleViewModel : ViewModelBase
         }
         catch (Exception)
         {
-            ErrorMessage = "Lỗi hệ thống khi xóa phương tiện.";
+            ErrorMessage = "Lỗi hệ thống khi hủy đăng ký phương tiện.";
         }
     }
 
