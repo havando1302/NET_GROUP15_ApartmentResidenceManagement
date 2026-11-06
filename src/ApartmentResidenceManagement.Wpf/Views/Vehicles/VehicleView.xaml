@@ -163,7 +163,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Icon ô tô tròn xanh dương -->
                 <Border Width="44" Height="44" CornerRadius="22" Background="#EFF6FF" Margin="0,0,14,0" VerticalAlignment="Center">
-                    <TextBlock Text="🚗" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <iconPacks:PackIconMaterial Kind="CarMultiple" Width="22" Height="22" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Quản lý Phương tiện cá nhân" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
@@ -187,8 +187,11 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Card 1: Tổng phương tiện -->
-            <Border Grid.Column="0" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14">
+            <!-- Card 1: Tổng phương tiện (Bấm để xem tất cả) -->
+            <Border Grid.Column="0" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14" Cursor="Hand" ToolTip="Bấm để xem tất cả phương tiện">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding FilterByStatusCommand}" CommandParameter="Tất cả"/>
+                </Border.InputBindings>
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                 </Border.Effect>
@@ -207,8 +210,11 @@
                 </Grid>
             </Border>
 
-            <!-- Card 2: Đã duyệt -->
-            <Border Grid.Column="2" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14">
+            <!-- Card 2: Đã duyệt (Bấm để lọc xe Đã duyệt) -->
+            <Border Grid.Column="2" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14" Cursor="Hand" ToolTip="Bấm để lọc các xe Đã duyệt">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding FilterByStatusCommand}" CommandParameter="Đã duyệt"/>
+                </Border.InputBindings>
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                 </Border.Effect>
@@ -227,10 +233,13 @@
                 </Grid>
             </Border>
 
-            <!-- Card 3: Chờ duyệt -->
-            <Border Grid.Column="4" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14">
+            <!-- Card 3: Chờ duyệt (Bấm để lọc xe Chờ duyệt) -->
+            <Border Grid.Column="4" Background="White" CornerRadius="14" BorderBrush="#FDE68A" BorderThickness="1.5" Padding="14,14" Cursor="Hand" ToolTip="Bấm để lọc ngay các xe Chờ duyệt">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding FilterByStatusCommand}" CommandParameter="Chờ duyệt"/>
+                </Border.InputBindings>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#F59E0B" Opacity="0.12"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -242,13 +251,16 @@
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding PendingVehiclesCount, Mode=OneWay}" FontSize="22" FontWeight="Bold" Foreground="#B45309"/>
-                        <TextBlock Text="Chờ duyệt" FontSize="12.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                        <TextBlock Text="Chờ duyệt" FontSize="12.5" FontWeight="SemiBold" Foreground="#B45309" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Card 4: Từ chối -->
-            <Border Grid.Column="6" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14">
+            <!-- Card 4: Từ chối (Bấm để lọc xe Từ chối) -->
+            <Border Grid.Column="6" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14" Cursor="Hand" ToolTip="Bấm để lọc các xe Từ chối">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding FilterByStatusCommand}" CommandParameter="Từ chối"/>
+                </Border.InputBindings>
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                 </Border.Effect>
@@ -267,8 +279,11 @@
                 </Grid>
             </Border>
 
-            <!-- Card 5: Đã hủy (Lấy từ CSDL theo yêu cầu vận hành) -->
-            <Border Grid.Column="8" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14">
+            <!-- Card 5: Đã hủy (Bấm để lọc xe Đã hủy) -->
+            <Border Grid.Column="8" Background="White" CornerRadius="14" BorderBrush="#F1F5F9" BorderThickness="1" Padding="14,14" Cursor="Hand" ToolTip="Bấm để lọc các xe Đã hủy">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding FilterByStatusCommand}" CommandParameter="Đã hủy"/>
+                </Border.InputBindings>
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                 </Border.Effect>
@@ -676,8 +691,8 @@
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
 
-                                    <!-- Cột 9: Thao tác (Xem chi tiết, Sửa, Hủy đăng ký) -->
-                                    <DataGridTemplateColumn Header="Thao tác" Width="125" MinWidth="115">
+                                    <!-- Cột 9: Thao tác (Xem chi tiết, Duyệt nhanh, Từ chối / Sửa, Hủy) -->
+                                    <DataGridTemplateColumn Header="Thao tác" Width="135" MinWidth="125">
                                         <DataGridTemplateColumn.HeaderStyle>
                                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource AdminGridHeader}">
                                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -686,32 +701,54 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <!-- Nút Xem chi tiết (Icon mắt 👁 xanh dương) -->
+                                                    <!-- Nút Xem chi tiết (Icon mắt xanh dương) -->
                                                     <Button Style="{StaticResource GridIconButton}"
                                                             Background="#EFF6FF"
                                                             Command="{Binding DataContext.ViewVehicleDetailCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                             CommandParameter="{Binding}"
-                                                            ToolTip="Xem chi tiết phương tiện">
-                                                        <TextBlock Text="👁" FontSize="13" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            ToolTip="Xem chi tiết &amp; xét duyệt phương tiện">
+                                                        <iconPacks:PackIconMaterial Kind="EyeOutline" Width="14" Height="14" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Button>
 
-                                                    <!-- Nút Sửa (Icon bút chì ✏️ cam) -->
+                                                    <!-- Khi xe ĐANG CHỜ DUYỆT: Nút Duyệt nhanh (✓ xanh lá) -->
+                                                    <Button Style="{StaticResource GridIconButton}"
+                                                            Background="#DCFCE7"
+                                                            Command="{Binding DataContext.ApproveVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Phê duyệt phương tiện này"
+                                                            Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}}">
+                                                        <iconPacks:PackIconMaterial Kind="Check" Width="14" Height="14" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+
+                                                    <!-- Khi xe ĐANG CHỜ DUYỆT: Nút Từ chối (✕ đỏ) -->
+                                                    <Button Style="{StaticResource GridIconButton}"
+                                                            Background="#FEE2E2"
+                                                            Command="{Binding DataContext.RejectVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            ToolTip="Từ chối đăng ký phương tiện"
+                                                            Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}}">
+                                                        <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
+
+                                                    <!-- Khi xe KHÔNG PHẢI CHỜ DUYỆT: Nút Sửa (Icon bút chì cam) -->
                                                     <Button Style="{StaticResource GridIconButton}"
                                                             Background="#FEF3C7"
                                                             Command="{Binding DataContext.OpenEditFormCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                             CommandParameter="{Binding}"
-                                                            ToolTip="Cập nhật phương tiện">
-                                                        <TextBlock Text="✏️" FontSize="12" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            ToolTip="Cập nhật phương tiện"
+                                                            Visibility="{Binding IsReviewed, Converter={StaticResource BoolToVis}}">
+                                                        <iconPacks:PackIconMaterial Kind="PencilOutline" Width="14" Height="14" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Button>
 
-                                                    <!-- Nút Hủy đăng ký (Icon thùng rác 🗑️ đỏ) -->
+                                                    <!-- Khi xe KHÔNG PHẢI CHỜ DUYỆT: Nút Hủy đăng ký (Icon thùng rác đỏ) -->
                                                     <Button Style="{StaticResource GridIconButton}"
                                                             Background="#FEE2E2"
                                                             Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                             CommandParameter="{Binding}"
-                                                            ToolTip="Hủy đăng ký phương tiện">
-                                                <iconPacks:PackIconMaterial Kind="TrashCanOutline" Width="14" Height="14" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
+                                                            ToolTip="Hủy đăng ký phương tiện"
+                                                            Visibility="{Binding IsReviewed, Converter={StaticResource BoolToVis}}">
+                                                        <iconPacks:PackIconMaterial Kind="TrashCanOutline" Width="14" Height="14" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Button>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -798,11 +835,11 @@
                         <RowDefinition Height="Auto"/> <!-- Nút hành động phê duyệt / từ chối ở đáy -->
                     </Grid.RowDefinitions>
 
-                    <!-- Header: ⓘ Chi tiết phương tiện + Nút ✕ Tắt tab -->
+                    <!-- Header: Chi tiết phương tiện + Nút ✕ Tắt tab -->
                     <Grid Grid.Row="0" Margin="0,0,0,14">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Width="26" Height="26" CornerRadius="13" Background="#EFF6FF" Margin="0,0,8,0">
-                                <TextBlock Text="ⓘ" FontSize="14" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <iconPacks:PackIconMaterial Kind="InformationOutline" Width="14" Height="14" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="Chi tiết phương tiện" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -814,12 +851,12 @@
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="bdClose" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <TextBlock x:Name="txtClose" Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
+                                        <iconPacks:PackIconMaterial x:Name="icoClose" Kind="Close" Width="14" Height="14" Foreground="#94A3B8"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="bdClose" Property="Background" Value="#F1F5F9"/>
-                                            <Setter TargetName="txtClose" Property="Foreground" Value="#0F172A"/>
+                                            <Setter TargetName="icoClose" Property="Foreground" Value="#0F172A"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -919,62 +956,62 @@
                                 <StackPanel>
                                     <!-- Chủ phương tiện -->
                                     <Grid Margin="0,4">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="👤" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
-                                            <TextBlock Text="Chủ phương tiện:" FontSize="12.5" Foreground="#64748B"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="AccountOutline" Width="13" Height="13" Margin="0,0,6,0" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Chủ phương tiện:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding SelectedVehicleItem.OwnerName}" HorizontalAlignment="Right"
-                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                     </Grid>
 
                                     <!-- Căn hộ -->
                                     <Grid Margin="0,6">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🏠" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
-                                            <TextBlock Text="Căn hộ:" FontSize="12.5" Foreground="#64748B"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="HomeOutline" Width="13" Height="13" Margin="0,0,6,0" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Căn hộ:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding SelectedVehicleItem.ApartmentNumber}" HorizontalAlignment="Right"
-                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                     </Grid>
 
                                     <!-- Loại xe -->
                                     <Grid Margin="0,6">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🪪" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
-                                            <TextBlock Text="Loại xe:" FontSize="12.5" Foreground="#64748B"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="CardAccountDetailsOutline" Width="13" Height="13" Margin="0,0,6,0" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Loại xe:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding SelectedVehicleItem.VehicleTypeText}" HorizontalAlignment="Right"
-                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                     </Grid>
 
                                     <!-- Hãng xe -->
                                     <Grid Margin="0,6">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🏷" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
-                                            <TextBlock Text="Hãng xe:" FontSize="12.5" Foreground="#64748B"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="TagOutline" Width="13" Height="13" Margin="0,0,6,0" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Hãng xe:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding SelectedVehicleItem.Brand}" HorizontalAlignment="Right"
-                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                     </Grid>
 
                                     <!-- Màu xe -->
                                     <Grid Margin="0,6">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🎨" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
-                                            <TextBlock Text="Màu xe:" FontSize="12.5" Foreground="#64748B"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="PaletteOutline" Width="13" Height="13" Margin="0,0,6,0" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Màu xe:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding SelectedVehicleItem.Color}" HorizontalAlignment="Right"
-                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                     </Grid>
 
                                     <!-- Ngày đăng ký -->
                                     <Grid Margin="0,4">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="📅" FontSize="12" Margin="0,0,6,0" Foreground="#64748B"/>
-                                            <TextBlock Text="Ngày đăng ký:" FontSize="12.5" Foreground="#64748B"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="CalendarBlankOutline" Width="13" Height="13" Margin="0,0,6,0" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Ngày đăng ký:" FontSize="12.5" Foreground="#64748B" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding SelectedVehicleItem.RegistrationDateFormatted}" HorizontalAlignment="Right"
-                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                   FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -999,8 +1036,8 @@
                                 <StackPanel>
                                     <!-- Hạn mức Xe máy -->
                                     <Grid Margin="0,0,0,6">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🛵" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="Moped" Width="14" Height="14" Margin="0,0,6,0" Foreground="#16A34A" VerticalAlignment="Center"/>
                                             <TextBlock Text="Xe máy:" FontSize="12.5" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding MotoQuotaText}" HorizontalAlignment="Right"
@@ -1012,8 +1049,8 @@
 
                                     <!-- Hạn mức Ô tô -->
                                     <Grid Margin="0,0,0,6">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🚗" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="Car" Width="14" Height="14" Margin="0,0,6,0" Foreground="#EAB308" VerticalAlignment="Center"/>
                                             <TextBlock Text="Ô tô:" FontSize="12.5" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding CarQuotaText}" HorizontalAlignment="Right"
@@ -1047,7 +1084,7 @@
                                     </Style>
                                 </Button.Resources>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="✓" FontSize="13" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <iconPacks:PackIconMaterial Kind="Check" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Phê duyệt" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -1062,7 +1099,7 @@
                                     </Style>
                                 </Button.Resources>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="✕" FontSize="12" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Từ chối" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>

@@ -930,6 +930,7 @@ public class VehicleViewModel : ViewModelBase
     public ICommand ApproveVehicleCommand { get; }
 
     public ICommand RejectVehicleCommand { get; }
+    public ICommand FilterByStatusCommand { get; }
 
 
 
@@ -982,6 +983,13 @@ public class VehicleViewModel : ViewModelBase
         LoadVehiclesCommand = new AsyncRelayCommand(_ => LoadDataAsync());
 
         ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty);
+        FilterByStatusCommand = new RelayCommand(p =>
+        {
+            if (p is string s)
+            {
+                SelectedStatusFilter = s;
+            }
+        });
 
         OpenAddFormCommand = new RelayCommand(_ => OpenAddForm());
 
@@ -1474,7 +1482,11 @@ public class VehicleViewModel : ViewModelBase
 
 
 
-        _filteredVehicles = filtered.ToList();
+        // Sắp xếp ưu tiên: Các xe "Chờ duyệt" luôn nổi lên đầu trang để Quản trị viên dễ dàng thấy và duyệt ngay
+        _filteredVehicles = filtered
+            .OrderByDescending(v => v.RegistrationStatus == VehicleRegistrationStatus.Pending)
+            .ThenByDescending(v => v.Id)
+            .ToList();
 
         CalculatePagination();
 

@@ -24,11 +24,15 @@ public static class DatabaseInitializer
         }
         catch { }
 
-        // Đảm bảo cột RejectReason tồn tại trong Vehicles
+        // Đảm bảo cột RejectReason tồn tại trong Vehicles (tránh throw exception duplicate column)
         try
         {
-            await context.Database.ExecuteSqlRawAsync(
-                "ALTER TABLE Vehicles ADD COLUMN RejectReason varchar(500) NULL;");
+            var hasCol = await context.Database.SqlQueryRaw<int>(
+                "SELECT COUNT(1) AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Vehicles' AND COLUMN_NAME = 'RejectReason';").FirstOrDefaultAsync();
+            if (hasCol == 0)
+            {
+                await context.Database.ExecuteSqlRawAsync("ALTER TABLE Vehicles ADD COLUMN RejectReason varchar(500) NULL;");
+            }
         }
         catch { }
 

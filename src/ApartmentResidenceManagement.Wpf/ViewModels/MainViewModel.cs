@@ -467,11 +467,11 @@ public class MainViewModel : ViewModelBase
             RoleMessage = $"Cư dân ({_account.Username})";
         }
 
-        // Đặt Tab mặc định ban đầu dựa vào Role
+        // Đặt Tab mặc định ban đầu dựa vào Role (Vào thẳng trang Tổng quan cho Admin)
         if (IsAdmin)
         {
-            _currentViewModel = ApartmentVm;
-            _ = SafeExecuteAsync(() => ApartmentVm.LoadDataAsync());
+            _currentViewModel = DashboardVm;
+            _ = SafeExecuteAsync(() => DashboardVm.LoadStatsAsync());
         }
         else
         {
@@ -515,6 +515,7 @@ public class MainViewModel : ViewModelBase
             switch (dest?.ToLowerInvariant())
             {
                 case "vehicle":
+                    VehicleVm.SelectedStatusFilter = "Chờ duyệt";
                     ShowVehicleCommand.Execute(null);
                     break;
                 case "residency":
